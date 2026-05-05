@@ -68,6 +68,7 @@ export class DetalleBebePage implements OnInit {
   actividades: Actividad[] = [];
   showModalNota = false;
   nuevaNota = '';
+indiceNotaEditando: number | null = null;
 
   async ngOnInit() {
     addIcons({
@@ -136,11 +137,14 @@ export class DetalleBebePage implements OnInit {
 
   abrirModalNota() {
   this.nuevaNota = '';
+  this.indiceNotaEditando = null;
   this.showModalNota = true;
 }
 
 cerrarModalNota() {
   this.showModalNota = false;
+  this.nuevaNota = '';
+  this.indiceNotaEditando = null;
 }
 
 async guardarNota() {
@@ -150,17 +154,44 @@ async guardarNota() {
     return;
   }
 
+  const notasActuales = [...(this.bebe.notas || [])];
+
+  if (this.indiceNotaEditando !== null) {
+    notasActuales[this.indiceNotaEditando] = nota;
+  } else {
+    notasActuales.push(nota);
+  }
+
   this.bebe = {
     ...this.bebe,
-    notas: [
-      ...(this.bebe.notas || []),
-      nota
-    ]
+    notas: notasActuales
   };
 
   await this.configuracionService.guardarBebePrincipal(this.bebe);
 
-  this.nuevaNota = '';
-  this.showModalNota = false;
+  this.cerrarModalNota();
+}
+
+abrirModalEditarNota(index: number, nota: string) {
+  this.indiceNotaEditando = index;
+  this.nuevaNota = nota;
+  this.showModalNota = true;
+}
+
+async eliminarNota(index: number) {
+  if (!this.bebe) {
+    return;
+  }
+
+  const notasActuales = [...(this.bebe.notas || [])];
+
+  notasActuales.splice(index, 1);
+
+  this.bebe = {
+    ...this.bebe,
+    notas: notasActuales
+  };
+
+  await this.configuracionService.guardarBebePrincipal(this.bebe);
 }
 }

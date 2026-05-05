@@ -60,7 +60,7 @@
     <ion-button
       fill="clear"
       size="small"
-      color="primary"
+      color="success"
       (click)="abrirModalNota()">
       <ion-icon name="add-circle-outline" slot="start"></ion-icon>
     </ion-button>
@@ -72,12 +72,28 @@
   *ngIf="bebe.notas && bebe.notas.length; else sinNotas">
 
   <ion-item
-    lines="none"
-    *ngFor="let nota of bebe.notas"
-    class="nota-item">
+  lines="none"
+  *ngFor="let nota of bebe.notas; let i = index"
+  class="nota-item">
 
-    <ion-label>{{ nota }}</ion-label>
-  </ion-item>
+  <ion-label>{{ nota }}</ion-label>
+
+  <ion-buttons slot="end">
+    <ion-button
+      fill="clear"
+      color="primary"
+      (click)="abrirModalEditarNota(i, nota)">
+      <ion-icon name="create-outline"></ion-icon>
+    </ion-button>
+
+    <ion-button
+      fill="clear"
+      color="danger"
+      (click)="eliminarNota(i)">
+      <ion-icon name="trash-outline"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+</ion-item>
 </ion-list>
 
   <ng-template #sinNotas>
@@ -92,8 +108,7 @@
   <ng-template>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Nueva nota</ion-title>
-
+<ion-title>{{ indiceNotaEditando !== null ? 'Editar nota' : 'Nueva nota' }}</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="cerrarModalNota()" color="medium">
             <ion-icon name="close"></ion-icon>
@@ -116,11 +131,11 @@
       </ion-list>
 
       <ion-button
-        expand="block"
-        class="ion-margin-top"
-        (click)="guardarNota()">
-        Guardar nota
-      </ion-button>
+  expand="block"
+  class="ion-margin-top"
+  (click)="guardarNota()">
+  {{ indiceNotaEditando !== null ? 'Guardar cambios' : 'Guardar nota' }}
+</ion-button>
     </ion-content>
   </ng-template>
 </ion-modal>
