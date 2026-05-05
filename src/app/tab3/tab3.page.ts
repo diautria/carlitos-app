@@ -16,6 +16,7 @@ import { ConfiguracionService } from '../services/configuracion.service';
 import { Bebe } from '../models/bebe.model';
 import { createOutline, imageOutline, personCircleOutline, trashOutline, close } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
+import { NotificacionVacunasService } from '../services/notificacion-vacunas.service';
 
 @Component({
   selector: 'app-tab3',
@@ -62,7 +63,7 @@ export class Tab3Page implements OnInit {
 
   bebeForm = { ...this.bebe };
 
-  constructor(private configuracionService: ConfiguracionService) {}
+  constructor(private configuracionService: ConfiguracionService, private notificacionVacunasService: NotificacionVacunasService) {}
 
   async ngOnInit() {
     addIcons({
@@ -134,6 +135,8 @@ export class Tab3Page implements OnInit {
   };
 
   await this.configuracionService.guardarBebePrincipal(this.bebe);
+
+  await this.notificacionVacunasService.programarNotificacionProximaVacuna(this.bebe);
 
   this.showModalBebe = false;
   this.mensajeGuardado = 'Datos del bebé guardados correctamente.';
