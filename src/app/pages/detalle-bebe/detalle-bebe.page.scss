@@ -1,0 +1,165 @@
+.detalle-container {
+  padding: 16px;
+}
+
+.bebe-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0;
+}
+
+.bebe-avatar-large {
+  width: 120px;
+  height: 120px;
+  border: 4px solid var(--ion-color-primary);
+  margin-bottom: 16px;
+}
+
+.bebe-nombre {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  margin: 0;
+}
+
+.bebe-edad {
+  font-size: 1.125rem;
+  color: var(--ion-color-medium);
+  margin: 4px 0 0 0;
+}
+
+.bebe-stats {
+  display: flex;
+  justify-content: space-around;
+  background: var(--ion-color-light);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  
+  ion-icon {
+    font-size: 1.5rem;
+    color: var(--ion-color-primary);
+  }
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+}
+
+.titulo-seccion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+  margin-bottom: 16px;
+  
+  ion-icon {
+    font-size: 1.5rem;
+  }
+}
+
+.seccion-notas {
+  margin-bottom: 24px;
+}
+
+.notas-list {
+  background: var(--ion-color-light);
+  border-radius: 16px;
+  overflow: hidden;
+  
+  ion-item {
+    --background: var(--ion-color-light);
+    --padding-start: 16px;
+  }
+}
+
+.nota-item {
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  ion-label {
+    color: var(--ion-color-dark);
+  }
+}
+
+.seccion-actividades {
+  margin-top: 16px;
+}
+
+.actividades-list {
+  background: transparent;
+  
+  ion-item {
+    --background: var(--ion-color-light);
+    --padding-start: 16px;
+    --padding-end: 8px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+  }
+}
+
+.actividad-titulo {
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.actividad-desc {
+  color: var(--ion-color-medium);
+  font-size: 0.875rem;
+}
+
+.actividad-fecha {
+  color: var(--ion-color-secondary);
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.bebe-avatar-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.bebe-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bebe-avatar-large ion-icon {
+  font-size: 64px;
+  color: var(--ion-color-primary);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-header .titulo-seccion {
+  margin: 0;
+}

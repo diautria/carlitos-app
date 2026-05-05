@@ -1,0 +1,7 @@
+{
+  "name": "bebecitoApp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

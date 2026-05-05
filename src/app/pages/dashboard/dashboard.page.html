@@ -1,0 +1,71 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Mi Bebé</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="dashboard-container">
+    <!-- Sección de Bebés -->
+    <section class="seccion-bebes">
+      <h2 class="titulo-seccion">
+        <ion-icon name="people"></ion-icon>
+        Mi Bebé
+      </h2>
+      
+      <div class="bebes-grid">
+        <ion-card *ngFor="let bebe of bebes" [routerLink]="['/detalle', bebe.id]" class="bebe-card">
+          <ion-card-header>
+            <div class="bebe-avatar-container">
+              <ion-avatar class="bebe-avatar">
+                <img [src]="bebe.foto" [alt]="bebe.nombre">
+              </ion-avatar>
+            </div>
+            <ion-card-title class="bebe-nombre">{{ bebe.nombre }}</ion-card-title>
+          </ion-card-header>
+          
+          <ion-card-content>
+            <div class="bebe-info">
+              <div class="info-item">
+                <span class="info-label">Edad</span>
+                <span class="info-value">{{ bebe.edad }} meses</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Peso</span>
+                <span class="info-value">{{ bebe.peso }} kg</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Altura</span>
+                <span class="info-value">{{ bebe.altura }} cm</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </section>
+
+    <!-- Sección de Actividades Recientes -->
+    <section class="seccion-actividades">
+      <h2 class="titulo-seccion">
+        <ion-icon name="time"></ion-icon>
+        Actividad Reciente
+      </h2>
+      
+      <ion-list class="actividades-list">
+        <ion-item *ngFor="let actividad of actividadesRecientes" class="actividad-item">
+          <ion-icon 
+            [name]="getIconoTipo(actividad.tipo)" 
+            [color]="getColorTipo(actividad.tipo)"
+            slot="start">
+          </ion-icon>
+          <ion-label>
+            <h3 class="actividad-titulo">{{ actividad.titulo }}</h3>
+            <p class="actividad-desc">{{ actividad.descripcion }}</p>
+            <p class="actividad-fecha">{{ formatearFecha(actividad.fecha) }}</p>
+          </ion-label>
+          <ion-icon name="chevron-forward" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </section>
+  </div>
+</ion-content>

@@ -1,0 +1,59 @@
+.config-list {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.foto-bebe-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.foto-bebe-preview {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--ion-color-light);
+  border: 3px solid var(--ion-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foto-bebe-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.foto-bebe-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.foto-bebe-preview {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--ion-color-light);
+  border: 3px solid var(--ion-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foto-bebe-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.foto-bebe-preview ion-icon {
+  font-size: 64px;
+  color: var(--ion-color-medium);
+}

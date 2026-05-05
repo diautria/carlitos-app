@@ -1,0 +1,109 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="dashboard-container">
+    <!-- Sección de Bebés -->
+    <section class="seccion-bebes">
+      <ion-card *ngFor="let bebe of bebes" [routerLink]="['/detalle', bebe.id]" class="bebe-card">
+        <ion-card-header>
+          <div class="bebe-avatar-container">
+            <ion-avatar class="bebe-avatar">
+  <img
+    *ngIf="bebe.foto; else sinFotoTab1"
+    [src]="bebe.foto"
+    [alt]="bebe.nombre">
+
+  <ng-template #sinFotoTab1>
+    <ion-icon name="person-outline"></ion-icon>
+  </ng-template>
+</ion-avatar>
+          </div>
+          <ion-card-title class="bebe-nombre">{{ bebe.nombre }}</ion-card-title>
+        </ion-card-header>
+        
+        <ion-card-content>
+          <div class="bebe-info">
+            <div class="info-item">
+              <span class="info-label">Edad</span>
+              <span class="info-value">{{ bebe.edad }} meses</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Peso</span>
+              <span class="info-value">{{ bebe.peso }} kg</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Altura</span>
+              <span class="info-value">{{ bebe.altura }} cm</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </section>
+
+<section class="seccion-progreso-onzas">
+  <ion-card class="progreso-onzas-card">
+    <ion-card-content>
+      <div class="progreso-porcentaje">
+        {{ porcentajeOnzas }}%
+      </div>
+
+      <ion-progress-bar
+        color="success"
+        [value]="progresoOnzas">
+      </ion-progress-bar>
+
+      <p class="progreso-detalle">
+        Faltan {{ onzasRestantes  }} oz de {{ onzasDiariasObjetivo }} oz
+      </p>
+    </ion-card-content>
+  </ion-card>
+</section>
+    
+    <!-- Sección de Actividades Recientes -->
+    <section class="seccion-actividades">
+      <div class="actividad-header">
+        <h2 class="titulo-seccion">
+          <ion-icon name="time"></ion-icon>
+          Actividad Reciente
+        </h2>
+
+        <ion-button
+          *ngIf="actividadesRecientes.length > 0"
+          fill="clear"
+          size="small"
+          color="success"
+          (click)="compartirActividadesDelDiaPorWhatsapp()">
+          <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
+        </ion-button>
+      </div>
+      
+      <ion-list
+        class="actividades-list"
+        *ngIf="actividadesRecientes.length > 0; else sinActividadesHoy">
+
+        <ion-item *ngFor="let actividad of actividadesRecientes" class="actividad-item">
+          <ion-icon
+            [name]="getIconoActividad(actividad)"
+            [color]="getColorActividad(actividad)"
+            slot="start">
+          </ion-icon>
+
+          <ion-label>
+            <h3 class="actividad-titulo">{{ getTituloActividad(actividad) }}</h3>
+            <p class="actividad-desc">{{ getDescripcionActividad(actividad) }}</p>
+            <p class="actividad-fecha">{{ actividad.time | date:'HH:mm' }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ng-template #sinActividadesHoy>
+        <div class="empty-state">
+          <p>No hay actividades registradas hoy.</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+</ion-content>

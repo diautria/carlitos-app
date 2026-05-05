@@ -1,0 +1,189 @@
+.dashboard-container {
+  padding: 16px;
+}
+
+.titulo-seccion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+  margin-bottom: 16px;
+  
+  ion-icon {
+    font-size: 1.5rem;
+  }
+}
+
+.seccion-bebes {
+  margin-bottom: 8px;
+}
+
+.bebes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.bebe-card {
+  margin: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  
+  ion-card-header {
+    padding-bottom: 8px;
+    text-align: center;
+  }
+}
+
+.bebe-avatar-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.bebe-avatar {
+  width: 80px;
+  height: 80px;
+  border: 3px solid var(--ion-color-primary);
+}
+
+.bebe-nombre {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.bebe-info {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 8px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ion-color-dark);
+}
+
+.seccion-actividades {
+  margin-top: 16px;
+}
+
+.actividades-list {
+  background: transparent;
+  border-radius: 16px;
+  overflow: hidden;
+  
+  ion-item {
+    --background: var(--ion-color-light);
+    --padding-start: 16px;
+    --padding-end: 8px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+  }
+}
+
+.actividad-titulo {
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.actividad-desc {
+  color: var(--ion-color-medium);
+  font-size: 0.875rem;
+}
+
+.actividad-fecha {
+  color: var(--ion-color-secondary);
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.seccion-progreso-onzas {
+  margin: 12px 16px;
+}
+
+.progreso-onzas-card {
+  margin: 0;
+  border-radius: 18px;
+}
+
+ion-progress-bar {
+  height: 18px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progreso-detalle {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+}
+
+.seccion-progreso-onzas {
+  margin: 12px 0;
+}
+
+.bebe-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--ion-color-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bebe-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.bebe-avatar ion-icon {
+  font-size: 56px;
+  color: var(--ion-color-primary);
+}
+
+.actividad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.actividad-header .titulo-seccion {
+  margin: 0;
+}
+
+.actividad-header ion-button {
+  --padding-start: 6px;
+  --padding-end: 6px;
+  font-size: 0.82rem;
+}

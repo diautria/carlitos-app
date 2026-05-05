@@ -1,0 +1,243 @@
+.empty-state {
+  text-align: center;
+  margin-top: 3rem;
+  color: var(--ion-color-medium);
+}
+
+ion-modal {
+  --width: 90vw;
+  --max-width: 380px;
+  --border-radius: 16px;
+  --background: var(--ion-color-light);
+  --max-height: 80vh;
+}
+
+.activities-list {
+  padding: 8px;
+}
+
+.modal-form {
+  padding: 16px;
+}
+
+.form-section {
+  margin-bottom: 16px;
+}
+
+.section-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.time-picker {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+}
+
+.time-picker ion-datetime {
+  --padding-start: 8px;
+  --padding-end: 8px;
+}
+
+.custom-input {
+  --background: var(--ion-color-light);
+  --border-radius: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding: 12px;
+  margin-top: 4px;
+}
+
+.type-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.type-buttons ion-button {
+  flex: 1;
+  --border-radius: 8px;
+  font-size: 13px;
+}
+
+.save-button {
+  margin-top: 20px;
+  --border-radius: 12px;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.icono-panal-activo {
+  color: var(--ion-color-warning);
+}
+
+.year-content {
+  padding: 8px 0 12px;
+}
+
+.month-header {
+  --background: var(--ion-color-light);
+  margin: 4px 12px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.month-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+}
+
+.activity-count-badge {
+  color: #fff;
+  min-width: 28px;
+  height: 24px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.activity-icon-small {
+  font-size: 12.5px;
+  margin-right: 7px;
+  margin-top: 8px;
+}
+
+.date-title {
+  padding: 10px 16px 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+  text-transform: capitalize;
+}
+
+.estadisticas-button-container {
+  padding: 12px 16px 4px;
+}
+
+.estadisticas-button-container ion-button {
+  --border-radius: 14px;
+}
+
+.estadisticas-content {
+  --background: #f6f7fb;
+}
+
+.estadisticas-periodo {
+  width: fit-content;
+  margin: 0 auto 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  color: var(--ion-color-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.estadisticas-card {
+  margin: 0 0 16px;
+  border-radius: 20px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.estadisticas-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.estadisticas-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.estadisticas-icon ion-icon {
+  font-size: 25px;
+}
+
+.estadisticas-icon.leche {
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  color: var(--ion-color-primary);
+}
+
+.estadisticas-icon.panal {
+  background: rgba(var(--ion-color-warning-rgb), 0.18);
+  color: var(--ion-color-warning);
+}
+
+.estadisticas-card ion-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.estadisticas-card ion-card-header p {
+  margin: 4px 0 0;
+  color: var(--ion-color-medium);
+  font-size: 0.85rem;
+}
+
+.estadistica-principal {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--ion-color-light);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.estadistica-principal span {
+  display: block;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--ion-color-primary);
+  line-height: 1;
+}
+
+.estadistica-principal small {
+  display: block;
+  margin-top: 6px;
+  color: var(--ion-color-medium);
+  font-weight: 600;
+}
+
+.estadisticas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.estadistica-box {
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--ion-color-light);
+  text-align: center;
+}
+
+.estadistica-box strong {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ion-text-color);
+}
+
+.estadistica-box span {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+}
