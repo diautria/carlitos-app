@@ -74,7 +74,7 @@ getIconoActividad(actividad: any): string {
   }
 
   if (actividad.type === 'cambio-panal') {
-    return actividad.tieneHeces ? 'medium' : 'success';
+    return actividad.tieneHeces ? 'warning' : 'success';
   }
 
   return 'medium';
@@ -99,7 +99,9 @@ getIconoActividad(actividad: any): string {
 
   private async cargarActividadesDeHoy() {
     this.actividadesRecientes = (await this.activityService.getByDay(new Date()))
-      .sort((a, b) => b.time.localeCompare(a.time));
+      .sort((a, b) => {
+        return new Date(b.time).getTime() - new Date(a.time).getTime();
+      });
   }
 
   getTituloActividad(actividad: Activity): string {

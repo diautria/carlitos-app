@@ -43,13 +43,14 @@
         <ion-segment-button value="cambio-panal">
           <ion-icon
             name="leaf"
-            [class.icono-panal-activo]="selectedTab === 'cambio-panal'">
+            >
           </ion-icon>
           <ion-label>Cambios de pañal</ion-label>
         </ion-segment-button>
       </ion-segment>
 
       <div class="activities-list">
+        <!-- Tomas de leche -->
         <ng-container *ngIf="selectedTab === 'toma-leche'">
           <ion-accordion-group
             multiple="true"
@@ -87,50 +88,64 @@
                     </ion-item>
 
                     <div slot="content">
-                      <ng-container
-                        *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate">
+                      <ion-accordion-group
+                        multiple="true"
+                        (ionChange)="$event.stopPropagation()">
 
-                        <div class="date-title">
-                          {{ formatDateGroup(grupoFecha.fecha) }}
-                        </div>
+                        <ion-accordion
+                          *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate"
+                          [value]="grupoFecha.fecha">
 
-                        <ion-list lines="full">
-                          <ion-item
-                            *ngFor="let act of grupoFecha.activities; trackBy: trackByActivity">
-
-                            <ion-icon
-                              slot="start"
-                              class="activity-icon-small"
-                              [name]="$any(act).esLecheMaterna ? 'heart' : 'flask'"
-                              [color]="$any(act).esLecheMaterna ? 'danger' : 'primary'">
-                            </ion-icon>
-
+                          <ion-item slot="header" class="date-header">
                             <ion-label>
-                              <p>
-                                {{ act.time | date:'HH:mm' }} ·
-                                {{ $any(act).cantidadOnzas }} oz ·
-                                {{ $any(act).esLecheMaterna ? 'Materna' : 'Fórmula' }}
-                              </p>
+                              <h4>{{ formatDateGroup(grupoFecha.fecha) }}</h4>
                             </ion-label>
 
-                            <ion-button
-                              slot="end"
-                              fill="clear"
-                              color="primary"
-                              (click)="$event.stopPropagation(); openEditModal(act)">
-                              <ion-icon name="create-outline"></ion-icon>
-                            </ion-button>
-
-                            <ion-button
-                              slot="end"
-                              fill="clear"
-                              color="danger"
-                              (click)="$event.stopPropagation(); deleteActivity(act.id)">
-                              <ion-icon name="trash-outline"></ion-icon>
-                            </ion-button>
+                            <ion-badge slot="end" class="activity-count-badge">
+                              {{ grupoFecha.activities.length }}
+                            </ion-badge>
                           </ion-item>
-                        </ion-list>
-                      </ng-container>
+
+                          <div slot="content">
+                            <ion-list lines="full">
+                              <ion-item
+                                *ngFor="let act of grupoFecha.activities; trackBy: trackByActivity">
+
+                                <ion-icon
+                                  slot="start"
+                                  class="activity-icon-small"
+                                  [name]="$any(act).esLecheMaterna ? 'heart' : 'flask'"
+                                  [color]="$any(act).esLecheMaterna ? 'danger' : 'primary'">
+                                </ion-icon>
+
+                                <ion-label>
+                                  <p>
+                                    {{ act.time | date:'HH:mm' }} ·
+                                    {{ $any(act).cantidadOnzas }} oz ·
+                                    {{ $any(act).esLecheMaterna ? 'Materna' : 'Fórmula' }}
+                                  </p>
+                                </ion-label>
+
+                                <ion-button
+                                  slot="end"
+                                  fill="clear"
+                                  color="primary"
+                                  (click)="$event.stopPropagation(); openEditModal(act)">
+                                  <ion-icon name="create-outline"></ion-icon>
+                                </ion-button>
+
+                                <ion-button
+                                  slot="end"
+                                  fill="clear"
+                                  color="danger"
+                                  (click)="$event.stopPropagation(); deleteActivity(act.id)">
+                                  <ion-icon name="trash-outline"></ion-icon>
+                                </ion-button>
+                              </ion-item>
+                            </ion-list>
+                          </div>
+                        </ion-accordion>
+                      </ion-accordion-group>
                     </div>
                   </ion-accordion>
                 </ion-accordion-group>
@@ -139,6 +154,7 @@
           </ion-accordion-group>
         </ng-container>
 
+        <!-- Cambios de pañal -->
         <ng-container *ngIf="selectedTab === 'cambio-panal'">
           <ion-accordion-group
             multiple="true"
@@ -176,50 +192,64 @@
                     </ion-item>
 
                     <div slot="content">
-                      <ng-container
-                        *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate">
+                      <ion-accordion-group
+                        multiple="true"
+                        (ionChange)="$event.stopPropagation()">
 
-                        <div class="date-title">
-                          {{ formatDateGroup(grupoFecha.fecha) }}
-                        </div>
+                        <ion-accordion
+                          *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate"
+                          [value]="grupoFecha.fecha">
 
-                        <ion-list lines="full">
-                          <ion-item
-                            *ngFor="let act of grupoFecha.activities; trackBy: trackByActivity">
-
-                            <ion-icon
-                              slot="start"
-                              class="activity-icon-small"
-                              name="leaf"
-                              [color]="$any(act).tieneHeces ? 'medium' : 'success'">
-                            </ion-icon>
-
+                          <ion-item slot="header" class="date-header">
                             <ion-label>
-                              <p>
-                                {{ act.time | date:'HH:mm' }} ·
-                                <span *ngIf="$any(act).tieneHeces">Con popó</span>
-                                <span *ngIf="!$any(act).tieneHeces">Solo pipí</span>
-                              </p>
+                              <h4>{{ formatDateGroup(grupoFecha.fecha) }}</h4>
                             </ion-label>
 
-                            <ion-button
-                              slot="end"
-                              fill="clear"
-                              color="primary"
-                              (click)="$event.stopPropagation(); openEditModal(act)">
-                              <ion-icon name="create-outline"></ion-icon>
-                            </ion-button>
-
-                            <ion-button
-                              slot="end"
-                              fill="clear"
-                              color="danger"
-                              (click)="$event.stopPropagation(); deleteActivity(act.id)">
-                              <ion-icon name="trash-outline"></ion-icon>
-                            </ion-button>
+                            <ion-badge slot="end" class="activity-count-badge">
+                              {{ grupoFecha.activities.length }}
+                            </ion-badge>
                           </ion-item>
-                        </ion-list>
-                      </ng-container>
+
+                          <div slot="content">
+                            <ion-list lines="full">
+                              <ion-item
+                                *ngFor="let act of grupoFecha.activities; trackBy: trackByActivity">
+
+                                <ion-icon
+                                  slot="start"
+                                  class="activity-icon-small"
+                                  name="leaf"
+                                  [color]="$any(act).tieneHeces ? 'warning' : 'success'">
+                                </ion-icon>
+
+                                <ion-label>
+                                  <p>
+                                    {{ act.time | date:'HH:mm' }} ·
+                                    <span *ngIf="$any(act).tieneHeces">Con popó</span>
+                                    <span *ngIf="!$any(act).tieneHeces">Solo pipí</span>
+                                  </p>
+                                </ion-label>
+
+                                <ion-button
+                                  slot="end"
+                                  fill="clear"
+                                  color="primary"
+                                  (click)="$event.stopPropagation(); openEditModal(act)">
+                                  <ion-icon name="create-outline"></ion-icon>
+                                </ion-button>
+
+                                <ion-button
+                                  slot="end"
+                                  fill="clear"
+                                  color="danger"
+                                  (click)="$event.stopPropagation(); deleteActivity(act.id)">
+                                  <ion-icon name="trash-outline"></ion-icon>
+                                </ion-button>
+                              </ion-item>
+                            </ion-list>
+                          </div>
+                        </ion-accordion>
+                      </ion-accordion-group>
                     </div>
                   </ion-accordion>
                 </ion-accordion-group>
@@ -259,6 +289,7 @@
             <div class="type-buttons">
               <ion-button
                 expand="block"
+                type="button"
                 [color]="formType === 'toma-leche' ? 'primary' : 'medium'"
                 (click)="onTypeChange('toma-leche')"
                 size="small">
@@ -268,6 +299,7 @@
 
               <ion-button
                 expand="block"
+                type="button"
                 [color]="formType === 'cambio-panal' ? 'primary' : 'medium'"
                 (click)="onTypeChange('cambio-panal')"
                 size="small">
@@ -310,6 +342,7 @@
               <div class="type-buttons">
                 <ion-button
                   expand="block"
+                  type="button"
                   [color]="form.esLecheMaterna ? 'success' : 'medium'"
                   (click)="form.esLecheMaterna = true"
                   size="small">
@@ -319,6 +352,7 @@
 
                 <ion-button
                   expand="block"
+                  type="button"
                   [color]="!form.esLecheMaterna ? 'success' : 'medium'"
                   (click)="form.esLecheMaterna = false"
                   size="small">
@@ -336,6 +370,7 @@
               <div class="type-buttons">
                 <ion-button
                   expand="block"
+                  type="button"
                   [color]="!form.tieneHeces ? 'success' : 'medium'"
                   (click)="form.tieneHeces = false"
                   size="small">
@@ -345,6 +380,7 @@
 
                 <ion-button
                   expand="block"
+                  type="button"
                   [color]="form.tieneHeces ? 'warning' : 'medium'"
                   (click)="form.tieneHeces = true"
                   size="small">

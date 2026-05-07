@@ -74,10 +74,6 @@ ion-modal {
   font-weight: 700;
 }
 
-.icono-panal-activo {
-  color: var(--ion-color-warning);
-}
-
 .year-content {
   padding: 8px 0 12px;
 }
@@ -240,4 +236,51 @@ ion-modal {
   margin-top: 4px;
   font-size: 0.8rem;
   color: var(--ion-color-medium);
+}
+
+.date-header {
+  --background: #ffffff;
+  margin: 4px 18px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.date-header h4 {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+}
+
+.date-content {
+  padding-left: 22px;
+  padding-right: 8px;
+}
+
+.date-content ion-list {
+  border-left: 2px solid rgba(0, 0, 0, 0.06);
+  margin-left: 4px;
+  padding-left: 8px;
+}
+
+.date-content ion-item {
+  --padding-start: 8px;
+}
+.date-header {
+  margin-left: 18px;
+  margin-right: 12px;
+}
+
+.date-header + div[slot="content"],
+.date-header ~ div[slot="content"] {
+  padding-left: 18px;
+}
+
+.date-header ion-label h4 {
+  padding-left: 4px;
+}
+
+.date-header-content {
+  padding-left: 18px;
 }
