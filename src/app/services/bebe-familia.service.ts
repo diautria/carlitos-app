@@ -337,4 +337,103 @@ async limpiarBebeActivo(): Promise<void> {
     updatedAt: serverTimestamp()
   });
 }
+
+async obtenerConfiguracionBebeActivo(): Promise<{
+  bebeId: string;
+  nombre: string;
+  tiempoEntreTomasHoras: number;
+  onzasDiariasObjetivo: number;
+}> {
+  const familiaId = await this.obtenerFamiliaActivaId();
+  const usuario = await this.obtenerUsuarioActual();
+
+  const usuarioRef = doc(this.firestore, `usuarios/${usuario.uid}`);
+  const usuarioSnap = await getDoc(usuarioRef);
+
+  if (!usuarioSnap.exists()) {
+    throw new Error('No existe el documento del usuario');
+  }
+
+  const usuarioData = usuarioSnap.data();
+  const bebeActivoId = usuarioData['bebeActivoId'];
+
+  if (!bebeActivoId) {
+    throw new Error('Seleccioná un bebé antes de configurar.');
+  }
+
+  const bebeRef = doc(
+    this.firestore,
+    `familias/${familiaId}/bebes/${bebeActivoId}`
+  );
+
+  const bebeSnap = await getDoc(bebeRef);
+
+  if (!bebeSnap.exists()) {
+    throw new Error('No existe el bebé activo.');
+  }
+
+  const bebeData = bebeSnap.data();
+
+  return {
+    bebeId: bebeActivoId,
+    nombre: bebeData['nombre'] || '',
+    tiempoEntreTomasHoras: Number(bebeData['tiempoEntreTomasHoras'] || 3),
+    onzasDiariasObjetivo: Number(bebeData['onzasDiariasObjetivo'] || 24)
+  };
+}
+
+async guardarConfiguracionBebeActivo(configuracion: {
+  tiempoEntreTomasHoras: number;
+  onzasDiariasObjetivo: number;
+}): Promise<void> {
+  const familiaId = await this.obtenerFamiliaActivaId();
+  const usuario = await this.obtenerUsuarioActual();
+
+  const usuarioRef = doc(this.firestore, `usuarios/${usuario.uid}`);
+  const usuarioSnap = await getDoc(usuarioRef);
+
+  if (!usuarioSnap.exists()) {
+    throw new Error('No existe el documento del usuario');
+  }
+
+  const usuarioData = usuarioSnap.data();
+  const bebeActivoId = usuarioData['bebeActivoId'];
+
+  if (!bebeActivoId) {
+    throw new Error('Seleccioná un bebé antes de configurar.');
+  }
+
+  const bebeRef = doc(
+    this.firestore,
+    `familias/${familiaId}/bebes/${bebeActivoId}`
+  );
+
+  await updateDoc(bebeRef, {
+    tiempoEntreTomasHoras: configuracion.tiempoEntreTomasHoras,
+    onzasDiariasObjetivo: configuracion.onzasDiariasObjetivo,
+    updatedAt: serverTimestamp()
+  });
+}
+
+async obtenerBebesFamiliaActual(): Promise<BebeFamilia[]> {
+  const familiaId = await this.obtenerFamiliaActivaId();
+
+  const bebesRef = collection(
+    this.firestore,
+    `familias/${familiaId}/bebes`
+  );
+
+  const snapshot = await getDocs(bebesRef);
+
+  const bebes = snapshot.docs.map(docSnap => {
+    const data = docSnap.data() as BebeFamilia;
+
+    return {
+      ...data,
+      id: docSnap.id
+    };
+  });
+
+  return bebes.filter(b => b.activo !== false);
+}
 }

@@ -89,8 +89,9 @@
 
                     <div slot="content">
                       <ion-accordion-group
-                        multiple="true"
-                        (ionChange)="$event.stopPropagation()">
+  multiple="true"
+  [value]="getOpenDateGroups('toma-leche', grupoMes.monthKey)"
+  (ionChange)="onDateAccordionChange('toma-leche', grupoMes.monthKey, $event)">
 
                         <ion-accordion
                           *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate"
@@ -193,8 +194,9 @@
 
                     <div slot="content">
                       <ion-accordion-group
-                        multiple="true"
-                        (ionChange)="$event.stopPropagation()">
+  multiple="true"
+  [value]="getOpenDateGroups('cambio-panal', grupoMes.monthKey)"
+  (ionChange)="onDateAccordionChange('cambio-panal', grupoMes.monthKey, $event)">
 
                         <ion-accordion
                           *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate"

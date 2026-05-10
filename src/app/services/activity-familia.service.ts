@@ -1,0 +1,195 @@
+import { Injectable, inject } from '@angular/core';
+import { Auth, user } from '@angular/fire/auth';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp
+} from '@angular/fire/firestore';
+import { firstValueFrom } from 'rxjs';
+import { ActivityFamilia } from '../models/activity-familia.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ActivityFamiliaService {
+  private firestore = inject(Firestore);
+  private auth = inject(Auth);
+
+  private async obtenerUsuarioActual() {
+    const usuarioActual = this.auth.currentUser;
+
+    if (usuarioActual) {
+      return usuarioActual;
+    }
+
+    const usuarioFirebase = await firstValueFrom(user(this.auth));
+
+    if (!usuarioFirebase) {
+      throw new Error('No hay usuario autenticado');
+    }
+
+    return usuarioFirebase;
+  }
+
+  private async obtenerContextoActivo(): Promise<{
+    uid: string;
+    familiaId: string;
+    bebeId: string;
+  }> {
+    const usuario = await this.obtenerUsuarioActual();
+
+    const usuarioRef = doc(this.firestore, `usuarios/${usuario.uid}`);
+    const usuarioSnap = await getDoc(usuarioRef);
+
+    if (!usuarioSnap.exists()) {
+      throw new Error('No existe el documento del usuario');
+    }
+
+    const data = usuarioSnap.data();
+
+    const familiaId = data['familiaActivaId'];
+    const bebeId = data['bebeActivoId'];
+
+    if (!familiaId) {
+      throw new Error('El usuario no tiene familia activa');
+    }
+
+    if (!bebeId) {
+      throw new Error('Seleccioná un bebé antes de registrar actividades');
+    }
+
+    return {
+      uid: usuario.uid,
+      familiaId,
+      bebeId
+    };
+  }
+
+  async getAll(): Promise<ActivityFamilia[]> {
+    const { familiaId, bebeId } = await this.obtenerContextoActivo();
+
+    const actividadesRef = collection(
+      this.firestore,
+      `familias/${familiaId}/bebes/${bebeId}/actividades`
+    );
+
+    const snapshot = await getDocs(actividadesRef);
+
+    return snapshot.docs
+      .map(docSnap => ({
+        ...(docSnap.data() as ActivityFamilia),
+        id: docSnap.id
+      }))
+      .sort((a, b) => b.time.localeCompare(a.time));
+  }
+
+  async add(activity: ActivityFamilia): Promise<void> {
+    const { uid, familiaId, bebeId } = await this.obtenerContextoActivo();
+
+    const actividadRef = doc(
+      collection(
+        this.firestore,
+        `familias/${familiaId}/bebes/${bebeId}/actividades`
+      )
+    );
+
+    const actividadAGuardar: ActivityFamilia = {
+      ...activity,
+      id: actividadRef.id,
+      familiaId,
+      bebeId,
+      creadoPorUid: uid,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    } as ActivityFamilia;
+
+    await setDoc(actividadRef, actividadAGuardar);
+  }
+
+  async update(activity: ActivityFamilia): Promise<void> {
+    const { familiaId, bebeId } = await this.obtenerContextoActivo();
+
+    if (!activity.id) {
+      throw new Error('La actividad no tiene id');
+    }
+
+    const actividadRef = doc(
+      this.firestore,
+      `familias/${familiaId}/bebes/${bebeId}/actividades/${activity.id}`
+    );
+
+    await updateDoc(actividadRef, {
+      ...activity,
+      updatedAt: serverTimestamp()
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    const { familiaId, bebeId } = await this.obtenerContextoActivo();
+
+    const actividadRef = doc(
+      this.firestore,
+      `familias/${familiaId}/bebes/${bebeId}/actividades/${id}`
+    );
+
+    await deleteDoc(actividadRef);
+  }
+
+  async getByDay(date: Date): Promise<ActivityFamilia[]> {
+    const activities = await this.getAll();
+
+    const dayKey = this.getLocalDateKey(date);
+
+    return activities.filter(activity => {
+      const activityDayKey = this.getActivityDateKey(activity.time);
+      return activityDayKey === dayKey;
+    });
+  }
+
+  async getByCategory(type: string, date: Date): Promise<ActivityFamilia[]> {
+    const dayActs = await this.getByDay(date);
+    return dayActs.filter(a => a.type === type);
+  }
+
+  private getLocalDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private getActivityDateKey(value: string): string {
+    if (value.includes('T')) {
+      return value.split('T')[0];
+    }
+
+    const date = new Date(value);
+
+    return this.getLocalDateKey(date);
+  }
+
+  async getAllByBebeId(bebeId: string): Promise<ActivityFamilia[]> {
+  const contexto = await this.obtenerContextoActivo();
+
+  const actividadesRef = collection(
+    this.firestore,
+    `familias/${contexto.familiaId}/bebes/${bebeId}/actividades`
+  );
+
+  const snapshot = await getDocs(actividadesRef);
+
+  return snapshot.docs
+    .map(docSnap => ({
+      ...(docSnap.data() as ActivityFamilia),
+      id: docSnap.id
+    }))
+    .sort((a, b) => b.time.localeCompare(a.time));
+}
+}

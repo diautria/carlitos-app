@@ -12,15 +12,14 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, Io
  } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { people, time, medical, chevronForward, water } from 'ionicons/icons';
-import { Bebe } from '../models/bebe.model';
-import { ActivityService } from '../services/activity.service';
-import { Activity } from '../models/activity.model';
-import { ConfiguracionService } from '../services/configuracion.service';
 import { personOutline, trashOutline, close  } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
 import { addOutline, createOutline } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
+import { ActivityFamilia } from '../models/activity-familia.model';
+import { ActivityFamiliaService } from '../services/activity-familia.service';
+import { NotificacionVacunasService } from '../services/notificacion-vacunas.service';
 
 @Component({
   selector: 'app-tab1',
@@ -54,12 +53,13 @@ IonSpinner,
   styleUrls: ['tab1.page.scss']
 })
 export class Tab1Page implements OnInit {
-  private activityService = inject(ActivityService);
-  private configuracionService = inject(ConfiguracionService);
+  private activityFamiliaService = inject(ActivityFamiliaService);
   private bebeFamiliaService = inject(BebeFamiliaService);
+private notificacionVacunasService = inject(NotificacionVacunasService);
 
 bebes: BebeFamilia[] = [];
-bebeActivoId = '';  actividadesRecientes: Activity[] = [];
+bebeActivoId = '';  
+actividadesRecientes: ActivityFamilia[] = [];
 showModalBebe = false;
 guardandoBebe = false;
 mensajeBebe = '';
@@ -69,7 +69,7 @@ showEliminarBebeAlert = false;
 bebeAEliminar: BebeFamilia | null = null;
 
 bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
-  actividadesHoy: Activity[] = [];
+  actividadesHoy: ActivityFamilia[] = [];
   onzasTomadasHoy = 0;
   onzasDiariasObjetivo = 24;
   porcentajeOnzas = 0;
@@ -126,13 +126,18 @@ getIconoActividad(actividad: any): string {
   }
 
   private async cargarActividadesDeHoy() {
-    this.actividadesRecientes = (await this.activityService.getByDay(new Date()))
+  try {
+    this.actividadesRecientes = (await this.activityFamiliaService.getByDay(new Date()))
       .sort((a, b) => {
         return new Date(b.time).getTime() - new Date(a.time).getTime();
       });
+  } catch (error) {
+    console.error('Error cargando actividades recientes del bebé activo', error);
+    this.actividadesRecientes = [];
   }
+}
 
-  getTituloActividad(actividad: Activity): string {
+  getTituloActividad(actividad: ActivityFamilia): string {
     if (actividad.type === 'toma-leche') {
       return 'Toma de leche';
     }
@@ -144,7 +149,7 @@ getIconoActividad(actividad: any): string {
     return 'Actividad';
   }
 
-  getDescripcionActividad(actividad: Activity): string {
+  getDescripcionActividad(actividad: ActivityFamilia): string {
     if (actividad.type === 'toma-leche') {
       const tipoLeche = actividad.esLecheMaterna ? 'materna' : 'fórmula';
       return `${actividad.cantidadOnzas} oz - Leche ${tipoLeche}`;
@@ -158,33 +163,49 @@ getIconoActividad(actividad: any): string {
   }
 
   private async cargarProgresoOnzas() {
-    this.onzasDiariasObjetivo =
-      await this.configuracionService.obtenerOnzasDiariasObjetivo();
+  try {
+    const config =
+      await this.bebeFamiliaService.obtenerConfiguracionBebeActivo();
 
-    const actividadesHoy = await this.activityService.getByDay(new Date());
-
-    this.onzasTomadasHoy = actividadesHoy
-      .filter(a => a.type === 'toma-leche')
-      .reduce((total, actividad) => {
-        return total + Number((actividad as any).cantidadOnzas || 0);
-      }, 0);
-
-    if (!this.onzasDiariasObjetivo || this.onzasDiariasObjetivo <= 0) {
-      this.porcentajeOnzas = 0;
-      this.progresoOnzas = 0;
-      return;
-    }
-
-    this.porcentajeOnzas = Math.min(
-      100,
-      Math.round((this.onzasTomadasHoy / this.onzasDiariasObjetivo) * 100)
-    );
-
-    this.progresoOnzas = Math.min(
-      1,
-      this.onzasTomadasHoy / this.onzasDiariasObjetivo
-    );
+    this.onzasDiariasObjetivo = config.onzasDiariasObjetivo;
+  } catch (error) {
+    console.error('Error cargando meta de onzas del bebé activo', error);
+    this.onzasDiariasObjetivo = 24;
   }
+
+  let actividadesHoy: ActivityFamilia[] = [];
+
+  try {
+    actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
+  } catch (error) {
+    console.error('Error cargando progreso de onzas del bebé activo', error);
+    actividadesHoy = [];
+  }
+
+  this.actividadesHoy = actividadesHoy;
+
+  this.onzasTomadasHoy = actividadesHoy
+    .filter(a => a.type === 'toma-leche')
+    .reduce((total, actividad) => {
+      return total + Number((actividad as any).cantidadOnzas || 0);
+    }, 0);
+
+  if (!this.onzasDiariasObjetivo || this.onzasDiariasObjetivo <= 0) {
+    this.porcentajeOnzas = 0;
+    this.progresoOnzas = 0;
+    return;
+  }
+
+  this.porcentajeOnzas = Math.min(
+    100,
+    Math.round((this.onzasTomadasHoy / this.onzasDiariasObjetivo) * 100)
+  );
+
+  this.progresoOnzas = Math.min(
+    1,
+    this.onzasTomadasHoy / this.onzasDiariasObjetivo
+  );
+}
 
   get onzasRestantes(): number {
   const restantes = this.onzasDiariasObjetivo - this.onzasTomadasHoy;
@@ -230,7 +251,7 @@ getIconoActividad(actividad: any): string {
   window.open(url, '_blank');
 }
 
-private generarMensajeActividadesDelDia(activities: Activity[]): string {
+private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
   const fecha = new Date().toLocaleDateString('es-UY', {
     day: '2-digit',
     month: '2-digit',
@@ -418,6 +439,28 @@ async guardarBebe() {
 
       await this.bebeFamiliaService.seleccionarBebeActivo(bebeId);
       this.bebeActivoId = bebeId;
+    }
+
+    if (bebeId) {
+      const bebeParaNotificacion: BebeFamilia = {
+        id: bebeId,
+        familiaId: '',
+        nombre: request.nombre,
+        fechaNacimiento: request.fechaNacimiento,
+        peso: request.peso,
+        altura: request.altura,
+        fotoUrl: request.fotoUrl || '',
+        proximaVacuna: request.proximaVacuna || '',
+        notas: request.notas || [],
+        activo: true,
+        creadoPorUid: '',
+        createdAt: null,
+        updatedAt: null
+      };
+
+      await this.notificacionVacunasService.programarNotificacionProximaVacuna(
+        bebeParaNotificacion
+      );
     }
 
     this.fotoSeleccionada = undefined;

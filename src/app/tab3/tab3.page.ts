@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -9,22 +9,22 @@ import {
   IonInput,
   IonButton,
   IonNote,
-  IonText, IonIcon, IonModal, IonButtons, IonLabel } from '@ionic/angular/standalone';
+  IonText,
+  IonIcon,
+  IonLabel, IonModal, IonButtons } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
-import { ConfiguracionService } from '../services/configuracion.service';
-import { Bebe } from '../models/bebe.model';
-import { createOutline, imageOutline, personCircleOutline, trashOutline, close } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
-import { NotificacionVacunasService } from '../services/notificacion-vacunas.service';
-import { RouterLink } from '@angular/router';
+import { settingsOutline, happyOutline } from 'ionicons/icons';
+
+import { BebeFamiliaService } from '../services/bebe-familia.service';
 
 @Component({
   selector: 'app-tab3',
   templateUrl: 'tab3.page.html',
   styleUrls: ['tab3.page.scss'],
   standalone: true,
-  imports: [
+  imports: [IonButtons, IonModal, 
     FormsModule,
     NgIf,
     IonHeader,
@@ -38,160 +38,104 @@ import { RouterLink } from '@angular/router';
     IonNote,
     IonText,
     IonIcon,
-    IonModal,
-    IonButtons,
-    IonLabel,
-    RouterLink
+    IonLabel
   ],
 })
 export class Tab3Page implements OnInit {
+  private bebeFamiliaService = inject(BebeFamiliaService);
+
   tiempoEntreTomasHoras = 3;
-  mensajeGuardado = '';
   onzasDiariasObjetivo = 24;
-  showModalBebe = false;
 
-  bebe: Bebe = {
-    id: 1,
-    nombre: '',
-    fechaNacimiento: '',
-    edad: 0,
-    peso: 0,
-    altura: 0,
-    foto: 'assets/img/bebe-default.png',
-    ultimaAlimentacion: '',
-    proximaVacuna: '',
-    notas: []
-  };
+  bebeActivoId = '';
+  nombreBebeActivo = '';
 
-  bebeForm = { ...this.bebe };
+  mensajeGuardado = '';
+  mensajeError = '';
+  cargando = false;
+  guardando = false;
 
-  constructor(private configuracionService: ConfiguracionService, private notificacionVacunasService: NotificacionVacunasService) {}
+  constructor() {
+    addIcons({
+      settingsOutline,
+      happyOutline
+    });
+  }
 
   async ngOnInit() {
-    addIcons({
-    createOutline,
-    close,
-    personCircleOutline,
-    imageOutline,
-    trashOutline
-  });
-  
-    this.tiempoEntreTomasHoras =
-      await this.configuracionService.obtenerTiempoEntreTomas();
+    await this.cargarConfiguracion();
+  }
 
-    this.onzasDiariasObjetivo =
-      await this.configuracionService.obtenerOnzasDiariasObjetivo();
+  async ionViewWillEnter() {
+    this.mensajeGuardado = '';
+    this.mensajeError = '';
+    await this.cargarConfiguracion();
+  }
 
-      this.bebe = await this.configuracionService.obtenerBebePrincipal();
-      this.bebeForm = { ...this.bebe };
+  async cargarConfiguracion() {
+    this.cargando = true;
+    this.mensajeError = '';
+    this.mensajeGuardado = '';
+
+    try {
+      const config =
+        await this.bebeFamiliaService.obtenerConfiguracionBebeActivo();
+
+      this.bebeActivoId = config.bebeId;
+      this.nombreBebeActivo = config.nombre;
+      this.tiempoEntreTomasHoras = config.tiempoEntreTomasHoras;
+      this.onzasDiariasObjetivo = config.onzasDiariasObjetivo;
+    } catch (error: any) {
+      console.error('Error cargando configuración del bebé activo', error);
+
+      this.bebeActivoId = '';
+      this.nombreBebeActivo = '';
+      this.mensajeError =
+        error?.message || 'No se pudo cargar la configuración.';
+    } finally {
+      this.cargando = false;
+    }
   }
 
   async guardarConfiguracion() {
+    this.mensajeGuardado = '';
+    this.mensajeError = '';
+
+    if (!this.bebeActivoId) {
+      this.mensajeError = 'Seleccioná un bebé en el inicio antes de configurar.';
+      return;
+    }
+
     if (!this.tiempoEntreTomasHoras || this.tiempoEntreTomasHoras <= 0) {
-      this.mensajeGuardado = 'Ingresa un tiempo válido en horas.';
+      this.mensajeError = 'Ingresá un tiempo válido en horas.';
       return;
     }
 
     if (!this.onzasDiariasObjetivo || this.onzasDiariasObjetivo <= 0) {
-      this.mensajeGuardado = 'Ingresa una cantidad válida de onzas diarias.';
+      this.mensajeError = 'Ingresá una cantidad válida de onzas diarias.';
       return;
     }
 
-    await this.configuracionService.guardarTiempoEntreTomas(
-      this.tiempoEntreTomasHoras
-    );
+    this.guardando = true;
 
-    await this.configuracionService.guardarOnzasDiariasObjetivo(
-      this.onzasDiariasObjetivo
-    );
+    try {
+      await this.bebeFamiliaService.guardarConfiguracionBebeActivo({
+        tiempoEntreTomasHoras: Number(this.tiempoEntreTomasHoras),
+        onzasDiariasObjetivo: Number(this.onzasDiariasObjetivo)
+      });
 
-    this.mensajeGuardado = 'Configuración guardada correctamente.';
-  }
-
-  ionViewWillEnter() {
-    this.mensajeGuardado = '';
-  }
-
-  ionViewWillLeave() {
-    this.mensajeGuardado = '';
+      this.mensajeGuardado = 'Configuración guardada correctamente.';
+    } catch (error: any) {
+      console.error('Error guardando configuración', error);
+      this.mensajeError =
+        error?.message || 'No se pudo guardar la configuración.';
+    } finally {
+      this.guardando = false;
+    }
   }
 
   limpiarMensaje() {
     this.mensajeGuardado = '';
+    this.mensajeError = '';
   }
-
-  abrirModalBebe() {
-    this.bebeForm = { ...this.bebe };
-    this.showModalBebe = true;
-  }
-
-  cerrarModalBebe() {
-    this.showModalBebe = false;
-  }
-
- async guardarDatosBebe() {
-  this.bebe = {
-    ...this.bebe,
-    ...this.bebeForm,
-    foto: this.bebeForm.foto || this.bebe.foto
-  };
-
-  await this.configuracionService.guardarBebePrincipal(this.bebe);
-
-  await this.notificacionVacunasService.programarNotificacionProximaVacuna(this.bebe);
-
-  this.showModalBebe = false;
-  this.mensajeGuardado = 'Datos del bebé guardados correctamente.';
-}
-
-  onFotoSeleccionada(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-
-  if (!file) {
-    return;
-  }
-
-  if (!file.type.startsWith('image/')) {
-    this.mensajeGuardado = 'Selecciona un archivo de imagen válido.';
-    input.value = '';
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = async () => {
-    const fotoBase64 = reader.result as string;
-
-    this.bebeForm = {
-      ...this.bebeForm,
-      foto: fotoBase64
-    };
-
-    this.bebe = {
-      ...this.bebe,
-      foto: fotoBase64
-    };
-
-    await this.configuracionService.guardarBebePrincipal(this.bebe);
-  };
-
-  reader.readAsDataURL(file);
-
-  input.value = '';
-}
-
-  async quitarFotoBebe() {
-  this.bebeForm = {
-    ...this.bebeForm,
-    foto: ''
-  };
-
-  this.bebe = {
-    ...this.bebe,
-    foto: ''
-  };
-
-  await this.configuracionService.guardarBebePrincipal(this.bebe);
-}
 }

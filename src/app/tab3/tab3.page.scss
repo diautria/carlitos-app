@@ -1,59 +1,81 @@
-.config-list {
-  margin-bottom: 16px;
-  border-radius: 12px;
-  overflow: hidden;
+.ajustes-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(34, 34, 34, 0.07);
 }
 
-.foto-bebe-editor {
+.ajustes-header {
   display: flex;
-  flex-direction: column;
+  gap: 12px;
   align-items: center;
   margin-bottom: 18px;
 }
 
-.foto-bebe-preview {
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--ion-color-light);
-  border: 3px solid var(--ion-color-primary);
+.ajustes-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: #f2f0ff;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.foto-bebe-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.ajustes-icon ion-icon {
+  font-size: 30px;
+  color: #6c63ff;
 }
 
-.foto-bebe-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
+.ajustes-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ion-color-dark);
 }
 
-.foto-bebe-preview {
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--ion-color-light);
-  border: 3px solid var(--ion-color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.foto-bebe-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.foto-bebe-preview ion-icon {
-  font-size: 64px;
+.ajustes-header p {
+  margin: 4px 0 0;
+  font-size: 13px;
   color: var(--ion-color-medium);
+}
+
+ion-list {
+  background: transparent;
+}
+
+ion-item {
+  --background: #f7f7fb;
+  --border-radius: 16px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+
+  border-radius: 16px;
+  margin-bottom: 10px;
+}
+
+.guardar-config-button {
+  margin-top: 18px;
+  height: 52px;
+  font-weight: 700;
+
+  --background: #6c63ff;
+  --background-activated: #5a52e0;
+  --background-hover: #5a52e0;
+  --color: #ffffff;
+  --border-radius: 18px;
+  --box-shadow: 0 8px 18px rgba(108, 99, 255, 0.28);
+}
+
+.mensaje {
+  margin: 12px 4px 0;
+  font-size: 14px;
+}
+
+.loading-box {
+  padding: 14px;
+  border-radius: 16px;
+  background: #f7f7fb;
+  color: var(--ion-color-medium);
+  font-size: 14px;
 }

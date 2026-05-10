@@ -29,19 +29,39 @@ import {
   IonCardContent
 } from '@ionic/angular/standalone';
 
-import { ActivityService } from '../services/activity.service';
-import { Activity, ActivityType } from '../models/activity.model';
+import { addIcons } from 'ionicons';
+import {
+  addCircle,
+  statsChartOutline,
+  water,
+  leaf,
+  createOutline,
+  trashOutline,
+  close,
+  heart,
+  flask,
+  checkmarkCircle,
+  alertCircle,
+  checkmark
+} from 'ionicons/icons';
+
+import { ActivityFamiliaService } from '../services/activity-familia.service';
+import {
+  ActivityFamilia,
+  ActivityFamiliaType
+} from '../models/activity-familia.model';
+
 import { NotificacionTomasService } from '../services/notificacion-tomas.service';
 
 interface ActivityDateGroup {
   fecha: string;
-  activities: Activity[];
+  activities: ActivityFamilia[];
 }
 
 interface ActivityMonthGroup {
   monthKey: string;
   monthName: string;
-  activities: Activity[];
+  activities: ActivityFamilia[];
   dateGroups: ActivityDateGroup[];
 }
 
@@ -54,6 +74,7 @@ interface ActivityYearGroup {
   selector: 'app-tab2',
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss'],
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -85,9 +106,9 @@ interface ActivityYearGroup {
   ]
 })
 export class Tab2Page implements OnInit {
-  activities: Activity[] = [];
+  activities: ActivityFamilia[] = [];
   loading = false;
-
+primeraCarga = true;
   selectedTab: 'toma-leche' | 'cambio-panal' = 'toma-leche';
 
   groupedTomasLeche: ActivityYearGroup[] = [];
@@ -95,7 +116,7 @@ export class Tab2Page implements OnInit {
 
   showModal = false;
   isEdit = false;
-  formType: ActivityType = 'toma-leche';
+  formType: ActivityFamiliaType = 'toma-leche';
   form: any = this.getEmptyForm('toma-leche');
 
   openGroupsTomaLeche: string[] = [];
@@ -103,7 +124,8 @@ export class Tab2Page implements OnInit {
 
   openMonthGroupsTomaLeche: Record<string, string[]> = {};
   openMonthGroupsCambioPanal: Record<string, string[]> = {};
-
+openDateGroupsTomaLeche: Record<string, string[]> = {};
+openDateGroupsCambioPanal: Record<string, string[]> = {};
   showModalEstadisticas = false;
 
   estadisticas = {
@@ -118,10 +140,25 @@ export class Tab2Page implements OnInit {
   };
 
   constructor(
-    private activityService: ActivityService,
+    private activityFamiliaService: ActivityFamiliaService,
     private alertController: AlertController,
     private notificacionTomasService: NotificacionTomasService
-  ) {}
+  ) {
+    addIcons({
+      addCircle,
+      statsChartOutline,
+      water,
+      leaf,
+      createOutline,
+      trashOutline,
+      close,
+      heart,
+      flask,
+      checkmarkCircle,
+      alertCircle,
+      checkmark
+    });
+  }
 
   async ngOnInit() {
     await this.loadActivities();
@@ -132,16 +169,25 @@ export class Tab2Page implements OnInit {
   }
 
   async loadActivities() {
+  if (this.primeraCarga) {
     this.loading = true;
+  }
 
+  try {
     const gruposTomaActuales = [...this.openGroupsTomaLeche];
     const gruposPanalActuales = [...this.openGroupsCambioPanal];
 
     const mesesTomaActuales = { ...this.openMonthGroupsTomaLeche };
     const mesesPanalActuales = { ...this.openMonthGroupsCambioPanal };
 
-    this.activities = (await this.activityService.getAll())
-      .sort((a, b) => b.time.localeCompare(a.time));
+    const fechasTomaActuales = { ...this.openDateGroupsTomaLeche };
+    const fechasPanalActuales = { ...this.openDateGroupsCambioPanal };
+
+    const actividades = await this.activityFamiliaService.getAll();
+
+    this.activities = actividades.sort((a, b) =>
+      b.time.localeCompare(a.time)
+    );
 
     this.groupedTomasLeche = this.getGroupedActivitiesByType('toma-leche');
     this.groupedCambiosPanal = this.getGroupedActivitiesByType('cambio-panal');
@@ -162,14 +208,113 @@ export class Tab2Page implements OnInit {
       ? mesesPanalActuales
       : this.getDefaultOpenMonthGroupsByYear('cambio-panal');
 
+    this.openDateGroupsTomaLeche = Object.keys(fechasTomaActuales).length
+      ? fechasTomaActuales
+      : this.getDefaultOpenDateGroupsByMonth('toma-leche');
+
+    this.openDateGroupsCambioPanal = Object.keys(fechasPanalActuales).length
+      ? fechasPanalActuales
+      : this.getDefaultOpenDateGroupsByMonth('cambio-panal');
+
     await this.notificacionTomasService.programarNotificacionProximaToma(
       this.activities
     );
+  } catch (error: any) {
+    console.error('Error cargando actividades', error);
 
+    this.activities = [];
+    this.groupedTomasLeche = [];
+    this.groupedCambiosPanal = [];
+
+    if (error?.message && this.primeraCarga) {
+      const alert = await this.alertController.create({
+        header: 'Actividades',
+        message: error.message,
+        buttons: ['Aceptar']
+      });
+
+      await alert.present();
+    }
+  } finally {
     this.loading = false;
+    this.primeraCarga = false;
+  }
+}
+
+  onDateAccordionChange(
+  type: ActivityFamiliaType,
+  monthKey: string,
+  event: any
+) {
+  event.stopPropagation();
+
+  const value = event.detail.value || [];
+  const values = Array.isArray(value) ? value : [value];
+
+  if (type === 'toma-leche') {
+    this.openDateGroupsTomaLeche = {
+      ...this.openDateGroupsTomaLeche,
+      [monthKey]: values
+    };
+    return;
   }
 
-  getEmptyForm(type: ActivityType) {
+  this.openDateGroupsCambioPanal = {
+    ...this.openDateGroupsCambioPanal,
+    [monthKey]: values
+  };
+}
+
+getOpenDateGroups(type: ActivityFamiliaType, monthKey: string): string[] {
+  if (type === 'toma-leche') {
+    return this.openDateGroupsTomaLeche[monthKey] || [];
+  }
+
+  return this.openDateGroupsCambioPanal[monthKey] || [];
+}
+
+getDefaultOpenDateGroupsByMonth(
+  type: ActivityFamiliaType
+): Record<string, string[]> {
+  const currentYear = new Date().getFullYear().toString();
+  const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+  const currentDay = String(new Date().getDate()).padStart(2, '0');
+
+  const currentMonthKey = `${currentYear}-${currentMonth}`;
+  const todayKey = `${currentYear}-${currentMonth}-${currentDay}`;
+
+  const grupos = type === 'toma-leche'
+    ? this.groupedTomasLeche
+    : this.groupedCambiosPanal;
+
+  const result: Record<string, string[]> = {};
+
+  const grupoAnioActual = grupos.find(g => g.year === currentYear);
+
+  if (!grupoAnioActual) {
+    return result;
+  }
+
+  const grupoMesActual = grupoAnioActual.months.find(
+    mes => mes.monthKey === currentMonthKey
+  );
+
+  if (!grupoMesActual) {
+    return result;
+  }
+
+  const existeHoy = grupoMesActual.dateGroups.some(
+    fecha => fecha.fecha === todayKey
+  );
+
+  if (existeHoy) {
+    result[currentMonthKey] = [todayKey];
+  }
+
+  return result;
+}
+
+  getEmptyForm(type: ActivityFamiliaType) {
     const base = {
       id: '',
       type,
@@ -199,7 +344,7 @@ export class Tab2Page implements OnInit {
     this.showModal = true;
   }
 
-  openEditModal(activity: Activity) {
+  openEditModal(activity: ActivityFamilia) {
     this.isEdit = true;
     this.formType = activity.type;
     this.form = { ...activity };
@@ -215,19 +360,31 @@ export class Tab2Page implements OnInit {
   }
 
   async saveActivity() {
-    if (!this.form.id) {
-      this.form.id = Date.now().toString();
-      this.form.createdAt = new Date().toISOString();
+    try {
+      if (!this.form.id) {
+        this.form.id = '';
+        this.form.createdAt = new Date().toISOString();
 
-      await this.activityService.add(this.form);
-    } else {
-      this.form.updatedAt = new Date().toISOString();
+        await this.activityFamiliaService.add(this.form);
+      } else {
+        this.form.updatedAt = new Date().toISOString();
 
-      await this.activityService.update(this.form);
+        await this.activityFamiliaService.update(this.form);
+      }
+
+      this.closeModal();
+      await this.loadActivities();
+    } catch (error: any) {
+      console.error('Error guardando actividad', error);
+
+      const alert = await this.alertController.create({
+        header: 'No se pudo guardar',
+        message: error?.message || 'No se pudo guardar la actividad.',
+        buttons: ['Aceptar']
+      });
+
+      await alert.present();
     }
-
-    this.closeModal();
-    await this.loadActivities();
   }
 
   async deleteActivity(id: string) {
@@ -243,7 +400,7 @@ export class Tab2Page implements OnInit {
           text: 'Eliminar',
           role: 'destructive',
           handler: async () => {
-            await this.activityService.delete(id);
+            await this.activityFamiliaService.delete(id);
             await this.loadActivities();
           }
         }
@@ -253,7 +410,7 @@ export class Tab2Page implements OnInit {
     await alert.present();
   }
 
-  onTypeChange(type: ActivityType) {
+  onTypeChange(type: ActivityFamiliaType) {
     this.formType = type;
     this.form = this.getEmptyForm(type);
   }
@@ -262,7 +419,7 @@ export class Tab2Page implements OnInit {
     this.selectedTab = event.detail.value as 'toma-leche' | 'cambio-panal';
   }
 
-  onYearAccordionChange(type: ActivityType, event: any) {
+  onYearAccordionChange(type: ActivityFamiliaType, event: any) {
     const value = event.detail.value || [];
     const values = Array.isArray(value) ? value : [value];
 
@@ -274,7 +431,7 @@ export class Tab2Page implements OnInit {
     this.openGroupsCambioPanal = values;
   }
 
-  onMonthAccordionChange(type: ActivityType, year: string, event: any) {
+  onMonthAccordionChange(type: ActivityFamiliaType, year: string, event: any) {
     event.stopPropagation();
 
     const value = event.detail.value || [];
@@ -294,7 +451,7 @@ export class Tab2Page implements OnInit {
     };
   }
 
-  getOpenMonthGroups(type: ActivityType, year: string): string[] {
+  getOpenMonthGroups(type: ActivityFamiliaType, year: string): string[] {
     if (type === 'toma-leche') {
       return this.openMonthGroupsTomaLeche[year] || [];
     }
@@ -302,7 +459,7 @@ export class Tab2Page implements OnInit {
     return this.openMonthGroupsCambioPanal[year] || [];
   }
 
-  getDefaultOpenGroups(type: ActivityType): string[] {
+  getDefaultOpenGroups(type: ActivityFamiliaType): string[] {
     const currentYear = new Date().getFullYear().toString();
 
     const grupos = type === 'toma-leche'
@@ -314,7 +471,7 @@ export class Tab2Page implements OnInit {
     return grupoAnioActual ? [grupoAnioActual.year] : [];
   }
 
-  getDefaultOpenMonthGroupsByYear(type: ActivityType): Record<string, string[]> {
+  getDefaultOpenMonthGroupsByYear(type: ActivityFamiliaType): Record<string, string[]> {
     const currentYear = new Date().getFullYear().toString();
     const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
     const currentMonthKey = `${currentYear}-${currentMonth}`;
@@ -342,7 +499,7 @@ export class Tab2Page implements OnInit {
     return result;
   }
 
-  getGroupedActivitiesByType(type: ActivityType): ActivityYearGroup[] {
+  getGroupedActivitiesByType(type: ActivityFamiliaType): ActivityYearGroup[] {
     const activitiesByType = this.activities.filter(a => a.type === type);
 
     const yearGroups = activitiesByType.reduce((acc, activity) => {
@@ -362,7 +519,7 @@ export class Tab2Page implements OnInit {
       acc[year][monthKey].push(activity);
 
       return acc;
-    }, {} as Record<string, Record<string, Activity[]>>);
+    }, {} as Record<string, Record<string, ActivityFamilia[]>>);
 
     return Object.entries(yearGroups)
       .map(([year, months]) => ({
@@ -385,7 +542,7 @@ export class Tab2Page implements OnInit {
       .sort((a, b) => b.year.localeCompare(a.year));
   }
 
-  getActivitiesGroupedByDate(activities: Activity[]): ActivityDateGroup[] {
+  getActivitiesGroupedByDate(activities: ActivityFamilia[]): ActivityDateGroup[] {
     const groups = activities.reduce((acc, activity) => {
       const fecha = this.getDateKey(activity.time);
 
@@ -396,7 +553,7 @@ export class Tab2Page implements OnInit {
       acc[fecha].push(activity);
 
       return acc;
-    }, {} as Record<string, Activity[]>);
+    }, {} as Record<string, ActivityFamilia[]>);
 
     return Object.entries(groups)
       .map(([fecha, groupedActivities]) => ({
@@ -536,7 +693,7 @@ export class Tab2Page implements OnInit {
     };
   }
 
-  private obtenerCantidadDiasConActividad(activities: Activity[]): number {
+  private obtenerCantidadDiasConActividad(activities: ActivityFamilia[]): number {
     const dias = new Set<string>();
 
     activities.forEach(activity => {
@@ -564,7 +721,7 @@ export class Tab2Page implements OnInit {
     return grupoFecha.fecha;
   }
 
-  trackByActivity(index: number, activity: Activity): string {
+  trackByActivity(index: number, activity: ActivityFamilia): string {
     return activity.id;
   }
 }

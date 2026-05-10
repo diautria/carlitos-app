@@ -1,17 +1,43 @@
 import { Injectable } from '@angular/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Bebe } from '../models/bebe.model';
+import { BebeFamilia } from '../models/bebe-familia.model';
+import { BebeFamiliaService } from './bebe-familia.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificacionVacunasService {
-  private readonly notificationId = 2001;
+  private readonly notificationBaseId = 200000;
 
-  async programarNotificacionProximaVacuna(bebe: Bebe): Promise<void> {
-    await this.cancelarNotificacionProximaVacuna();
+  constructor(private bebeFamiliaService: BebeFamiliaService) {}
+
+  async programarNotificacionesVacunasTodos(): Promise<void> {
+    const bebes = await this.bebeFamiliaService.obtenerBebesFamiliaActual();
+
+    if (!bebes.length) {
+      return;
+    }
+
+    const permisoOk = await this.asegurarPermiso();
+
+    if (!permisoOk) {
+      return;
+    }
+
+    for (const bebe of bebes) {
+      await this.programarNotificacionProximaVacunaBebe(bebe);
+    }
+  }
+
+  async programarNotificacionProximaVacunaBebe(
+    bebe: BebeFamilia
+  ): Promise<void> {
+    const notificationId = this.obtenerNotificationIdBebe(bebe.id);
+
+    await this.cancelarNotificacionPorId(notificationId);
 
     if (!bebe.proximaVacuna) {
+      console.log('No hay próxima vacuna para:', bebe.nombre);
       return;
     }
 
@@ -24,25 +50,20 @@ export class NotificacionVacunasService {
     const ahora = new Date();
 
     if (fechaNotificacion <= ahora) {
+      console.log('No se programa vacuna porque la fecha ya pasó:', {
+        bebe: bebe.nombre,
+        fechaVacuna,
+        fechaNotificacion
+      });
       return;
-    }
-
-    const permiso = await LocalNotifications.checkPermissions();
-
-    if (permiso.display !== 'granted') {
-      const permisoSolicitado = await LocalNotifications.requestPermissions();
-
-      if (permisoSolicitado.display !== 'granted') {
-        return;
-      }
     }
 
     await LocalNotifications.schedule({
       notifications: [
         {
-          id: this.notificationId,
-          title: 'Próxima vacuna',
-          body: `Falta una semana para la próxima vacuna de ${bebe.nombre || 'tu bebé'}.`,
+          id: notificationId,
+          title: `Próxima vacuna de ${bebe.nombre || 'tu bebé'}`,
+          body: 'Falta una semana para la próxima vacuna.',
           schedule: {
             at: fechaNotificacion,
             allowWhileIdle: true
@@ -50,16 +71,79 @@ export class NotificacionVacunasService {
         }
       ]
     });
+
+    console.log('Notificación de vacuna programada:', {
+      bebe: bebe.nombre,
+      notificationId,
+      fechaVacuna,
+      notificacion: fechaNotificacion
+    });
+  }
+
+  async cancelarNotificacionesVacunasTodos(): Promise<void> {
+    const pending = await LocalNotifications.getPending();
+
+    const notifications = pending.notifications
+      .filter(n =>
+        n.id >= this.notificationBaseId &&
+        n.id < this.notificationBaseId + 100000
+      )
+      .map(n => ({
+        id: n.id
+      }));
+
+    if (!notifications.length) {
+      return;
+    }
+
+    await LocalNotifications.cancel({
+      notifications
+    });
   }
 
   async cancelarNotificacionProximaVacuna(): Promise<void> {
+    await this.cancelarNotificacionesVacunasTodos();
+  }
+
+  async programarNotificacionProximaVacuna(
+    bebe: BebeFamilia
+  ): Promise<void> {
+    await this.programarNotificacionProximaVacunaBebe(bebe);
+  }
+
+  private async cancelarNotificacionPorId(id: number): Promise<void> {
     await LocalNotifications.cancel({
       notifications: [
-        {
-          id: this.notificationId
-        }
+        { id }
       ]
     });
+  }
+
+  private obtenerNotificationIdBebe(bebeId: string): number {
+    return this.notificationBaseId + this.hashStringToNumber(bebeId, 99999);
+  }
+
+  private hashStringToNumber(value: string, max: number): number {
+    let hash = 0;
+
+    for (let i = 0; i < value.length; i++) {
+      hash = ((hash << 5) - hash) + value.charCodeAt(i);
+      hash |= 0;
+    }
+
+    return Math.abs(hash) % max;
+  }
+
+  private async asegurarPermiso(): Promise<boolean> {
+    const permiso = await LocalNotifications.checkPermissions();
+
+    if (permiso.display === 'granted') {
+      return true;
+    }
+
+    const permisoSolicitado = await LocalNotifications.requestPermissions();
+
+    return permisoSolicitado.display === 'granted';
   }
 
   private parseFechaLocal(value: string): Date {
