@@ -58,10 +58,18 @@ export class FamiliaService {
 
     const usuarioRef = doc(this.firestore, `usuarios/${usuario.uid}`);
 
-    await updateDoc(usuarioRef, {
-      familiaActivaId: familiaId,
-      updatedAt: serverTimestamp()
-    });
+    await setDoc(
+  usuarioRef,
+  {
+    uid: usuario.uid,
+    email: usuario.email || '',
+    nombre: usuario.displayName || '',
+    photoURL: usuario.photoURL || '',
+    familiaActivaId: familiaId,
+    updatedAt: serverTimestamp()
+  },
+  { merge: true }
+);
 
     return familiaId;
   }

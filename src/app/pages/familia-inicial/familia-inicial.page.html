@@ -1,4 +1,4 @@
-<ion-content class="familia-content">
+<!-- <ion-content class="familia-content">
   <div class="familia-page">
 
     <div class="header-card">
@@ -10,13 +10,37 @@
 
       <ion-text color="medium">
         <p>
-          Creá un espacio compartido para que tu familia registre y consulte
-          las actividades del bebé.
+          Creá un espacio compartido o unite a una familia existente para registrar
+          y consultar las actividades del bebé.
         </p>
       </ion-text>
     </div>
 
     <div class="form-card">
+
+  <div class="modo-selector">
+    <ion-button
+      type="button"
+      expand="block"
+      fill="clear"
+      [class.activo]="modo === 'crear'"
+      (click)="cambiarModo('crear')">
+      Crear familia
+    </ion-button>
+
+    <ion-button
+      type="button"
+      expand="block"
+      fill="clear"
+      [class.activo]="modo === 'unirse'"
+      (click)="cambiarModo('unirse')">
+      Unirme con código
+    </ion-button>
+  </div>
+
+  <ng-container [ngSwitch]="modo">
+
+    <ng-container *ngSwitchCase="'crear'">
       <ion-item class="familia-input" lines="none">
         <ion-label position="stacked">Nombre de la familia</ion-label>
         <ion-input
@@ -25,21 +49,63 @@
         </ion-input>
       </ion-item>
 
-      <ion-text color="danger" *ngIf="error">
-        <p class="error">{{ error }}</p>
+      <ion-button
+        type="button"
+        expand="block"
+        class="crear-button"
+        [disabled]="cargando"
+        (click)="crearFamilia()">
+
+        {{ cargando ? 'Creando...' : 'Crear' }}
+
+        <ion-spinner
+          *ngIf="cargando"
+          name="crescent"
+          class="spinner-button">
+        </ion-spinner>
+      </ion-button>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'unirse'">
+      <ion-item class="familia-input" lines="none">
+        <ion-label position="stacked">Código de invitación</ion-label>
+        <ion-input
+          [(ngModel)]="codigoInvitacion"
+          placeholder="Ej: ABCD12"
+          (ionInput)="normalizarCodigo()">
+        </ion-input>
+      </ion-item>
+
+      <ion-text color="medium">
+        <p class="ayuda-codigo">
+          Pedile el código a un administrador de la familia.
+        </p>
       </ion-text>
 
       <ion-button
-  expand="block"
-  class="crear-button"
-  [disabled]="cargando"
-  (click)="crearFamilia()">
+        type="button"
+        expand="block"
+        class="crear-button"
+        [disabled]="cargando"
+        (click)="unirmeConCodigo()">
 
-  {{ cargando ? 'Creando...' : 'Crear familia' }}
+        {{ cargando ? 'Uniendo...' : 'Unirme a la familia' }}
 
-  <ion-spinner *ngIf="cargando" name="crescent" class="spinner-button"></ion-spinner>
-</ion-button>
-    </div>
+        <ion-spinner
+          *ngIf="cargando"
+          name="crescent"
+          class="spinner-button">
+        </ion-spinner>
+      </ion-button>
+    </ng-container>
+
+  </ng-container>
+
+  <ion-text color="danger" *ngIf="error">
+    <p class="error">{{ error }}</p>
+  </ion-text>
+
+</div>
 
     <div class="info-box">
       <ion-icon name="shield-checkmark-outline"></ion-icon>
@@ -49,4 +115,43 @@
     </div>
 
   </div>
-</ion-content>
+</ion-content> -->
+
+<div class="form-card">
+
+  <ion-item class="familia-input" lines="none">
+    <ion-label position="stacked">Código de invitación</ion-label>
+    <ion-input
+      [(ngModel)]="codigoInvitacion"
+      placeholder="Ej: ABCD12"
+      (ionInput)="normalizarCodigo()">
+    </ion-input>
+  </ion-item>
+
+  <ion-text color="medium">
+    <p class="ayuda-codigo">
+      Ingresá el código de invitación que te compartieron para unirte a la familia.
+    </p>
+  </ion-text>
+
+  <ion-button
+    type="button"
+    expand="block"
+    class="crear-button"
+    [disabled]="cargando"
+    (click)="unirmeConCodigo()">
+
+    {{ cargando ? 'Uniendo...' : 'Unirme a la familia' }}
+
+    <ion-spinner
+      *ngIf="cargando"
+      name="crescent"
+      class="spinner-button">
+    </ion-spinner>
+  </ion-button>
+
+  <ion-text color="danger" *ngIf="error">
+    <p class="error">{{ error }}</p>
+  </ion-text>
+
+</div>

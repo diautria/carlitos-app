@@ -21,6 +21,7 @@ import { ActivityFamilia } from '../models/activity-familia.model';
 import { ActivityFamiliaService } from '../services/activity-familia.service';
 import { NotificacionVacunasService } from '../services/notificacion-vacunas.service';
 import { Router } from '@angular/router';
+import { FamiliaMiembrosService } from '../services/familia-miembros.service';
 
 @Component({
   selector: 'app-tab1',
@@ -69,7 +70,8 @@ bebeEditandoId = '';
 fotoSeleccionada?: File;
 showEliminarBebeAlert = false;
 bebeAEliminar: BebeFamilia | null = null;
-
+private familiaMiembrosService = inject(FamiliaMiembrosService);
+esAdminFamilia = false;
 bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
   actividadesHoy: ActivityFamilia[] = [];
   onzasTomadasHoy = 0;
@@ -122,6 +124,7 @@ getIconoActividad(actividad: any): string {
   }
 
   async ionViewWillEnter() {
+      await this.cargarPermisosFamilia();
     await this.cargarDatosBebe();
     await this.cargarActividadesDeHoy();
     await this.cargarProgresoOnzas();
@@ -371,6 +374,9 @@ private crearFormBebeVacio(): CrearBebeFamiliaRequest {
 }
 
 abrirModalNuevoBebe() {
+  if (!this.esAdminFamilia) {
+    return;
+  }
   this.bebeEditandoId = '';
   this.fotoSeleccionada = undefined;
   this.mensajeBebe = '';
@@ -522,6 +528,10 @@ quitarFotoBebe() {
 eliminarBebe(event: Event, bebe: BebeFamilia) {
   event.stopPropagation();
 
+  if (!this.esAdminFamilia) {
+    return;
+  }
+
   this.bebeAEliminar = bebe;
   this.showEliminarBebeAlert = true;
 }
@@ -560,6 +570,10 @@ cancelarEliminarBebe() {
 editarBebe(event: Event, bebe: BebeFamilia) {
   event.stopPropagation();
 
+  if (!this.esAdminFamilia) {
+    return;
+  }
+
   this.bebeEditandoId = bebe.id;
   this.fotoSeleccionada = undefined;
   this.mensajeBebe = '';
@@ -581,5 +595,14 @@ verDetalleBebe(event: Event, bebe: BebeFamilia) {
   event.stopPropagation();
 
   this.router.navigate(['/detalle', bebe.id]);
+}
+
+private async cargarPermisosFamilia() {
+  try {
+    this.esAdminFamilia = await this.familiaMiembrosService.esUsuarioAdmin();
+  } catch (error) {
+    console.error('Error cargando permisos de familia', error);
+    this.esAdminFamilia = false;
+  }
 }
 }

@@ -15,9 +15,10 @@ import {
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { settingsOutline, happyOutline } from 'ionicons/icons';
+import { settingsOutline, happyOutline, peopleOutline } from 'ionicons/icons';
 
 import { BebeFamiliaService } from '../services/bebe-familia.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-tab3',
@@ -46,7 +47,8 @@ export class Tab3Page implements OnInit {
 
   tiempoEntreTomasHoras = 3;
   onzasDiariasObjetivo = 24;
-
+tiempoEntreTomasOriginal = 3;
+onzasDiariasObjetivoOriginal = 24;
   bebeActivoId = '';
   nombreBebeActivo = '';
 
@@ -55,10 +57,11 @@ export class Tab3Page implements OnInit {
   cargando = false;
   guardando = false;
 
-  constructor() {
+  constructor(private router: Router) {
     addIcons({
       settingsOutline,
-      happyOutline
+      happyOutline,
+      peopleOutline
     });
   }
 
@@ -85,6 +88,9 @@ export class Tab3Page implements OnInit {
       this.nombreBebeActivo = config.nombre;
       this.tiempoEntreTomasHoras = config.tiempoEntreTomasHoras;
       this.onzasDiariasObjetivo = config.onzasDiariasObjetivo;
+
+      this.tiempoEntreTomasOriginal = config.tiempoEntreTomasHoras;
+this.onzasDiariasObjetivoOriginal = config.onzasDiariasObjetivo;
     } catch (error: any) {
       console.error('Error cargando configuración del bebé activo', error);
 
@@ -124,6 +130,9 @@ export class Tab3Page implements OnInit {
         onzasDiariasObjetivo: Number(this.onzasDiariasObjetivo)
       });
 
+      this.tiempoEntreTomasOriginal = Number(this.tiempoEntreTomasHoras);
+this.onzasDiariasObjetivoOriginal = Number(this.onzasDiariasObjetivo);
+
       this.mensajeGuardado = 'Configuración guardada correctamente.';
     } catch (error: any) {
       console.error('Error guardando configuración', error);
@@ -138,4 +147,15 @@ export class Tab3Page implements OnInit {
     this.mensajeGuardado = '';
     this.mensajeError = '';
   }
+
+  get hayCambiosConfiguracion(): boolean {
+  return (
+    Number(this.tiempoEntreTomasHoras) !== Number(this.tiempoEntreTomasOriginal) ||
+    Number(this.onzasDiariasObjetivo) !== Number(this.onzasDiariasObjetivoOriginal)
+  );
+}
+
+irAFamilia() {
+  this.router.navigateByUrl('/familia');
+}
 }

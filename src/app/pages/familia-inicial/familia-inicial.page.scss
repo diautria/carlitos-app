@@ -126,3 +126,36 @@ ion-input {
 .spinner-button {
   margin-left: 10px;
 }
+
+.modo-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 18px;
+  background: #f2f0ff;
+}
+
+.modo-selector ion-button {
+  height: 42px;
+  margin: 0;
+  font-weight: 800;
+  font-size: 13px;
+
+  --border-radius: 14px;
+  --background: transparent;
+  --color: #6c63ff;
+  --box-shadow: none;
+}
+
+.modo-selector ion-button.activo {
+  --background: #6c63ff;
+  --color: #ffffff;
+  --box-shadow: 0 6px 14px rgba(108, 99, 255, 0.22);
+}
+
+.ayuda-codigo {
+  margin: 8px 4px 14px;
+  font-size: 13px;
+}

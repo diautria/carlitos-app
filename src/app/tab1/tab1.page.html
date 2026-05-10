@@ -37,12 +37,13 @@
 
     <div class="bebe-actions">
       <ion-button
-        class="bebe-action-button"
-        fill="clear"
-        color="primary"
-        (click)="editarBebe($event, bebe)">
-        <ion-icon name="create-outline" slot="icon-only"></ion-icon>
-      </ion-button>
+  *ngIf="esAdminFamilia"
+  class="bebe-action-button"
+  fill="clear"
+  color="primary"
+  (click)="editarBebe($event, bebe)">
+  <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+</ion-button>
 
       <ion-button
         class="bebe-action-button"
@@ -53,12 +54,13 @@
       </ion-button>
 
       <ion-button
-        class="bebe-action-button"
-        fill="clear"
-        color="danger"
-        (click)="eliminarBebe($event, bebe)">
-        <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-      </ion-button>
+  *ngIf="esAdminFamilia"
+  class="bebe-action-button"
+  fill="clear"
+  color="danger"
+  (click)="eliminarBebe($event, bebe)">
+  <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+</ion-button>
     </div>
 
     <ion-card-title class="bebe-nombre">
@@ -73,6 +75,7 @@
 </ion-card>
 
       <ion-card
+  *ngIf="esAdminFamilia"
   class="bebe-card agregar-bebe-card"
   (click)="abrirModalNuevoBebe()">
 

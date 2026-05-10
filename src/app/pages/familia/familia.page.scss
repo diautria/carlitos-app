@@ -1,0 +1,251 @@
+.familia-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.familia-card,
+.miembros-card,
+.modal-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(34, 34, 34, 0.07);
+}
+
+.familia-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.familia-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: #f2f0ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.familia-icon ion-icon {
+  font-size: 30px;
+  color: #6c63ff;
+}
+
+.familia-header h2,
+.modal-card h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ion-color-dark);
+}
+
+.familia-header p,
+.modal-card p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.codigo-box {
+  padding: 14px;
+  border-radius: 18px;
+  background: #f7f7fb;
+  margin-bottom: 16px;
+}
+
+.codigo-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+  margin-bottom: 6px;
+}
+
+.codigo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.codigo-row strong {
+  font-size: 28px;
+  letter-spacing: 3px;
+  color: #6c63ff;
+}
+
+.codigo-action {
+  --color: #6c63ff;
+  --border-radius: 999px;
+}
+
+.familia-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.accion-principal,
+.accion-secundaria,
+.accion-peligro-suave {
+  height: 50px;
+  font-weight: 700;
+
+  --border-radius: 18px;
+}
+
+.accion-principal {
+  --background: #6c63ff;
+  --background-activated: #5a52e0;
+  --background-hover: #5a52e0;
+  --color: #ffffff;
+  --box-shadow: 0 8px 18px rgba(108, 99, 255, 0.28);
+}
+
+.accion-secundaria {
+  --background: #f2f0ff;
+  --background-activated: #e7e4ff;
+  --background-hover: #e7e4ff;
+  --color: #6c63ff;
+  --box-shadow: none;
+}
+
+.accion-peligro-suave {
+  --background: #fff4f6;
+  --background-activated: #ffe4ea;
+  --background-hover: #ffe4ea;
+  --color: var(--ion-color-danger);
+  --box-shadow: none;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.section-title h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ion-color-dark);
+}
+
+.section-title span {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #f2f0ff;
+  color: #6c63ff;
+  font-size: 13px;
+  font-weight: 800;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+ion-list {
+  background: transparent;
+}
+
+.miembro-item {
+  --background: #f7f7fb;
+  --border-radius: 18px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+
+  border-radius: 18px;
+  margin-bottom: 10px;
+}
+
+.miembro-avatar {
+  width: 42px;
+  height: 42px;
+  background: #f2f0ff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.miembro-avatar ion-icon {
+  font-size: 26px;
+  color: #6c63ff;
+}
+
+.miembro-item h2 {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.miembro-item p {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.miembro-admin-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.miembro-admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: #fbfbff;
+}
+
+.miembro-admin-row strong {
+  display: block;
+  font-size: 13px;
+  color: var(--ion-color-dark);
+}
+
+.miembro-admin-row span {
+  display: block;
+  font-size: 11px;
+  color: var(--ion-color-medium);
+}
+
+.admin-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.loading-box,
+.empty-state {
+  padding: 14px;
+  border-radius: 16px;
+  background: #f7f7fb;
+  color: var(--ion-color-medium);
+  font-size: 14px;
+  text-align: center;
+}
+
+.mensaje {
+  margin: 10px 4px;
+  font-size: 14px;
+}
+
+.codigo-input-item {
+  margin: 16px 0;
+  --background: #f7f7fb;
+  --border-radius: 18px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+
+  border-radius: 18px;
+}

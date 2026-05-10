@@ -82,14 +82,25 @@
       Cargando configuración...
     </div>
 
-    <ion-button
-      expand="block"
-      class="guardar-config-button"
-      [disabled]="guardando || !bebeActivoId"
-      (click)="guardarConfiguracion()">
+    <div class="acciones-ajustes">
+  <ion-button
+    expand="block"
+    class="guardar-config-button"
+    [disabled]="guardando || !bebeActivoId || !hayCambiosConfiguracion"
+    (click)="guardarConfiguracion()">
 
-      {{ guardando ? 'Guardando...' : 'Guardar configuración' }}
-    </ion-button>
+    {{ guardando ? 'Guardando...' : 'Guardar configuración' }}
+  </ion-button>
+
+  <ion-button
+  expand="block"
+  class="familia-button"
+  (click)="irAFamilia()">
+
+  <ion-icon name="people-outline" slot="start"></ion-icon>
+  Gestionar familia
+</ion-button>
+</div>
 
     <ion-text color="success" *ngIf="mensajeGuardado">
       <p class="mensaje">{{ mensajeGuardado }}</p>
