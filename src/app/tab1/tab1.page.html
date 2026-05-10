@@ -5,63 +5,126 @@
 
 <ion-content [fullscreen]="true">
   <div class="dashboard-container">
+
     <!-- Sección de Bebés -->
     <section class="seccion-bebes">
-      <ion-card *ngFor="let bebe of bebes" [routerLink]="['/detalle', bebe.id]" class="bebe-card">
+      <ion-card
+        *ngFor="let bebe of bebes"
+        class="bebe-card"
+        [class.bebe-card-activo]="esBebeActivo(bebe)"
+        (click)="seleccionarBebe(bebe)">
+
+        <div class="bebe-activo-chip" *ngIf="esBebeActivo(bebe)">
+          Activo
+        </div>
+
+        <ion-button
+    class="editar-bebe-button"
+    fill="clear"
+    color="primary"
+    (click)="editarBebe($event, bebe)">
+    <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+  </ion-button>
+
+        <ion-button
+          class="eliminar-bebe-button"
+          fill="clear"
+          color="danger"
+          (click)="eliminarBebe($event, bebe)">
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+
         <ion-card-header>
           <div class="bebe-avatar-container">
             <ion-avatar class="bebe-avatar">
-  <img
-    *ngIf="bebe.foto; else sinFotoTab1"
-    [src]="bebe.foto"
-    [alt]="bebe.nombre">
 
-  <ng-template #sinFotoTab1>
-    <ion-icon name="person-outline"></ion-icon>
-  </ng-template>
-</ion-avatar>
+              <img
+                *ngIf="bebe.fotoUrl"
+                [src]="bebe.fotoUrl"
+                [alt]="bebe.nombre">
+
+              <ion-icon
+                *ngIf="!bebe.fotoUrl"
+                name="person-outline">
+              </ion-icon>
+
+            </ion-avatar>
           </div>
-          <ion-card-title class="bebe-nombre">{{ bebe.nombre }}</ion-card-title>
+
+          <ion-card-title class="bebe-nombre">
+            {{ bebe.nombre }}
+          </ion-card-title>
         </ion-card-header>
-        
+
         <ion-card-content>
           <div class="bebe-info">
             <div class="info-item">
               <span class="info-label">Edad</span>
-              <span class="info-value">{{ bebe.edad }} meses</span>
+              <span class="info-value">
+                {{ calcularEdadMeses(bebe.fechaNacimiento) }} meses
+              </span>
             </div>
+
             <div class="info-item">
               <span class="info-label">Peso</span>
-              <span class="info-value">{{ bebe.peso }} kg</span>
+              <span class="info-value">
+                {{ bebe.peso || '-' }} kg
+              </span>
             </div>
+
             <div class="info-item">
               <span class="info-label">Altura</span>
-              <span class="info-value">{{ bebe.altura }} cm</span>
+              <span class="info-value">
+                {{ bebe.altura || '-' }} cm
+              </span>
             </div>
           </div>
+        </ion-card-content>
+
+      </ion-card>
+
+      <ion-card
+  class="bebe-card agregar-bebe-card"
+  (click)="abrirModalNuevoBebe()">
+
+  <ion-card-content>
+    <div class="agregar-bebe-contenido">
+      <div class="agregar-bebe-solo-icono">
+        <ion-icon name="add-outline"></ion-icon>
+      </div>
+
+      <span class="agregar-bebe-texto">
+        Agregar bebé
+      </span>
+    </div>
+  </ion-card-content>
+
+</ion-card>
+
+      <div class="empty-state" *ngIf="bebes.length === 0">
+        <p>No hay bebés registrados todavía.</p>
+      </div>
+    </section>
+
+    <section class="seccion-progreso-onzas">
+      <ion-card class="progreso-onzas-card">
+        <ion-card-content>
+          <div class="progreso-porcentaje">
+            {{ porcentajeOnzas }}%
+          </div>
+
+          <ion-progress-bar
+            color="primary"
+            [value]="progresoOnzas">
+          </ion-progress-bar>
+
+          <p class="progreso-detalle">
+            Faltan {{ onzasRestantes }} oz de {{ onzasDiariasObjetivo }} oz
+          </p>
         </ion-card-content>
       </ion-card>
     </section>
 
-<section class="seccion-progreso-onzas">
-  <ion-card class="progreso-onzas-card">
-    <ion-card-content>
-      <div class="progreso-porcentaje">
-        {{ porcentajeOnzas }}%
-      </div>
-
-      <ion-progress-bar
-        color="primary"
-        [value]="progresoOnzas">
-      </ion-progress-bar>
-
-      <p class="progreso-detalle">
-        Faltan {{ onzasRestantes  }} oz de {{ onzasDiariasObjetivo }} oz
-      </p>
-    </ion-card-content>
-  </ion-card>
-</section>
-    
     <!-- Sección de Actividades Recientes -->
     <section class="seccion-actividades">
       <div class="actividad-header">
@@ -79,12 +142,15 @@
           <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
         </ion-button>
       </div>
-      
+
       <ion-list
         class="actividades-list"
         *ngIf="actividadesRecientes.length > 0; else sinActividadesHoy">
 
-        <ion-item *ngFor="let actividad of actividadesRecientes" class="actividad-item">
+        <ion-item
+          *ngFor="let actividad of actividadesRecientes"
+          class="actividad-item">
+
           <ion-icon
             [name]="getIconoActividad(actividad)"
             [color]="getColorActividad(actividad)"
@@ -92,9 +158,17 @@
           </ion-icon>
 
           <ion-label>
-            <h3 class="actividad-titulo">{{ getTituloActividad(actividad) }}</h3>
-            <p class="actividad-desc">{{ getDescripcionActividad(actividad) }}</p>
-            <p class="actividad-fecha">{{ actividad.time | date:'HH:mm' }}</p>
+            <h3 class="actividad-titulo">
+              {{ getTituloActividad(actividad) }}
+            </h3>
+
+            <p class="actividad-desc">
+              {{ getDescripcionActividad(actividad) }}
+            </p>
+
+            <p class="actividad-fecha">
+              {{ actividad.time | date:'HH:mm' }}
+            </p>
           </ion-label>
         </ion-item>
       </ion-list>
@@ -105,5 +179,145 @@
         </div>
       </ng-template>
     </section>
+
   </div>
+
+  <ion-modal [isOpen]="showModalBebe" (didDismiss)="cerrarModalBebe()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>
+  {{ bebeEditandoId ? 'Editar bebé' : 'Agregar bebé' }}
+</ion-title>
+
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarModalBebe()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-bebe-content">
+        <div class="form-bebe-card">
+
+          <div class="foto-box">
+            <div class="foto-preview">
+              <img
+                *ngIf="bebeForm.fotoUrl"
+                [src]="bebeForm.fotoUrl"
+                alt="Foto bebé" />
+
+              <ion-icon
+                *ngIf="!bebeForm.fotoUrl"
+                name="person-outline">
+              </ion-icon>
+            </div>
+
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              #fotoInput
+              (change)="onFotoSeleccionada($event)" />
+
+            <ion-button
+              size="small"
+              fill="outline"
+              (click)="fotoInput.click()">
+              Elegir foto
+            </ion-button>
+
+            <ion-button
+              size="small"
+              fill="clear"
+              color="danger"
+              *ngIf="bebeForm.fotoUrl"
+              (click)="quitarFotoBebe()">
+              Quitar
+            </ion-button>
+          </div>
+
+          <ion-item class="form-item" lines="none">
+            <ion-label position="stacked">Nombre</ion-label>
+            <ion-input
+              [(ngModel)]="bebeForm.nombre"
+              placeholder="Ej: Carlos Daniel">
+            </ion-input>
+          </ion-item>
+
+          <ion-item class="form-item" lines="none">
+            <ion-label position="stacked">Fecha de nacimiento</ion-label>
+            <ion-input
+              type="date"
+              [(ngModel)]="bebeForm.fechaNacimiento">
+            </ion-input>
+          </ion-item>
+
+          <ion-item class="form-item" lines="none">
+            <ion-label position="stacked">Peso actual kg</ion-label>
+            <ion-input
+              type="number"
+              [(ngModel)]="bebeForm.peso"
+              placeholder="Ej: 6.2">
+            </ion-input>
+          </ion-item>
+
+          <ion-item class="form-item" lines="none">
+            <ion-label position="stacked">Altura actual cm</ion-label>
+            <ion-input
+              type="number"
+              [(ngModel)]="bebeForm.altura"
+              placeholder="Ej: 62">
+            </ion-input>
+          </ion-item>
+
+          <ion-item class="form-item" lines="none">
+            <ion-label position="stacked">Próxima vacuna</ion-label>
+            <ion-input
+              type="date"
+              [(ngModel)]="bebeForm.proximaVacuna">
+            </ion-input>
+          </ion-item>
+
+          <ion-text color="danger" *ngIf="mensajeBebe">
+            <p class="mensaje-bebe">{{ mensajeBebe }}</p>
+          </ion-text>
+
+          <ion-button
+            expand="block"
+            class="guardar-bebe-button"
+            [disabled]="guardandoBebe"
+            (click)="guardarBebe()">
+
+{{ guardandoBebe ? 'Guardando...' : (bebeEditandoId ? 'Guardar cambios' : 'Guardar bebé') }}
+            <ion-spinner
+              *ngIf="guardandoBebe"
+              name="crescent"
+              class="spinner-button">
+            </ion-spinner>
+          </ion-button>
+
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-alert
+  [isOpen]="showEliminarBebeAlert"
+  header="Eliminar bebé"
+  [message]="'¿Seguro que querés eliminar a ' + (bebeAEliminar?.nombre || 'este bebé') + '?'"
+  [buttons]="[
+    {
+      text: 'Cancelar',
+      role: 'cancel',
+      handler: cancelarEliminarBebe.bind(this)
+    },
+    {
+      text: 'Eliminar',
+      role: 'destructive',
+      handler: confirmarEliminarBebe.bind(this)
+    }
+  ]">
+</ion-alert>
 </ion-content>

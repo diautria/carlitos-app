@@ -1,15 +1,26 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonAvatar, IonLabel, IonItem, IonList, IonIcon, IonBadge, IonProgressBar, IonButton } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonAvatar, IonLabel, IonItem, IonList, IonIcon, IonBadge, IonProgressBar, IonButton,
+  IonModal,
+  IonInput,
+  IonButtons,
+  IonNote,
+  IonText,
+  IonSpinner,
+  IonAlert
+ } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { people, time, medical, chevronForward, water } from 'ionicons/icons';
-import { BebeService } from '../services/bebe.service';
 import { Bebe } from '../models/bebe.model';
 import { ActivityService } from '../services/activity.service';
 import { Activity } from '../models/activity.model';
 import { ConfiguracionService } from '../services/configuracion.service';
-import { personOutline } from 'ionicons/icons';
+import { personOutline, trashOutline, close  } from 'ionicons/icons';
+import { BebeFamiliaService } from '../services/bebe-familia.service';
+import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
+import { addOutline, createOutline } from 'ionicons/icons';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-tab1',
@@ -29,18 +40,35 @@ import { personOutline } from 'ionicons/icons';
     IonLabel,
     IonItem,
     IonList,
-    IonIcon
+    IonIcon,
+    FormsModule,
+    IonAlert,
+IonModal,
+IonInput,
+IonButtons,
+IonNote,
+IonText,
+IonSpinner,
   ],
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss']
 })
 export class Tab1Page implements OnInit {
-  private bebeService = inject(BebeService);
   private activityService = inject(ActivityService);
   private configuracionService = inject(ConfiguracionService);
-  
-  bebes: Bebe[] = [];
-  actividadesRecientes: Activity[] = [];
+  private bebeFamiliaService = inject(BebeFamiliaService);
+
+bebes: BebeFamilia[] = [];
+bebeActivoId = '';  actividadesRecientes: Activity[] = [];
+showModalBebe = false;
+guardandoBebe = false;
+mensajeBebe = '';
+bebeEditandoId = '';
+fotoSeleccionada?: File;
+showEliminarBebeAlert = false;
+bebeAEliminar: BebeFamilia | null = null;
+
+bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
   actividadesHoy: Activity[] = [];
   onzasTomadasHoy = 0;
   onzasDiariasObjetivo = 24;
@@ -48,7 +76,7 @@ export class Tab1Page implements OnInit {
   progresoOnzas = 0;
 
   async ngOnInit() {
-   addIcons({ people, time, medical, chevronForward, personOutline });
+   addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline });
 
     await this.cargarDatosBebe();
 
@@ -165,10 +193,28 @@ getIconoActividad(actividad: any): string {
 }
 
   private async cargarDatosBebe() {
-    const bebe = await this.configuracionService.obtenerBebePrincipal();
+  try {
+    this.bebeActivoId =
+      (await this.bebeFamiliaService.obtenerBebeActivoId()) || '';
 
-    this.bebes = [bebe];
+    this.bebeFamiliaService.obtenerBebes().subscribe({
+      next: async bebes => {
+        this.bebes = bebes || [];
+
+        if (!this.bebeActivoId && this.bebes.length > 0) {
+          await this.seleccionarBebe(this.bebes[0]);
+        }
+      },
+      error: error => {
+        console.error('Error cargando bebés de la familia', error);
+        this.bebes = [];
+      }
+    });
+  } catch (error) {
+    console.error('Error cargando datos de bebés', error);
+    this.bebes = [];
   }
+}
 
   compartirActividadesDelDiaPorWhatsapp() {
   const actividadesHoy = this.actividadesRecientes;
@@ -252,5 +298,237 @@ private generarMensajeActividadesDelDia(activities: Activity[]): string {
     });
 
   return lineas.join('\n');
+}
+
+async seleccionarBebe(bebe: BebeFamilia) {
+  try {
+    await this.bebeFamiliaService.seleccionarBebeActivo(bebe.id);
+    this.bebeActivoId = bebe.id;
+
+    // Más adelante, cuando las actividades estén en Firebase,
+    // acá recargaremos actividades del bebé seleccionado.
+    await this.cargarActividadesDeHoy();
+    await this.cargarProgresoOnzas();
+  } catch (error) {
+    console.error('Error seleccionando bebé activo', error);
+  }
+}
+
+esBebeActivo(bebe: BebeFamilia): boolean {
+  return this.bebeActivoId === bebe.id;
+}
+
+calcularEdadMeses(fechaNacimiento: string): number {
+  if (!fechaNacimiento) {
+    return 0;
+  }
+
+  const nacimiento = new Date(fechaNacimiento);
+  const hoy = new Date();
+
+  let meses =
+    (hoy.getFullYear() - nacimiento.getFullYear()) * 12 +
+    (hoy.getMonth() - nacimiento.getMonth());
+
+  if (hoy.getDate() < nacimiento.getDate()) {
+    meses--;
+  }
+
+  return Math.max(meses, 0);
+}
+
+private crearFormBebeVacio(): CrearBebeFamiliaRequest {
+  return {
+    nombre: '',
+    fechaNacimiento: '',
+    fotoUrl: '',
+    proximaVacuna: '',
+    notas: []
+  };
+}
+
+abrirModalNuevoBebe() {
+  this.bebeEditandoId = '';
+  this.fotoSeleccionada = undefined;
+  this.mensajeBebe = '';
+  this.bebeForm = this.crearFormBebeVacio();
+  this.showModalBebe = true;
+}
+
+cerrarModalBebe() {
+  this.showModalBebe = false;
+  this.guardandoBebe = false;
+  this.mensajeBebe = '';
+}
+
+async guardarBebe() {
+  const nombre = this.bebeForm.nombre?.trim();
+
+  if (!nombre) {
+    this.mensajeBebe = 'Ingresá el nombre del bebé.';
+    return;
+  }
+
+  if (!this.bebeForm.fechaNacimiento) {
+    this.mensajeBebe = 'Ingresá la fecha de nacimiento.';
+    return;
+  }
+
+  this.guardandoBebe = true;
+  this.mensajeBebe = '';
+
+  try {
+    const request: CrearBebeFamiliaRequest = {
+      nombre,
+      fechaNacimiento: this.bebeForm.fechaNacimiento,
+      fotoUrl: this.fotoSeleccionada ? '' : (this.bebeForm.fotoUrl || ''),
+      proximaVacuna: this.bebeForm.proximaVacuna || '',
+      notas: this.bebeForm.notas || []
+    };
+
+    if (
+      this.bebeForm.peso !== undefined &&
+      this.bebeForm.peso !== null &&
+      String(this.bebeForm.peso).trim() !== ''
+    ) {
+      request.peso = Number(this.bebeForm.peso);
+    }
+
+    if (
+      this.bebeForm.altura !== undefined &&
+      this.bebeForm.altura !== null &&
+      String(this.bebeForm.altura).trim() !== ''
+    ) {
+      request.altura = Number(this.bebeForm.altura);
+    }
+
+    let bebeId = this.bebeEditandoId;
+
+    if (bebeId) {
+      await this.bebeFamiliaService.actualizarBebeConFoto(
+        bebeId,
+        request,
+        this.fotoSeleccionada
+      );
+    } else {
+      bebeId = await this.bebeFamiliaService.crearBebeConFoto(
+        request,
+        this.fotoSeleccionada
+      );
+
+      await this.bebeFamiliaService.seleccionarBebeActivo(bebeId);
+      this.bebeActivoId = bebeId;
+    }
+
+    this.fotoSeleccionada = undefined;
+    this.bebeEditandoId = '';
+    this.bebeForm = this.crearFormBebeVacio();
+    this.showModalBebe = false;
+    this.mensajeBebe = '';
+
+    await this.cargarDatosBebe();
+  } catch (error: any) {
+    console.error('Error guardando bebé', error);
+    this.mensajeBebe = error?.message || 'No se pudo guardar el bebé.';
+  } finally {
+    this.guardandoBebe = false;
+  }
+}
+
+onFotoSeleccionada(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+
+  if (!file) {
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    this.mensajeBebe = 'Seleccioná un archivo de imagen válido.';
+    input.value = '';
+    return;
+  }
+
+  this.fotoSeleccionada = file;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    this.bebeForm = {
+      ...this.bebeForm,
+      fotoUrl: reader.result as string
+    };
+  };
+
+  reader.readAsDataURL(file);
+
+  input.value = '';
+}
+
+quitarFotoBebe() {
+  this.fotoSeleccionada = undefined;
+
+  this.bebeForm = {
+    ...this.bebeForm,
+    fotoUrl: ''
+  };
+}
+
+eliminarBebe(event: Event, bebe: BebeFamilia) {
+  event.stopPropagation();
+
+  this.bebeAEliminar = bebe;
+  this.showEliminarBebeAlert = true;
+}
+
+async confirmarEliminarBebe() {
+  if (!this.bebeAEliminar) {
+    return;
+  }
+
+  const bebe = this.bebeAEliminar;
+
+  try {
+    await this.bebeFamiliaService.eliminarBebeLogico(bebe.id);
+
+    if (this.bebeActivoId === bebe.id) {
+      await this.bebeFamiliaService.limpiarBebeActivo();
+      this.bebeActivoId = '';
+    }
+
+    this.bebeAEliminar = null;
+    this.showEliminarBebeAlert = false;
+
+    await this.cargarDatosBebe();
+  } catch (error) {
+    console.error('Error eliminando bebé', error);
+    this.bebeAEliminar = null;
+    this.showEliminarBebeAlert = false;
+  }
+}
+
+cancelarEliminarBebe() {
+  this.bebeAEliminar = null;
+  this.showEliminarBebeAlert = false;
+}
+
+editarBebe(event: Event, bebe: BebeFamilia) {
+  event.stopPropagation();
+
+  this.bebeEditandoId = bebe.id;
+  this.fotoSeleccionada = undefined;
+  this.mensajeBebe = '';
+
+  this.bebeForm = {
+    nombre: bebe.nombre,
+    fechaNacimiento: bebe.fechaNacimiento,
+    peso: bebe.peso,
+    altura: bebe.altura,
+    fotoUrl: bebe.fotoUrl || '',
+    proximaVacuna: bebe.proximaVacuna || '',
+    notas: bebe.notas || []
+  };
+
+  this.showModalBebe = true;
 }
 }

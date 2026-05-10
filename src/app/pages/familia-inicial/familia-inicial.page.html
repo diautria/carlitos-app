@@ -1,0 +1,52 @@
+<ion-content class="familia-content">
+  <div class="familia-page">
+
+    <div class="header-card">
+      <div class="logo-circle">
+        <ion-icon name="people-outline"></ion-icon>
+      </div>
+
+      <h1>Grupo familiar</h1>
+
+      <ion-text color="medium">
+        <p>
+          Creá un espacio compartido para que tu familia registre y consulte
+          las actividades del bebé.
+        </p>
+      </ion-text>
+    </div>
+
+    <div class="form-card">
+      <ion-item class="familia-input" lines="none">
+        <ion-label position="stacked">Nombre de la familia</ion-label>
+        <ion-input
+          [(ngModel)]="nombreFamilia"
+          placeholder="Ej: Familia Carlitos">
+        </ion-input>
+      </ion-item>
+
+      <ion-text color="danger" *ngIf="error">
+        <p class="error">{{ error }}</p>
+      </ion-text>
+
+      <ion-button
+  expand="block"
+  class="crear-button"
+  [disabled]="cargando"
+  (click)="crearFamilia()">
+
+  {{ cargando ? 'Creando...' : 'Crear familia' }}
+
+  <ion-spinner *ngIf="cargando" name="crescent" class="spinner-button"></ion-spinner>
+</ion-button>
+    </div>
+
+    <div class="info-box">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+      <p>
+        Solo los miembros invitados podrán acceder a la información de esta familia.
+      </p>
+    </div>
+
+  </div>
+</ion-content>

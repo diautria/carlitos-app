@@ -17,6 +17,7 @@ import { Bebe } from '../models/bebe.model';
 import { createOutline, imageOutline, personCircleOutline, trashOutline, close } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { NotificacionVacunasService } from '../services/notificacion-vacunas.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-tab3',
@@ -39,7 +40,8 @@ import { NotificacionVacunasService } from '../services/notificacion-vacunas.ser
     IonIcon,
     IonModal,
     IonButtons,
-    IonLabel
+    IonLabel,
+    RouterLink
   ],
 })
 export class Tab3Page implements OnInit {
