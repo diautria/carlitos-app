@@ -15,11 +15,12 @@ import { people, time, medical, chevronForward, water } from 'ionicons/icons';
 import { personOutline, trashOutline, close  } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
-import { addOutline, createOutline } from 'ionicons/icons';
+import { addOutline, createOutline, documentTextOutline  } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import { ActivityFamilia } from '../models/activity-familia.model';
 import { ActivityFamiliaService } from '../services/activity-familia.service';
 import { NotificacionVacunasService } from '../services/notificacion-vacunas.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-tab1',
@@ -56,6 +57,7 @@ export class Tab1Page implements OnInit {
   private activityFamiliaService = inject(ActivityFamiliaService);
   private bebeFamiliaService = inject(BebeFamiliaService);
 private notificacionVacunasService = inject(NotificacionVacunasService);
+private router = inject(Router);
 
 bebes: BebeFamilia[] = [];
 bebeActivoId = '';  
@@ -76,7 +78,7 @@ bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
   progresoOnzas = 0;
 
   async ngOnInit() {
-   addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline });
+   addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentTextOutline  });
 
     await this.cargarDatosBebe();
 
@@ -573,5 +575,11 @@ editarBebe(event: Event, bebe: BebeFamilia) {
   };
 
   this.showModalBebe = true;
+}
+
+verDetalleBebe(event: Event, bebe: BebeFamilia) {
+  event.stopPropagation();
+
+  this.router.navigate(['/detalle', bebe.id]);
 }
 }

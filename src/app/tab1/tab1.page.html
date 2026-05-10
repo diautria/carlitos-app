@@ -9,79 +9,68 @@
     <!-- Sección de Bebés -->
     <section class="seccion-bebes">
       <ion-card
-        *ngFor="let bebe of bebes"
-        class="bebe-card"
-        [class.bebe-card-activo]="esBebeActivo(bebe)"
-        (click)="seleccionarBebe(bebe)">
+  *ngFor="let bebe of bebes"
+  class="bebe-card"
+  [class.bebe-card-activo]="esBebeActivo(bebe)"
+  (click)="seleccionarBebe(bebe)">
 
-        <div class="bebe-activo-chip" *ngIf="esBebeActivo(bebe)">
-          Activo
-        </div>
+  <div
+  class="bebe-activo-chip"
+  *ngIf="esBebeActivo(bebe)">
+  Activo
+</div>
 
-        <ion-button
-    class="editar-bebe-button"
-    fill="clear"
-    color="primary"
-    (click)="editarBebe($event, bebe)">
-    <ion-icon name="create-outline" slot="icon-only"></ion-icon>
-  </ion-button>
+  <ion-card-header>
+    <div class="bebe-avatar-container">
+      <ion-avatar class="bebe-avatar">
+        <img
+          *ngIf="bebe.fotoUrl"
+          [src]="bebe.fotoUrl"
+          [alt]="bebe.nombre">
 
-        <ion-button
-          class="eliminar-bebe-button"
-          fill="clear"
-          color="danger"
-          (click)="eliminarBebe($event, bebe)">
-          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-        </ion-button>
+        <ion-icon
+          *ngIf="!bebe.fotoUrl"
+          name="person-outline">
+        </ion-icon>
+      </ion-avatar>
+    </div>
 
-        <ion-card-header>
-          <div class="bebe-avatar-container">
-            <ion-avatar class="bebe-avatar">
+    <div class="bebe-actions">
+      <ion-button
+        class="bebe-action-button"
+        fill="clear"
+        color="primary"
+        (click)="editarBebe($event, bebe)">
+        <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+      </ion-button>
 
-              <img
-                *ngIf="bebe.fotoUrl"
-                [src]="bebe.fotoUrl"
-                [alt]="bebe.nombre">
+      <ion-button
+        class="bebe-action-button"
+        fill="clear"
+        color="success"
+        (click)="verDetalleBebe($event, bebe)">
+        <ion-icon name="document-text-outline" slot="icon-only"></ion-icon>
+      </ion-button>
 
-              <ion-icon
-                *ngIf="!bebe.fotoUrl"
-                name="person-outline">
-              </ion-icon>
+      <ion-button
+        class="bebe-action-button"
+        fill="clear"
+        color="danger"
+        (click)="eliminarBebe($event, bebe)">
+        <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
 
-            </ion-avatar>
-          </div>
+    <ion-card-title class="bebe-nombre">
+      {{ bebe.nombre || 'Sin nombre' }}
+    </ion-card-title>
 
-          <ion-card-title class="bebe-nombre">
-            {{ bebe.nombre }}
-          </ion-card-title>
-        </ion-card-header>
+    <p class="bebe-edad-card">
+      {{ calcularEdadMeses(bebe.fechaNacimiento) }} meses
+    </p>
+  </ion-card-header>
 
-        <ion-card-content>
-          <div class="bebe-info">
-            <div class="info-item">
-              <span class="info-label">Edad</span>
-              <span class="info-value">
-                {{ calcularEdadMeses(bebe.fechaNacimiento) }} meses
-              </span>
-            </div>
-
-            <div class="info-item">
-              <span class="info-label">Peso</span>
-              <span class="info-value">
-                {{ bebe.peso || '-' }} kg
-              </span>
-            </div>
-
-            <div class="info-item">
-              <span class="info-label">Altura</span>
-              <span class="info-value">
-                {{ bebe.altura || '-' }} cm
-              </span>
-            </div>
-          </div>
-        </ion-card-content>
-
-      </ion-card>
+</ion-card>
 
       <ion-card
   class="bebe-card agregar-bebe-card"

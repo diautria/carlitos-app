@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
     </ion-buttons>
     <ion-title>{{ bebe?.nombre || 'Detalle del bebé' }}</ion-title>
   </ion-toolbar>
@@ -12,19 +12,20 @@
     <!-- Header del bebé -->
     <div class="bebe-header">
       <ion-avatar class="bebe-avatar-large">
-        <img
-          *ngIf="bebe.foto; else sinFotoDetalle"
-          [src]="bebe.foto"
-          [alt]="bebe.nombre">
+  <img
+    *ngIf="bebe.fotoUrl; else sinFotoDetalle"
+    [src]="bebe.fotoUrl"
+    [alt]="bebe.nombre">
 
-        <ng-template #sinFotoDetalle>
-          <ion-icon name="person-outline"></ion-icon>
-        </ng-template>
-      </ion-avatar>
+  <ng-template #sinFotoDetalle>
+    <ion-icon name="person-outline"></ion-icon>
+  </ng-template>
+</ion-avatar>
 
       <h1 class="bebe-nombre">{{ bebe.nombre || 'Sin nombre' }}</h1>
-      <p class="bebe-edad">{{ bebe.edad }} meses</p>
-    </div>
+<p class="bebe-edad">
+  {{ calcularEdadMeses(bebe.fechaNacimiento) }} meses
+</p>    </div>
 
     <!-- Stats del bebé -->
     <div class="bebe-stats">

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
@@ -16,25 +16,23 @@ import {
   IonButtons,
   IonButton,
   IonModal,
-  IonInput,
   IonTextarea
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  people,
-  time,
-  medical,
-  chevronBack,
-  restaurant,
-  moon,
-  water,
-  shield,
   calendar,
-  personOutline
+  personOutline,
+  fitness,
+  resize,
+  documentText,
+  addCircleOutline,
+  createOutline,
+  trashOutline,
+  close
 } from 'ionicons/icons';
 
-import { ConfiguracionService } from '../../services/configuracion.service';
-import { Bebe, Actividad } from '../../models/bebe.model';
+import { BebeFamiliaService } from '../../services/bebe-familia.service';
+import { BebeFamilia } from '../../models/bebe-familia.model';
 
 @Component({
   selector: 'app-detalle-bebe',
@@ -62,26 +60,26 @@ import { Bebe, Actividad } from '../../models/bebe.model';
   styleUrls: ['./detalle-bebe.page.scss']
 })
 export class DetalleBebePage implements OnInit {
-  private configuracionService = inject(ConfiguracionService);
+  private route = inject(ActivatedRoute);
+  private bebeFamiliaService = inject(BebeFamiliaService);
 
-  bebe: Bebe | undefined;
-  actividades: Actividad[] = [];
+  bebe: BebeFamilia | null = null;
+
   showModalNota = false;
   nuevaNota = '';
-indiceNotaEditando: number | null = null;
+  indiceNotaEditando: number | null = null;
 
   async ngOnInit() {
     addIcons({
-      people,
-      time,
-      medical,
-      chevronBack,
-      restaurant,
-      moon,
-      water,
-      shield,
       calendar,
-      personOutline
+      personOutline,
+      fitness,
+      resize,
+      documentText,
+      addCircleOutline,
+      createOutline,
+      trashOutline,
+      close
     });
 
     await this.cargarBebe();
@@ -92,106 +90,96 @@ indiceNotaEditando: number | null = null;
   }
 
   private async cargarBebe() {
-    this.bebe = await this.configuracionService.obtenerBebePrincipal();
+    const bebeId = this.route.snapshot.paramMap.get('id');
 
-    /**
-     * Por ahora dejamos actividades vacío porque las actividades reales
-     * las estás manejando con ActivityService en Tab 2.
-     * Si querés, después podemos mostrar acá las actividades reales del día.
-     */
-    this.actividades = [];
+    if (!bebeId) {
+      this.bebe = null;
+      return;
+    }
+
+    this.bebe = await this.bebeFamiliaService.obtenerBebePorIdAsync(bebeId);
   }
 
-  getIconoTipo(tipo: string): string {
-    const iconos: Record<string, string> = {
-      alimentacion: 'restaurant',
-      sueno: 'moon',
-      cambio: 'water',
-      medicamento: 'medical',
-      vaccine: 'shield'
-    };
+  calcularEdadMeses(fechaNacimiento: string): number {
+    if (!fechaNacimiento) {
+      return 0;
+    }
 
-    return iconos[tipo] || 'ellipse';
-  }
+    const nacimiento = new Date(fechaNacimiento);
+    const hoy = new Date();
 
-  getColorTipo(tipo: string): string {
-    const colores: Record<string, string> = {
-      alimentacion: 'success',
-      sueno: 'primary',
-      cambio: 'warning',
-      medicamento: 'danger',
-      vaccine: 'medium'
-    };
+    let meses =
+      (hoy.getFullYear() - nacimiento.getFullYear()) * 12 +
+      (hoy.getMonth() - nacimiento.getMonth());
 
-    return colores[tipo] || 'medium';
-  }
+    if (hoy.getDate() < nacimiento.getDate()) {
+      meses--;
+    }
 
-  formatearFecha(date: Date): string {
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return Math.max(meses, 0);
   }
 
   abrirModalNota() {
-  this.nuevaNota = '';
-  this.indiceNotaEditando = null;
-  this.showModalNota = true;
-}
-
-cerrarModalNota() {
-  this.showModalNota = false;
-  this.nuevaNota = '';
-  this.indiceNotaEditando = null;
-}
-
-async guardarNota() {
-  const nota = this.nuevaNota.trim();
-
-  if (!nota || !this.bebe) {
-    return;
+    this.nuevaNota = '';
+    this.indiceNotaEditando = null;
+    this.showModalNota = true;
   }
 
-  const notasActuales = [...(this.bebe.notas || [])];
-
-  if (this.indiceNotaEditando !== null) {
-    notasActuales[this.indiceNotaEditando] = nota;
-  } else {
-    notasActuales.push(nota);
+  cerrarModalNota() {
+    this.showModalNota = false;
+    this.nuevaNota = '';
+    this.indiceNotaEditando = null;
   }
 
-  this.bebe = {
-    ...this.bebe,
-    notas: notasActuales
-  };
-
-  await this.configuracionService.guardarBebePrincipal(this.bebe);
-
-  this.cerrarModalNota();
-}
-
-abrirModalEditarNota(index: number, nota: string) {
-  this.indiceNotaEditando = index;
-  this.nuevaNota = nota;
-  this.showModalNota = true;
-}
-
-async eliminarNota(index: number) {
-  if (!this.bebe) {
-    return;
+  abrirModalEditarNota(index: number, nota: string) {
+    this.indiceNotaEditando = index;
+    this.nuevaNota = nota;
+    this.showModalNota = true;
   }
 
-  const notasActuales = [...(this.bebe.notas || [])];
+  async guardarNota() {
+    const nota = this.nuevaNota.trim();
 
-  notasActuales.splice(index, 1);
+    if (!nota || !this.bebe) {
+      return;
+    }
 
-  this.bebe = {
-    ...this.bebe,
-    notas: notasActuales
-  };
+    const notasActuales = [...(this.bebe.notas || [])];
 
-  await this.configuracionService.guardarBebePrincipal(this.bebe);
-}
+    if (this.indiceNotaEditando !== null) {
+      notasActuales[this.indiceNotaEditando] = nota;
+    } else {
+      notasActuales.push(nota);
+    }
+
+    await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
+      notas: notasActuales
+    });
+
+    this.bebe = {
+      ...this.bebe,
+      notas: notasActuales
+    };
+
+    this.cerrarModalNota();
+  }
+
+  async eliminarNota(index: number) {
+    if (!this.bebe) {
+      return;
+    }
+
+    const notasActuales = [...(this.bebe.notas || [])];
+
+    notasActuales.splice(index, 1);
+
+    await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
+      notas: notasActuales
+    });
+
+    this.bebe = {
+      ...this.bebe,
+      notas: notasActuales
+    };
+  }
 }

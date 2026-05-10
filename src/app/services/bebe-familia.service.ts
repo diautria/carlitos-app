@@ -436,4 +436,26 @@ async obtenerBebesFamiliaActual(): Promise<BebeFamilia[]> {
 
   return bebes.filter(b => b.activo !== false);
 }
+
+async obtenerBebePorIdAsync(bebeId: string): Promise<BebeFamilia | null> {
+  const familiaId = await this.obtenerFamiliaActivaId();
+
+  const bebeRef = doc(
+    this.firestore,
+    `familias/${familiaId}/bebes/${bebeId}`
+  );
+
+  const bebeSnap = await getDoc(bebeRef);
+
+  if (!bebeSnap.exists()) {
+    return null;
+  }
+
+  const data = bebeSnap.data() as BebeFamilia;
+
+  return {
+    ...data,
+    id: bebeSnap.id
+  };
+}
 }
