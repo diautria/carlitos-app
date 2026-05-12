@@ -30,6 +30,7 @@
     "@capacitor/local-notifications": "^8.0.2",
     "@capacitor/preferences": "^8.0.1",
     "@capacitor/status-bar": "8.0.2",
+    "@capawesome/capacitor-google-sign-in": "^0.1.2",
     "@ionic/angular": "^8.0.0",
     "firebase": "^12.13.0",
     "ionicons": "^7.0.0",

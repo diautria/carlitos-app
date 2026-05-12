@@ -31,10 +31,23 @@ export class LoginPage {
 
   async loginConGoogle() {
     try {
+      console.log('Click login Google');
+
       await this.authService.loginConGoogle();
-      await this.router.navigateByUrl('/inicio', { replaceUrl: true });
-    } catch (error) {
-      console.error('Error iniciando sesión con Google', error);
+
+      console.log('Login correcto, navegando...');
+
+      await this.router.navigateByUrl('/tabs/tab1', {
+        replaceUrl: true
+      });
+
+    } catch (error: any) {
+      console.error('Error login Google:', error);
+
+      alert(
+        'No se pudo iniciar sesión: ' +
+        (error?.message || error?.code || 'Error desconocido')
+      );
     }
   }
 }

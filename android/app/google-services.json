@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "568462090252",
+    "project_id": "carlitos-c1c1f",
+    "storage_bucket": "carlitos-c1c1f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:568462090252:android:52b970997ca3e7c1d78e29",
+        "android_client_info": {
+          "package_name": "com.diautria.carlitos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "568462090252-0o2ocg86fakgmclv0o9tdsvbe0p563e1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.diautria.carlitos",
+            "certificate_hash": "99764c551bf64a5d1390370d15687af15b8431e8"
+          }
+        },
+        {
+          "client_id": "568462090252-v4ve4c29j81khfvfjj007pnvs6i6s1ik.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnXcUmOdav4_dReif8Xc4k3E5hLAEc_dw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "568462090252-v4ve4c29j81khfvfjj007pnvs6i6s1ik.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
