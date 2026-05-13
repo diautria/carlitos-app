@@ -11,7 +11,7 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, Io
   IonAlert
  } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { people, time, medical, chevronForward, water } from 'ionicons/icons';
+import { people, time, medical, chevronForward, water, logoWhatsapp,documentText } from 'ionicons/icons';
 import { personOutline, trashOutline, close  } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
@@ -80,7 +80,7 @@ bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
   progresoOnzas = 0;
 
   async ngOnInit() {
-   addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentTextOutline  });
+   addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText  });
 
     await this.cargarDatosBebe();
 
