@@ -639,12 +639,15 @@ getDefaultOpenDateGroupsByMonth(
   }
 
   private calcularEstadisticas() {
-    const fechaLimite = new Date();
-    fechaLimite.setDate(fechaLimite.getDate() - 30);
+    const fechaFin = new Date();
+    fechaFin.setHours(0, 0, 0, 0); // inicio de hoy, hoy queda excluido
+
+    const fechaInicio = new Date(fechaFin);
+    fechaInicio.setDate(fechaInicio.getDate() - 30); // 30 días anteriores
 
     const actividadesUltimoMes = this.activities.filter(activity => {
       const fechaActividad = new Date(activity.time);
-      return fechaActividad >= fechaLimite;
+      return fechaActividad >= fechaInicio && fechaActividad < fechaFin;
     });
 
     const tomas = actividadesUltimoMes.filter(a => a.type === 'toma-leche');
