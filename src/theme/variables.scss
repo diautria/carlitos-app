@@ -63,4 +63,18 @@
   --ion-color-tertiary-contrast-rgb: 48, 35, 92;
   --ion-color-tertiary-shade: #afa2e0;
   --ion-color-tertiary-tint: #cdbfff;
+
+  /* Forzar tema claro */
+  color-scheme: light;
+
+  --ion-background-color: #f7f8fc;
+  --ion-background-color-rgb: 247, 248, 252;
+
+  --ion-text-color: #1f2937;
+  --ion-text-color-rgb: 31, 41, 55;
+
+  --ion-card-background: #ffffff;
+  --ion-item-background: #ffffff;
+  --ion-toolbar-background: #ffffff;
+  --ion-tab-bar-background: #ffffff;
 }
