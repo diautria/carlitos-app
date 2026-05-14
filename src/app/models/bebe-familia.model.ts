@@ -17,6 +17,8 @@ export interface BebeFamilia {
   creadoPorUid: string;
   createdAt: any;
   updatedAt?: any;
+
+  medicamentos?: MedicamentoBebe[];
 }
 
 export interface CrearBebeFamiliaRequest {
@@ -27,4 +29,15 @@ export interface CrearBebeFamiliaRequest {
   fotoUrl?: string;
   proximaVacuna?: string;
   notas?: string[];
+  medicamentos?: MedicamentoBebe[];
+}
+
+export interface MedicamentoBebe {
+  id: string;
+  nombre: string;
+  dosisGotas: number;
+  frecuenciaHoras?: number;
+  horario?: string;
+  observaciones?: string;
+  activo: boolean;
 }

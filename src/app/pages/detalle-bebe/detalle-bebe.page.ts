@@ -16,8 +16,11 @@ import {
   IonButtons,
   IonButton,
   IonModal,
-  IonTextarea
+  IonTextarea,
+  IonInput,
+  IonToggle
 } from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
 import {
   calendar,
@@ -28,11 +31,15 @@ import {
   addCircleOutline,
   createOutline,
   trashOutline,
-  close
+  close,
+  medicalOutline,
+  waterOutline,
+  timeOutline,
+  checkmarkCircleOutline
 } from 'ionicons/icons';
 
 import { BebeFamiliaService } from '../../services/bebe-familia.service';
-import { BebeFamilia } from '../../models/bebe-familia.model';
+import { BebeFamilia, MedicamentoBebe } from '../../models/bebe-familia.model';
 
 @Component({
   selector: 'app-detalle-bebe',
@@ -54,7 +61,9 @@ import { BebeFamilia } from '../../models/bebe-familia.model';
     IonButtons,
     IonButton,
     IonModal,
-    IonTextarea
+    IonTextarea,
+    IonInput,
+    IonToggle
   ],
   templateUrl: './detalle-bebe.page.html',
   styleUrls: ['./detalle-bebe.page.scss']
@@ -69,6 +78,11 @@ export class DetalleBebePage implements OnInit {
   nuevaNota = '';
   indiceNotaEditando: number | null = null;
 
+  showModalMedicamento = false;
+  indiceMedicamentoEditando: number | null = null;
+
+  medicamentoForm: MedicamentoBebe = this.crearMedicamentoVacio();
+
   async ngOnInit() {
     addIcons({
       calendar,
@@ -79,7 +93,11 @@ export class DetalleBebePage implements OnInit {
       addCircleOutline,
       createOutline,
       trashOutline,
-      close
+      close,
+      medicalOutline,
+      waterOutline,
+      timeOutline,
+      checkmarkCircleOutline
     });
 
     await this.cargarBebe();
@@ -170,7 +188,6 @@ export class DetalleBebePage implements OnInit {
     }
 
     const notasActuales = [...(this.bebe.notas || [])];
-
     notasActuales.splice(index, 1);
 
     await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
@@ -181,5 +198,132 @@ export class DetalleBebePage implements OnInit {
       ...this.bebe,
       notas: notasActuales
     };
+  }
+
+  private crearMedicamentoVacio(): MedicamentoBebe {
+    return {
+      id: crypto.randomUUID(),
+      nombre: '',
+      dosisGotas: 1,
+      frecuenciaHoras: undefined,
+      horario: '',
+      observaciones: '',
+      activo: true
+    };
+  }
+
+  abrirModalMedicamento() {
+    this.indiceMedicamentoEditando = null;
+    this.medicamentoForm = this.crearMedicamentoVacio();
+    this.showModalMedicamento = true;
+  }
+
+  abrirModalEditarMedicamento(index: number, medicamento: MedicamentoBebe) {
+    this.indiceMedicamentoEditando = index;
+
+    this.medicamentoForm = {
+      ...medicamento
+    };
+
+    this.showModalMedicamento = true;
+  }
+
+  cerrarModalMedicamento() {
+    this.showModalMedicamento = false;
+    this.indiceMedicamentoEditando = null;
+    this.medicamentoForm = this.crearMedicamentoVacio();
+  }
+
+  async guardarMedicamento() {
+    if (!this.bebe) {
+      return;
+    }
+
+    const nombre = this.medicamentoForm.nombre.trim();
+
+    if (!nombre || !this.medicamentoForm.dosisGotas || this.medicamentoForm.dosisGotas <= 0) {
+      return;
+    }
+
+    const medicamentosActuales = [...(this.bebe.medicamentos || [])];
+
+    const medicamentoGuardar: MedicamentoBebe = {
+      ...this.medicamentoForm,
+      nombre,
+      dosisGotas: Number(this.medicamentoForm.dosisGotas),
+      frecuenciaHoras: this.medicamentoForm.frecuenciaHoras
+        ? Number(this.medicamentoForm.frecuenciaHoras)
+        : undefined,
+      observaciones: this.medicamentoForm.observaciones?.trim() || ''
+    };
+
+    if (this.indiceMedicamentoEditando !== null) {
+      medicamentosActuales[this.indiceMedicamentoEditando] = medicamentoGuardar;
+    } else {
+      medicamentosActuales.push(medicamentoGuardar);
+    }
+
+    await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
+      medicamentos: medicamentosActuales
+    });
+
+    this.bebe = {
+      ...this.bebe,
+      medicamentos: medicamentosActuales
+    };
+
+    this.cerrarModalMedicamento();
+  }
+
+  async eliminarMedicamento(index: number) {
+    if (!this.bebe) {
+      return;
+    }
+
+    const medicamentosActuales = [...(this.bebe.medicamentos || [])];
+    medicamentosActuales.splice(index, 1);
+
+    await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
+      medicamentos: medicamentosActuales
+    });
+
+    this.bebe = {
+      ...this.bebe,
+      medicamentos: medicamentosActuales
+    };
+  }
+
+  async cambiarEstadoMedicamento(index: number, activo: boolean) {
+    if (!this.bebe) {
+      return;
+    }
+
+    const medicamentosActuales = [...(this.bebe.medicamentos || [])];
+
+    medicamentosActuales[index] = {
+      ...medicamentosActuales[index],
+      activo
+    };
+
+    await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
+      medicamentos: medicamentosActuales
+    });
+
+    this.bebe = {
+      ...this.bebe,
+      medicamentos: medicamentosActuales
+    };
+  }
+
+  obtenerTextoFrecuencia(medicamento: MedicamentoBebe): string {
+    if (medicamento.frecuenciaHoras && medicamento.frecuenciaHoras > 0) {
+      return `Cada ${medicamento.frecuenciaHoras} horas`;
+    }
+
+    if (medicamento.horario) {
+      return `A las ${medicamento.horario}`;
+    }
+
+    return 'Sin horario definido';
   }
 }

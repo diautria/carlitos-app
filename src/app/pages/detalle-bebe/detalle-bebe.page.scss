@@ -1,5 +1,6 @@
 .detalle-container {
   padding: 16px;
+  padding-bottom: 32px;
 }
 
 .bebe-header {
@@ -14,6 +15,21 @@
   height: 120px;
   border: 4px solid var(--ion-color-primary);
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.bebe-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bebe-avatar-large ion-icon {
+  font-size: 64px;
+  color: var(--ion-color-primary);
 }
 
 .bebe-nombre {
@@ -32,18 +48,21 @@
 .bebe-stats {
   display: flex;
   justify-content: space-around;
-  background: var(--ion-color-light);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 24px;
+  background: linear-gradient(135deg, #f7f9ff, #eef7f1);
+  border-radius: 20px;
+  padding: 18px 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  
+  gap: 7px;
+  text-align: center;
+  flex: 1;
+
   ion-icon {
     font-size: 1.5rem;
     color: var(--ion-color-primary);
@@ -51,40 +70,169 @@
 }
 
 .stat-value {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--ion-color-dark);
 }
 
 .stat-label {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   color: var(--ion-color-medium);
   text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.seccion-card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .titulo-seccion {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.22rem;
+  font-weight: 700;
   color: var(--ion-color-dark);
-  margin-bottom: 16px;
-  
+  margin: 0;
+
   ion-icon {
     font-size: 1.5rem;
+    color: var(--ion-color-primary);
   }
 }
 
-.seccion-notas {
-  margin-bottom: 24px;
+.medicamentos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.medicamento-card {
+  background: linear-gradient(135deg, #f8fbff, #f3fff7);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 18px;
+  padding: 14px;
+  transition: 0.2s ease;
+}
+
+.medicamento-inactivo {
+  opacity: 0.62;
+  filter: grayscale(0.2);
+}
+
+.medicamento-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.medicamento-icon {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 16px;
+  background: rgba(var(--ion-color-success-rgb), 0.13);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 1.55rem;
+    color: var(--ion-color-success);
+  }
+}
+
+.medicamento-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.medicamento-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--ion-color-dark);
+  }
+}
+
+.estado-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.estado-activo {
+  color: var(--ion-color-success);
+  background: rgba(var(--ion-color-success-rgb), 0.12);
+}
+
+.estado-inactivo {
+  color: var(--ion-color-medium);
+  background: rgba(var(--ion-color-medium-rgb), 0.12);
+}
+
+.dosis {
+  margin: 6px 0 4px;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.frecuencia {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--ion-color-medium);
+
+  ion-icon {
+    font-size: 1rem;
+  }
+}
+
+.observaciones {
+  margin: 8px 0 0;
+  font-size: 0.84rem;
+  color: var(--ion-color-dark);
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
+.medicamento-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-top: 10px;
 }
 
 .notas-list {
   background: var(--ion-color-light);
   border-radius: 16px;
   overflow: hidden;
-  
+
   ion-item {
     --background: var(--ion-color-light);
     --padding-start: 16px;
@@ -93,73 +241,135 @@
 
 .nota-item {
   border-bottom: 1px solid var(--ion-color-light-shade);
-  
+
   &:last-child {
     border-bottom: none;
   }
-  
+
   ion-label {
     color: var(--ion-color-dark);
+    white-space: normal;
   }
 }
 
-.seccion-actividades {
-  margin-top: 16px;
-}
-
-.actividades-list {
-  background: transparent;
-  
-  ion-item {
-    --background: var(--ion-color-light);
-    --padding-start: 16px;
-    --padding-end: 8px;
-    margin-bottom: 8px;
-    border-radius: 12px;
-  }
-}
-
-.actividad-titulo {
-  font-weight: 600;
-  color: var(--ion-color-dark);
-}
-
-.actividad-desc {
+.empty-state {
+  background: var(--ion-color-light);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
   color: var(--ion-color-medium);
-  font-size: 0.875rem;
+
+  p {
+    margin: 0;
+  }
+
+  small {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.78rem;
+  }
 }
 
-.actividad-fecha {
-  color: var(--ion-color-secondary);
-  font-size: 0.75rem;
-  margin-top: 4px;
+.medicamentos-empty {
+  ion-icon {
+    font-size: 2rem;
+    color: var(--ion-color-primary);
+    margin-bottom: 6px;
+  }
 }
 
-.bebe-avatar-large {
+.medicamento-modal-content {
+  --background: #f7f8fb;
+}
+
+.modal-intro {
+  text-align: center;
+  padding: 10px 10px 18px;
+
+  h2 {
+    margin: 8px 0 4px;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--ion-color-dark);
+  }
+
+  p {
+    margin: 0;
+    color: var(--ion-color-medium);
+    font-size: 0.92rem;
+  }
+}
+
+.modal-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: rgba(var(--ion-color-success-rgb), 0.13);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  margin: 0 auto;
+
+  ion-icon {
+    font-size: 2rem;
+    color: var(--ion-color-success);
+  }
 }
 
-.bebe-avatar-large img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.form-list {
+  background: transparent;
 }
 
-.bebe-avatar-large ion-icon {
-  font-size: 64px;
-  color: var(--ion-color-primary);
+.form-item {
+  --background: #ffffff;
+  --border-radius: 16px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --inner-padding-end: 0;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.045);
 }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.toggle-item {
+  ion-label {
+    h3 {
+      margin: 0;
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 3px 0 0;
+      font-size: 0.8rem;
+      color: var(--ion-color-medium);
+    }
+  }
 }
 
-.section-header .titulo-seccion {
-  margin: 0;
+.save-button {
+  margin-top: 18px;
+  height: 52px;
+  --border-radius: 16px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+@media (max-width: 380px) {
+  .bebe-stats {
+    padding: 14px 8px;
+  }
+
+  .stat-value {
+    font-size: 0.95rem;
+  }
+
+  .stat-label {
+    font-size: 0.62rem;
+  }
+
+  .medicamento-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

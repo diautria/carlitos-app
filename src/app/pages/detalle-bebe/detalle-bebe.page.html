@@ -9,25 +9,25 @@
 
 <ion-content [fullscreen]="true" *ngIf="bebe">
   <div class="detalle-container">
-    <!-- Header del bebé -->
     <div class="bebe-header">
       <ion-avatar class="bebe-avatar-large">
-  <img
-    *ngIf="bebe.fotoUrl; else sinFotoDetalle"
-    [src]="bebe.fotoUrl"
-    [alt]="bebe.nombre">
+        <img
+          *ngIf="bebe.fotoUrl; else sinFotoDetalle"
+          [src]="bebe.fotoUrl"
+          [alt]="bebe.nombre">
 
-  <ng-template #sinFotoDetalle>
-    <ion-icon name="person-outline"></ion-icon>
-  </ng-template>
-</ion-avatar>
+        <ng-template #sinFotoDetalle>
+          <ion-icon name="person-outline"></ion-icon>
+        </ng-template>
+      </ion-avatar>
 
       <h1 class="bebe-nombre">{{ bebe.nombre || 'Sin nombre' }}</h1>
-<p class="bebe-edad">
-  {{ calcularEdadMeses(bebe.fechaNacimiento) }} meses
-</p>    </div>
 
-    <!-- Stats del bebé -->
+      <p class="bebe-edad">
+        {{ calcularEdadMeses(bebe.fechaNacimiento) }} meses
+      </p>
+    </div>
+
     <div class="bebe-stats">
       <div class="stat-item">
         <ion-icon name="fitness"></ion-icon>
@@ -50,94 +50,288 @@
       </div>
     </div>
 
-    <!-- Notas del bebé -->
-<section class="seccion-notas">
-  <div class="section-header">
-    <h2 class="titulo-seccion">
-      <ion-icon name="document-text"></ion-icon>
-      Notas
-    </h2>
+    <section class="seccion-card">
+      <div class="section-header">
+        <h2 class="titulo-seccion">
+          <ion-icon name="medical-outline"></ion-icon>
+          Medicamentos
+        </h2>
 
-    <ion-button
-      fill="clear"
-      size="small"
-      color="success"
-      (click)="abrirModalNota()">
-      <ion-icon name="add-circle" slot="start"></ion-icon>
-    </ion-button>
-  </div>
+        <ion-button
+          fill="clear"
+          size="small"
+          color="success"
+          (click)="abrirModalMedicamento()">
+          <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
 
-  <ion-list
-  class="notas-list"
-  lines="none"
-  *ngIf="bebe.notas && bebe.notas.length; else sinNotas">
+      <div
+        class="medicamentos-list"
+        *ngIf="bebe.medicamentos && bebe.medicamentos.length; else sinMedicamentos">
 
-  <ion-item
-  lines="none"
-  *ngFor="let nota of bebe.notas; let i = index"
-  class="nota-item">
+        <div
+          class="medicamento-card"
+          *ngFor="let medicamento of bebe.medicamentos; let i = index"
+          [class.medicamento-inactivo]="!medicamento.activo">
 
-  <ion-label>{{ nota }}</ion-label>
+          <div class="medicamento-main">
+            <div class="medicamento-icon">
+              <ion-icon name="water-outline"></ion-icon>
+            </div>
 
-  <ion-buttons slot="end">
-    <ion-button
-      fill="clear"
-      color="primary"
-      (click)="abrirModalEditarNota(i, nota)">
-      <ion-icon name="create-outline"></ion-icon>
-    </ion-button>
+            <div class="medicamento-info">
+              <div class="medicamento-title-row">
+                <h3>{{ medicamento.nombre }}</h3>
 
-    <ion-button
-      fill="clear"
-      color="danger"
-      (click)="eliminarNota(i)">
-      <ion-icon name="trash-outline"></ion-icon>
-    </ion-button>
-  </ion-buttons>
-</ion-item>
-</ion-list>
+                <span
+                  class="estado-pill"
+                  [class.estado-activo]="medicamento.activo"
+                  [class.estado-inactivo]="!medicamento.activo">
+                  {{ medicamento.activo ? 'Activo' : 'Pausado' }}
+                </span>
+              </div>
 
-  <ng-template #sinNotas>
-    <div class="empty-state">
-      <p>No hay notas registradas.</p>
-    </div>
-  </ng-template>
-</section>
-  </div>
+              <p class="dosis">
+                {{ medicamento.dosisGotas }} gotas
+              </p>
 
-  <ion-modal [isOpen]="showModalNota" (didDismiss)="cerrarModalNota()">
-  <ng-template>
-    <ion-header>
-      <ion-toolbar>
-<ion-title>{{ indiceNotaEditando !== null ? 'Editar nota' : 'Nueva nota' }}</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="cerrarModalNota()" color="medium">
-            <ion-icon name="close"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
+              <p class="frecuencia">
+                <ion-icon name="time-outline"></ion-icon>
+                {{ obtenerTextoFrecuencia(medicamento) }}
+              </p>
 
-    <ion-content class="ion-padding">
-      <ion-list lines="none">
-        <ion-item lines="none">
-          <ion-textarea
-            label-placement="stacked"
-            [(ngModel)]="nuevaNota"
-            placeholder="Escribe una nota"
-            auto-grow="true"
-            rows="4">
-          </ion-textarea>
+              <p class="observaciones" *ngIf="medicamento.observaciones">
+                {{ medicamento.observaciones }}
+              </p>
+            </div>
+          </div>
+
+          <div class="medicamento-actions">
+            <ion-toggle
+              [checked]="medicamento.activo"
+              color="success"
+              (ionChange)="cambiarEstadoMedicamento(i, $event.detail.checked)">
+            </ion-toggle>
+
+            <ion-button
+              fill="clear"
+              color="primary"
+              (click)="abrirModalEditarMedicamento(i, medicamento)">
+              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+
+            <ion-button
+              fill="clear"
+              color="danger"
+              (click)="eliminarMedicamento(i)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #sinMedicamentos>
+        <div class="empty-state medicamentos-empty">
+          <ion-icon name="medical-outline"></ion-icon>
+          <p>No hay medicamentos registrados.</p>
+          <small>Agrega los medicamentos tomados, dosis en gotas y horarios.</small>
+        </div>
+      </ng-template>
+    </section>
+
+    <section class="seccion-card">
+      <div class="section-header">
+        <h2 class="titulo-seccion">
+          <ion-icon name="document-text"></ion-icon>
+          Notas
+        </h2>
+
+        <ion-button
+          fill="clear"
+          size="small"
+          color="success"
+          (click)="abrirModalNota()">
+          <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+
+      <ion-list
+        class="notas-list"
+        lines="none"
+        *ngIf="bebe.notas && bebe.notas.length; else sinNotas">
+
+        <ion-item
+          lines="none"
+          *ngFor="let nota of bebe.notas; let i = index"
+          class="nota-item">
+
+          <ion-label>{{ nota }}</ion-label>
+
+          <ion-buttons slot="end">
+            <ion-button
+              fill="clear"
+              color="primary"
+              (click)="abrirModalEditarNota(i, nota)">
+              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+
+            <ion-button
+              fill="clear"
+              color="danger"
+              (click)="eliminarNota(i)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
         </ion-item>
       </ion-list>
 
-      <ion-button
-  expand="block"
-  class="ion-margin-top"
-  (click)="guardarNota()">
-  {{ indiceNotaEditando !== null ? 'Guardar cambios' : 'Guardar nota' }}
-</ion-button>
-    </ion-content>
-  </ng-template>
-</ion-modal>
+      <ng-template #sinNotas>
+        <div class="empty-state">
+          <p>No hay notas registradas.</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <ion-modal [isOpen]="showModalMedicamento" (didDismiss)="cerrarModalMedicamento()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>
+            {{ indiceMedicamentoEditando !== null ? 'Editar medicamento' : 'Nuevo medicamento' }}
+          </ion-title>
+
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarModalMedicamento()" color="medium">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding medicamento-modal-content">
+        <div class="modal-intro">
+          <div class="modal-icon">
+            <ion-icon name="medical-outline"></ion-icon>
+          </div>
+
+          <h2>Medicamento tomado</h2>
+          <p>Registra el nombre, la dosis en gotas y cuándo debe tomarlo.</p>
+        </div>
+
+        <ion-list lines="none" class="form-list">
+          <ion-item lines="none" class="form-item">
+            <ion-input
+              label="Nombre del medicamento"
+              label-placement="stacked"
+              placeholder="Ej: Vitaminas, hierro, gotas..."
+              [(ngModel)]="medicamentoForm.nombre">
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-input
+              type="number"
+              min="1"
+              label="Dosis en gotas"
+              label-placement="stacked"
+              placeholder="Ej: 5"
+              [(ngModel)]="medicamentoForm.dosisGotas">
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-input
+              type="number"
+              min="1"
+              label="Cada cuántas horas"
+              label-placement="stacked"
+              placeholder="Ej: 8"
+              [(ngModel)]="medicamentoForm.frecuenciaHoras">
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-input
+              type="time"
+              label="Horario fijo opcional"
+              label-placement="stacked"
+              [(ngModel)]="medicamentoForm.horario">
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-textarea
+              label="Observaciones"
+              label-placement="stacked"
+              placeholder="Ej: Dar después de la leche, por 7 días..."
+              auto-grow="true"
+              rows="3"
+              [(ngModel)]="medicamentoForm.observaciones">
+            </ion-textarea>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item toggle-item">
+            <ion-label>
+              <h3>Medicamento activo</h3>
+              <p>Desactívalo si ya no debe tomarlo.</p>
+            </ion-label>
+
+            <ion-toggle
+              color="success"
+              [(ngModel)]="medicamentoForm.activo">
+            </ion-toggle>
+          </ion-item>
+        </ion-list>
+
+        <ion-button
+          expand="block"
+          class="save-button"
+          (click)="guardarMedicamento()">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          {{ indiceMedicamentoEditando !== null ? 'Guardar cambios' : 'Guardar medicamento' }}
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal [isOpen]="showModalNota" (didDismiss)="cerrarModalNota()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>
+            {{ indiceNotaEditando !== null ? 'Editar nota' : 'Nueva nota' }}
+          </ion-title>
+
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarModalNota()" color="medium">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <ion-list lines="none">
+          <ion-item lines="none">
+            <ion-textarea
+              label-placement="stacked"
+              [(ngModel)]="nuevaNota"
+              placeholder="Escribe una nota"
+              auto-grow="true"
+              rows="4">
+            </ion-textarea>
+          </ion-item>
+        </ion-list>
+
+        <ion-button
+          expand="block"
+          class="ion-margin-top"
+          (click)="guardarNota()">
+          {{ indiceNotaEditando !== null ? 'Guardar cambios' : 'Guardar nota' }}
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>
