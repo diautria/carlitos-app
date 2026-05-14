@@ -28,7 +28,10 @@ import {
   IonCardTitle,
   IonCardContent,
   IonFooter,
-  IonDatetimeButton
+  IonDatetimeButton,
+  IonTextarea,
+  IonSelect,
+  IonSelectOption
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -48,8 +51,8 @@ import {
   filterOutline,
   refreshOutline,
   calendarOutline,
-  timeOutline
-} from 'ionicons/icons';
+  timeOutline,
+  medical, medicalOutline } from 'ionicons/icons';
 
 import { ActivityFamiliaService } from '../services/activity-familia.service';
 import {
@@ -58,6 +61,8 @@ import {
 } from '../models/activity-familia.model';
 
 import { NotificacionTomasService } from '../services/notificacion-tomas.service';
+import { BebeFamiliaService } from '../services/bebe-familia.service';
+import { BebeFamilia, MedicamentoBebe } from '../models/bebe-familia.model';
 
 interface ActivityDateGroup {
   fecha: string;
@@ -92,6 +97,12 @@ interface ResumenFiltros {
   total: number;
   tomas: number;
   panales: number;
+  medicamentos: number;
+}
+
+interface MedicamentoDisponible extends MedicamentoBebe {
+  bebeId: string;
+  nombreBebe: string;
 }
 
 @Component({
@@ -128,20 +139,27 @@ interface ResumenFiltros {
     IonCardTitle,
     IonCardContent,
     IonFooter,
-    IonDatetimeButton
+    IonDatetimeButton,
+    IonTextarea,
+    IonSelect,
+    IonSelectOption
   ]
 })
 export class Tab2Page implements OnInit {
   activities: ActivityFamilia[] = [];
   filteredActivities: ActivityFamilia[] = [];
 
+  bebes: BebeFamilia[] = [];
+  medicamentosDisponibles: MedicamentoDisponible[] = [];
+
   loading = false;
   primeraCarga = true;
 
-  selectedTab: 'toma-leche' | 'cambio-panal' = 'toma-leche';
+  selectedTab: ActivityFamiliaType = 'toma-leche';
 
   groupedTomasLeche: ActivityYearGroup[] = [];
   groupedCambiosPanal: ActivityYearGroup[] = [];
+  groupedMedicamentos: ActivityYearGroup[] = [];
 
   showModal = false;
   showModalFiltros = false;
@@ -157,17 +175,21 @@ export class Tab2Page implements OnInit {
   resumenFiltros: ResumenFiltros = {
     total: 0,
     tomas: 0,
-    panales: 0
+    panales: 0,
+    medicamentos: 0
   };
 
   openGroupsTomaLeche: string[] = [];
   openGroupsCambioPanal: string[] = [];
+  openGroupsMedicamentos: string[] = [];
 
   openMonthGroupsTomaLeche: Record<string, string[]> = {};
   openMonthGroupsCambioPanal: Record<string, string[]> = {};
+  openMonthGroupsMedicamentos: Record<string, string[]> = {};
 
   openDateGroupsTomaLeche: Record<string, string[]> = {};
   openDateGroupsCambioPanal: Record<string, string[]> = {};
+  openDateGroupsMedicamentos: Record<string, string[]> = {};
 
   estadisticas = {
     promedioOnzasPorDia: 0,
@@ -177,40 +199,56 @@ export class Tab2Page implements OnInit {
     totalPanales: 0,
     totalPopo: 0,
     totalPipi: 0,
+    totalMedicamentos: 0,
     promedioPanalesPorDia: 0
   };
 
   constructor(
     private activityFamiliaService: ActivityFamiliaService,
     private alertController: AlertController,
-    private notificacionTomasService: NotificacionTomasService
+    private notificacionTomasService: NotificacionTomasService,
+    private bebeFamiliaService: BebeFamiliaService
   ) {
-    addIcons({
-      addCircle,
-      statsChartOutline,
-      water,
-      leaf,
-      createOutline,
-      trashOutline,
-      close,
-      heart,
-      flask,
-      checkmarkCircle,
-      alertCircle,
-      checkmark,
-      filterOutline,
-      refreshOutline,
-      calendarOutline,
-      timeOutline
-    });
+    addIcons({addCircle,statsChartOutline,filterOutline,water,leaf,medicalOutline,createOutline,trashOutline,medical,close,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline});
   }
 
   async ngOnInit() {
+    await this.cargarMedicamentosRegistrados();
     await this.loadActivities();
   }
 
   async ionViewWillEnter() {
+    await this.cargarMedicamentosRegistrados();
     await this.loadActivities();
+  }
+
+  private async cargarMedicamentosRegistrados() {
+    try {
+      const bebes = await this.bebeFamiliaService.obtenerBebesFamiliaActual();
+
+      this.bebes = bebes || [];
+      this.medicamentosDisponibles = [];
+
+      for (const bebe of this.bebes) {
+        const medicamentos = bebe.medicamentos || [];
+
+        for (const medicamento of medicamentos) {
+          if (!medicamento.activo) {
+            continue;
+          }
+
+          this.medicamentosDisponibles.push({
+            ...medicamento,
+            bebeId: bebe.id,
+            nombreBebe: bebe.nombre
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error cargando medicamentos registrados', error);
+      this.bebes = [];
+      this.medicamentosDisponibles = [];
+    }
   }
 
   async loadActivities() {
@@ -221,12 +259,15 @@ export class Tab2Page implements OnInit {
     try {
       const gruposTomaActuales = [...this.openGroupsTomaLeche];
       const gruposPanalActuales = [...this.openGroupsCambioPanal];
+      const gruposMedicamentosActuales = [...this.openGroupsMedicamentos];
 
       const mesesTomaActuales = { ...this.openMonthGroupsTomaLeche };
       const mesesPanalActuales = { ...this.openMonthGroupsCambioPanal };
+      const mesesMedicamentosActuales = { ...this.openMonthGroupsMedicamentos };
 
       const fechasTomaActuales = { ...this.openDateGroupsTomaLeche };
       const fechasPanalActuales = { ...this.openDateGroupsCambioPanal };
+      const fechasMedicamentosActuales = { ...this.openDateGroupsMedicamentos };
 
       const actividades = await this.activityFamiliaService.getAll();
 
@@ -244,6 +285,10 @@ export class Tab2Page implements OnInit {
         ? gruposPanalActuales
         : this.getDefaultOpenGroups('cambio-panal');
 
+      this.openGroupsMedicamentos = gruposMedicamentosActuales.length
+        ? gruposMedicamentosActuales
+        : this.getDefaultOpenGroups('medicamento');
+
       this.openMonthGroupsTomaLeche = Object.keys(mesesTomaActuales).length
         ? mesesTomaActuales
         : this.getDefaultOpenMonthGroupsByYear('toma-leche');
@@ -252,6 +297,10 @@ export class Tab2Page implements OnInit {
         ? mesesPanalActuales
         : this.getDefaultOpenMonthGroupsByYear('cambio-panal');
 
+      this.openMonthGroupsMedicamentos = Object.keys(mesesMedicamentosActuales).length
+        ? mesesMedicamentosActuales
+        : this.getDefaultOpenMonthGroupsByYear('medicamento');
+
       this.openDateGroupsTomaLeche = Object.keys(fechasTomaActuales).length
         ? fechasTomaActuales
         : this.getDefaultOpenDateGroupsByMonth('toma-leche');
@@ -259,6 +308,10 @@ export class Tab2Page implements OnInit {
       this.openDateGroupsCambioPanal = Object.keys(fechasPanalActuales).length
         ? fechasPanalActuales
         : this.getDefaultOpenDateGroupsByMonth('cambio-panal');
+
+      this.openDateGroupsMedicamentos = Object.keys(fechasMedicamentosActuales).length
+        ? fechasMedicamentosActuales
+        : this.getDefaultOpenDateGroupsByMonth('medicamento');
 
       await this.notificacionTomasService.programarNotificacionProximaToma(
         this.activities
@@ -270,6 +323,7 @@ export class Tab2Page implements OnInit {
       this.filteredActivities = [];
       this.groupedTomasLeche = [];
       this.groupedCambiosPanal = [];
+      this.groupedMedicamentos = [];
 
       if (error?.message && this.primeraCarga) {
         const alert = await this.alertController.create({
@@ -284,79 +338,6 @@ export class Tab2Page implements OnInit {
       this.loading = false;
       this.primeraCarga = false;
     }
-  }
-
-  onDateAccordionChange(
-    type: ActivityFamiliaType,
-    monthKey: string,
-    event: any
-  ) {
-    event.stopPropagation();
-
-    const value = event.detail.value || [];
-    const values = Array.isArray(value) ? value : [value];
-
-    if (type === 'toma-leche') {
-      this.openDateGroupsTomaLeche = {
-        ...this.openDateGroupsTomaLeche,
-        [monthKey]: values
-      };
-      return;
-    }
-
-    this.openDateGroupsCambioPanal = {
-      ...this.openDateGroupsCambioPanal,
-      [monthKey]: values
-    };
-  }
-
-  getOpenDateGroups(type: ActivityFamiliaType, monthKey: string): string[] {
-    if (type === 'toma-leche') {
-      return this.openDateGroupsTomaLeche[monthKey] || [];
-    }
-
-    return this.openDateGroupsCambioPanal[monthKey] || [];
-  }
-
-  getDefaultOpenDateGroupsByMonth(
-    type: ActivityFamiliaType
-  ): Record<string, string[]> {
-    const currentYear = new Date().getFullYear().toString();
-    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-    const currentDay = String(new Date().getDate()).padStart(2, '0');
-
-    const currentMonthKey = `${currentYear}-${currentMonth}`;
-    const todayKey = `${currentYear}-${currentMonth}-${currentDay}`;
-
-    const grupos = type === 'toma-leche'
-      ? this.groupedTomasLeche
-      : this.groupedCambiosPanal;
-
-    const result: Record<string, string[]> = {};
-
-    const grupoAnioActual = grupos.find(g => g.year === currentYear);
-
-    if (!grupoAnioActual) {
-      return result;
-    }
-
-    const grupoMesActual = grupoAnioActual.months.find(
-      mes => mes.monthKey === currentMonthKey
-    );
-
-    if (!grupoMesActual) {
-      return result;
-    }
-
-    const existeHoy = grupoMesActual.dateGroups.some(
-      fecha => fecha.fecha === todayKey
-    );
-
-    if (existeHoy) {
-      result[currentMonthKey] = [todayKey];
-    }
-
-    return result;
   }
 
   getEmptyForm(type: ActivityFamiliaType) {
@@ -376,10 +357,24 @@ export class Tab2Page implements OnInit {
       };
     }
 
-    return {
-      ...base,
-      tieneHeces: false
-    };
+    if (type === 'cambio-panal') {
+      return {
+        ...base,
+        tieneHeces: false
+      };
+    }
+
+    if (type === 'medicamento') {
+      return {
+        ...base,
+        medicamentoId: '',
+        nombreMedicamento: '',
+        dosisGotas: 0,
+        observaciones: ''
+      };
+    }
+
+    return base;
   }
 
   openAddModal() {
@@ -404,8 +399,81 @@ export class Tab2Page implements OnInit {
     this.showModal = false;
   }
 
+  onMedicamentoChange(medicamentoId: string) {
+    const medicamento = this.medicamentosDisponibles.find(
+      item => item.id === medicamentoId
+    );
+
+    if (!medicamento) {
+      this.form.medicamentoId = '';
+      this.form.nombreMedicamento = '';
+      this.form.dosisGotas = 0;
+      return;
+    }
+
+    this.form.medicamentoId = medicamento.id;
+    this.form.nombreMedicamento = medicamento.nombre;
+    this.form.dosisGotas = medicamento.dosisGotas;
+    this.form.bebeId = medicamento.bebeId;
+  }
+
   async saveActivity() {
     try {
+      this.form.type = this.formType;
+
+      if (this.formType === 'toma-leche') {
+        this.form.cantidadOnzas = Number(this.form.cantidadOnzas || 0);
+        this.form.esLecheMaterna = !!this.form.esLecheMaterna;
+      }
+
+      if (this.formType === 'cambio-panal') {
+        this.form.tieneHeces = !!this.form.tieneHeces;
+      }
+
+      if (this.formType === 'medicamento') {
+        if (!this.form.medicamentoId) {
+          const alert = await this.alertController.create({
+            header: 'Medicamento',
+            message: 'Debes seleccionar un medicamento registrado.',
+            buttons: ['Aceptar']
+          });
+
+          await alert.present();
+          return;
+        }
+
+        const medicamento = this.medicamentosDisponibles.find(
+          item => item.id === this.form.medicamentoId
+        );
+
+        if (!medicamento) {
+          const alert = await this.alertController.create({
+            header: 'Medicamento',
+            message: 'No se encontró el medicamento seleccionado.',
+            buttons: ['Aceptar']
+          });
+
+          await alert.present();
+          return;
+        }
+
+        this.form.nombreMedicamento = medicamento.nombre;
+        this.form.dosisGotas = Number(this.form.dosisGotas || medicamento.dosisGotas || 0);
+        this.form.observaciones = this.form.observaciones?.trim() || '';
+        this.form.bebeId = medicamento.bebeId;
+
+        if (!this.form.dosisGotas || this.form.dosisGotas <= 0) {
+          const alert = await this.alertController.create({
+            header: 'Medicamento',
+            message: 'La dosis en gotas debe ser mayor que cero.',
+            buttons: ['Aceptar']
+          });
+
+          await alert.present();
+          return;
+        }
+      }
+
       if (!this.form.id) {
         this.form.id = '';
         this.form.createdAt = new Date().toISOString();
@@ -461,8 +529,15 @@ export class Tab2Page implements OnInit {
   }
 
   onTabChange(event: any) {
-    this.selectedTab = event.detail.value as 'toma-leche' | 'cambio-panal';
+  const value = event.detail.value as ActivityFamiliaType;
+
+  if (value === 'medicamento' && !this.tieneMedicamentosRegistrados()) {
+    this.selectedTab = 'toma-leche';
+    return;
   }
+
+  this.selectedTab = value;
+}
 
   onYearAccordionChange(type: ActivityFamiliaType, event: any) {
     const value = event.detail.value || [];
@@ -473,7 +548,12 @@ export class Tab2Page implements OnInit {
       return;
     }
 
-    this.openGroupsCambioPanal = values;
+    if (type === 'cambio-panal') {
+      this.openGroupsCambioPanal = values;
+      return;
+    }
+
+    this.openGroupsMedicamentos = values;
   }
 
   onMonthAccordionChange(type: ActivityFamiliaType, year: string, event: any) {
@@ -490,9 +570,49 @@ export class Tab2Page implements OnInit {
       return;
     }
 
-    this.openMonthGroupsCambioPanal = {
-      ...this.openMonthGroupsCambioPanal,
+    if (type === 'cambio-panal') {
+      this.openMonthGroupsCambioPanal = {
+        ...this.openMonthGroupsCambioPanal,
+        [year]: values
+      };
+      return;
+    }
+
+    this.openMonthGroupsMedicamentos = {
+      ...this.openMonthGroupsMedicamentos,
       [year]: values
+    };
+  }
+
+  onDateAccordionChange(
+    type: ActivityFamiliaType,
+    monthKey: string,
+    event: any
+  ) {
+    event.stopPropagation();
+
+    const value = event.detail.value || [];
+    const values = Array.isArray(value) ? value : [value];
+
+    if (type === 'toma-leche') {
+      this.openDateGroupsTomaLeche = {
+        ...this.openDateGroupsTomaLeche,
+        [monthKey]: values
+      };
+      return;
+    }
+
+    if (type === 'cambio-panal') {
+      this.openDateGroupsCambioPanal = {
+        ...this.openDateGroupsCambioPanal,
+        [monthKey]: values
+      };
+      return;
+    }
+
+    this.openDateGroupsMedicamentos = {
+      ...this.openDateGroupsMedicamentos,
+      [monthKey]: values
     };
   }
 
@@ -501,16 +621,29 @@ export class Tab2Page implements OnInit {
       return this.openMonthGroupsTomaLeche[year] || [];
     }
 
-    return this.openMonthGroupsCambioPanal[year] || [];
+    if (type === 'cambio-panal') {
+      return this.openMonthGroupsCambioPanal[year] || [];
+    }
+
+    return this.openMonthGroupsMedicamentos[year] || [];
+  }
+
+  getOpenDateGroups(type: ActivityFamiliaType, monthKey: string): string[] {
+    if (type === 'toma-leche') {
+      return this.openDateGroupsTomaLeche[monthKey] || [];
+    }
+
+    if (type === 'cambio-panal') {
+      return this.openDateGroupsCambioPanal[monthKey] || [];
+    }
+
+    return this.openDateGroupsMedicamentos[monthKey] || [];
   }
 
   getDefaultOpenGroups(type: ActivityFamiliaType): string[] {
     const currentYear = new Date().getFullYear().toString();
 
-    const grupos = type === 'toma-leche'
-      ? this.groupedTomasLeche
-      : this.groupedCambiosPanal;
-
+    const grupos = this.getGroupsByType(type);
     const grupoAnioActual = grupos.find(g => g.year === currentYear);
 
     return grupoAnioActual ? [grupoAnioActual.year] : [];
@@ -521,12 +654,9 @@ export class Tab2Page implements OnInit {
     const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
     const currentMonthKey = `${currentYear}-${currentMonth}`;
 
-    const grupos = type === 'toma-leche'
-      ? this.groupedTomasLeche
-      : this.groupedCambiosPanal;
+    const grupos = this.getGroupsByType(type);
 
     const result: Record<string, string[]> = {};
-
     const grupoAnioActual = grupos.find(g => g.year === currentYear);
 
     if (!grupoAnioActual) {
@@ -542,6 +672,56 @@ export class Tab2Page implements OnInit {
     }
 
     return result;
+  }
+
+  getDefaultOpenDateGroupsByMonth(
+    type: ActivityFamiliaType
+  ): Record<string, string[]> {
+    const currentYear = new Date().getFullYear().toString();
+    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+    const currentDay = String(new Date().getDate()).padStart(2, '0');
+
+    const currentMonthKey = `${currentYear}-${currentMonth}`;
+    const todayKey = `${currentYear}-${currentMonth}-${currentDay}`;
+
+    const grupos = this.getGroupsByType(type);
+
+    const result: Record<string, string[]> = {};
+    const grupoAnioActual = grupos.find(g => g.year === currentYear);
+
+    if (!grupoAnioActual) {
+      return result;
+    }
+
+    const grupoMesActual = grupoAnioActual.months.find(
+      mes => mes.monthKey === currentMonthKey
+    );
+
+    if (!grupoMesActual) {
+      return result;
+    }
+
+    const existeHoy = grupoMesActual.dateGroups.some(
+      fecha => fecha.fecha === todayKey
+    );
+
+    if (existeHoy) {
+      result[currentMonthKey] = [todayKey];
+    }
+
+    return result;
+  }
+
+  private getGroupsByType(type: ActivityFamiliaType): ActivityYearGroup[] {
+    if (type === 'toma-leche') {
+      return this.groupedTomasLeche;
+    }
+
+    if (type === 'cambio-panal') {
+      return this.groupedCambiosPanal;
+    }
+
+    return this.groupedMedicamentos;
   }
 
   getGroupedActivitiesByType(type: ActivityFamiliaType): ActivityYearGroup[] {
@@ -734,12 +914,14 @@ export class Tab2Page implements OnInit {
 
     this.groupedTomasLeche = this.getGroupedActivitiesByType('toma-leche');
     this.groupedCambiosPanal = this.getGroupedActivitiesByType('cambio-panal');
+    this.groupedMedicamentos = this.getGroupedActivitiesByType('medicamento');
 
     this.resumenFiltros = this.obtenerResumenFiltros(this.filteredActivities);
 
     if (resetAcordeones) {
       this.openGroupsTomaLeche = this.getDefaultOpenGroups('toma-leche');
       this.openGroupsCambioPanal = this.getDefaultOpenGroups('cambio-panal');
+      this.openGroupsMedicamentos = this.getDefaultOpenGroups('medicamento');
 
       this.openMonthGroupsTomaLeche =
         this.getDefaultOpenMonthGroupsByYear('toma-leche');
@@ -747,11 +929,17 @@ export class Tab2Page implements OnInit {
       this.openMonthGroupsCambioPanal =
         this.getDefaultOpenMonthGroupsByYear('cambio-panal');
 
+      this.openMonthGroupsMedicamentos =
+        this.getDefaultOpenMonthGroupsByYear('medicamento');
+
       this.openDateGroupsTomaLeche =
         this.getDefaultOpenDateGroupsByMonth('toma-leche');
 
       this.openDateGroupsCambioPanal =
         this.getDefaultOpenDateGroupsByMonth('cambio-panal');
+
+      this.openDateGroupsMedicamentos =
+        this.getDefaultOpenDateGroupsByMonth('medicamento');
     }
   }
 
@@ -971,7 +1159,8 @@ export class Tab2Page implements OnInit {
     return {
       total: activities.length,
       tomas: activities.filter(a => a.type === 'toma-leche').length,
-      panales: activities.filter(a => a.type === 'cambio-panal').length
+      panales: activities.filter(a => a.type === 'cambio-panal').length,
+      medicamentos: activities.filter(a => a.type === 'medicamento').length
     };
   }
 
@@ -1028,6 +1217,7 @@ export class Tab2Page implements OnInit {
 
     const tomas = actividadesUltimoMes.filter(a => a.type === 'toma-leche');
     const panales = actividadesUltimoMes.filter(a => a.type === 'cambio-panal');
+    const medicamentos = actividadesUltimoMes.filter(a => a.type === 'medicamento');
 
     const totalOnzas = tomas.reduce((total, toma) => {
       return total + Number((toma as any).cantidadOnzas || 0);
@@ -1068,6 +1258,7 @@ export class Tab2Page implements OnInit {
       totalPanales: panales.length,
       totalPopo,
       totalPipi,
+      totalMedicamentos: medicamentos.length,
       promedioPanalesPorDia: Number((panales.length / diasParaPromedio).toFixed(1))
     };
   }
@@ -1088,6 +1279,65 @@ export class Tab2Page implements OnInit {
     return dias.size;
   }
 
+  getActivityTitle(activity: ActivityFamilia): string {
+    if (activity.type === 'toma-leche') {
+      return 'Toma de leche';
+    }
+
+    if (activity.type === 'cambio-panal') {
+      return (activity as any).tieneHeces
+        ? 'Cambio de pañal con popó'
+        : 'Cambio de pañal';
+    }
+
+    if (activity.type === 'medicamento') {
+      return 'Medicamento';
+    }
+
+    return 'Actividad';
+  }
+
+  getActivityDescription(activity: ActivityFamilia): string {
+    if (activity.type === 'toma-leche') {
+      const cantidad = Number((activity as any).cantidadOnzas || 0);
+      const tipo = (activity as any).esLecheMaterna ? 'Materna' : 'Fórmula';
+
+      return `${cantidad} oz · ${tipo}`;
+    }
+
+    if (activity.type === 'cambio-panal') {
+      return (activity as any).tieneHeces ? 'Con popó' : 'Solo pipí';
+    }
+
+    if (activity.type === 'medicamento') {
+      const nombre = (activity as any).nombreMedicamento || 'Medicamento';
+      const gotas = Number((activity as any).dosisGotas || 0);
+      const observaciones = (activity as any).observaciones || '';
+
+      return observaciones
+        ? `${nombre} · ${gotas} gotas · ${observaciones}`
+        : `${nombre} · ${gotas} gotas`;
+    }
+
+    return '';
+  }
+
+  getActivityIcon(activity: ActivityFamilia): string {
+    if (activity.type === 'toma-leche') {
+      return 'water';
+    }
+
+    if (activity.type === 'cambio-panal') {
+      return 'leaf';
+    }
+
+    if (activity.type === 'medicamento') {
+      return 'medical';
+    }
+
+    return 'checkmark-circle';
+  }
+
   trackByYear(index: number, grupoAnio: ActivityYearGroup): string {
     return grupoAnio.year;
   }
@@ -1102,5 +1352,9 @@ export class Tab2Page implements OnInit {
 
   trackByActivity(index: number, activity: ActivityFamilia): string {
     return activity.id;
+  }
+
+  tieneMedicamentosRegistrados(): boolean {
+    return this.medicamentosDisponibles && this.medicamentosDisponibles.length > 0;
   }
 }

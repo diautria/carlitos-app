@@ -97,6 +97,10 @@ getIconoActividad(actividad: any): string {
     return 'leaf';
   }
 
+  if (actividad.type === 'medicamento') {
+    return 'medical';
+  }
+
   return 'ellipse';
 }
 
@@ -107,6 +111,10 @@ getIconoActividad(actividad: any): string {
 
   if (actividad.type === 'cambio-panal') {
     return actividad.tieneHeces ? 'warning' : 'success';
+  }
+
+  if (actividad.type === 'medicamento') {
+    return 'tertiary';
   }
 
   return 'medium';
@@ -151,6 +159,10 @@ getIconoActividad(actividad: any): string {
       return 'Cambio de pañal';
     }
 
+    if (actividad.type === 'medicamento') {
+      return 'Medicamento';
+    }
+
     return 'Actividad';
   }
 
@@ -162,6 +174,10 @@ getIconoActividad(actividad: any): string {
 
     if (actividad.type === 'cambio-panal') {
       return actividad.tieneHeces ? 'Con popó' : 'Solo pipí';
+    }
+
+    if (actividad.type === 'medicamento') {
+      return `${actividad.dosisGotas} gotas - ${actividad.nombreMedicamento}`;
     }
 
     return '';

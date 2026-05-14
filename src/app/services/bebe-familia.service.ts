@@ -155,67 +155,71 @@ export class BebeFamiliaService {
     return bebeRef.id;
   }
 
-  async actualizarBebe(
-    bebeId: string,
-    cambios: Partial<CrearBebeFamiliaRequest>
-  ): Promise<void> {
-    if (!bebeId) {
-      throw new Error('Debe indicar el id del bebé');
-    }
-
-    const familiaId = await this.obtenerFamiliaActivaId();
-
-    const bebeRef = doc(
-      this.firestore,
-      `familias/${familiaId}/bebes/${bebeId}`
-    );
-
-    const cambiosFirestore: any = {
-      updatedAt: serverTimestamp()
-    };
-
-    if (cambios.nombre !== undefined) {
-      cambiosFirestore.nombre = cambios.nombre.trim();
-    }
-
-    if (cambios.fechaNacimiento !== undefined) {
-      cambiosFirestore.fechaNacimiento = cambios.fechaNacimiento;
-    }
-
-    if (cambios.fotoUrl !== undefined) {
-      cambiosFirestore.fotoUrl = cambios.fotoUrl || '';
-    }
-
-    if (cambios.proximaVacuna !== undefined) {
-      cambiosFirestore.proximaVacuna = cambios.proximaVacuna || '';
-    }
-
-    if (cambios.notas !== undefined) {
-      cambiosFirestore.notas = cambios.notas || [];
-    }
-
-    if (
-      cambios.peso !== undefined &&
-      cambios.peso !== null &&
-      String(cambios.peso).trim() !== '' &&
-      !Number.isNaN(Number(cambios.peso))
-    ) {
-      cambiosFirestore.peso = Number(cambios.peso);
-    }
-
-    if (
-      cambios.altura !== undefined &&
-      cambios.altura !== null &&
-      String(cambios.altura).trim() !== '' &&
-      !Number.isNaN(Number(cambios.altura))
-    ) {
-      cambiosFirestore.altura = Number(cambios.altura);
-    }
-
-    console.log('BebeFamiliaService - actualizando bebé:', cambiosFirestore);
-
-    await updateDoc(bebeRef, cambiosFirestore);
+async actualizarBebe(
+  bebeId: string,
+  cambios: Partial<CrearBebeFamiliaRequest>
+): Promise<void> {
+  if (!bebeId) {
+    throw new Error('Debe indicar el id del bebé');
   }
+
+  const familiaId = await this.obtenerFamiliaActivaId();
+
+  const bebeRef = doc(
+    this.firestore,
+    `familias/${familiaId}/bebes/${bebeId}`
+  );
+
+  const cambiosFirestore: any = {
+    updatedAt: serverTimestamp()
+  };
+
+  if (cambios.nombre !== undefined) {
+    cambiosFirestore.nombre = cambios.nombre.trim();
+  }
+
+  if (cambios.fechaNacimiento !== undefined) {
+    cambiosFirestore.fechaNacimiento = cambios.fechaNacimiento;
+  }
+
+  if (cambios.fotoUrl !== undefined) {
+    cambiosFirestore.fotoUrl = cambios.fotoUrl || '';
+  }
+
+  if (cambios.proximaVacuna !== undefined) {
+    cambiosFirestore.proximaVacuna = cambios.proximaVacuna || '';
+  }
+
+  if (cambios.notas !== undefined) {
+    cambiosFirestore.notas = cambios.notas || [];
+  }
+
+  if (cambios.medicamentos !== undefined) {
+    cambiosFirestore.medicamentos = cambios.medicamentos || [];
+  }
+
+  if (
+    cambios.peso !== undefined &&
+    cambios.peso !== null &&
+    String(cambios.peso).trim() !== '' &&
+    !Number.isNaN(Number(cambios.peso))
+  ) {
+    cambiosFirestore.peso = Number(cambios.peso);
+  }
+
+  if (
+    cambios.altura !== undefined &&
+    cambios.altura !== null &&
+    String(cambios.altura).trim() !== '' &&
+    !Number.isNaN(Number(cambios.altura))
+  ) {
+    cambiosFirestore.altura = Number(cambios.altura);
+  }
+
+  console.log('BebeFamiliaService - actualizando bebé:', cambiosFirestore);
+
+  await updateDoc(bebeRef, cambiosFirestore);
+}
 
   async eliminarBebeLogico(bebeId: string): Promise<void> {
   if (!bebeId) {

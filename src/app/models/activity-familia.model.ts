@@ -1,4 +1,7 @@
-export type ActivityFamiliaType = 'toma-leche' | 'cambio-panal';
+export type ActivityFamiliaType =
+  | 'toma-leche'
+  | 'cambio-panal'
+  | 'medicamento';
 
 export interface BaseActivityFamilia {
   id: string;
@@ -23,6 +26,15 @@ export interface CambioPanalFamiliaActivity extends BaseActivityFamilia {
   tieneHeces: boolean;
 }
 
+export interface MedicamentoFamiliaActivity extends BaseActivityFamilia {
+  type: 'medicamento';
+  medicamentoId: string;
+  nombreMedicamento: string;
+  dosisGotas: number;
+  observaciones?: string;
+}
+
 export type ActivityFamilia =
   | TomaLecheFamiliaActivity
-  | CambioPanalFamiliaActivity;
+  | CambioPanalFamiliaActivity
+  | MedicamentoFamiliaActivity;

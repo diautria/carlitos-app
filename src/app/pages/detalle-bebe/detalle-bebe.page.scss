@@ -347,6 +347,13 @@
   }
 }
 
+.field-error {
+  margin: -6px 4px 10px 8px;
+  color: var(--ion-color-danger);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .save-button {
   margin-top: 18px;
   height: 52px;

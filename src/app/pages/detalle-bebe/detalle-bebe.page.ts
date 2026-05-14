@@ -21,6 +21,8 @@ import {
   IonToggle
 } from '@ionic/angular/standalone';
 
+import { LocalNotifications } from '@capacitor/local-notifications';
+
 import { addIcons } from 'ionicons';
 import {
   calendar,
@@ -41,7 +43,8 @@ import {
 import { BebeFamiliaService } from '../../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../../models/bebe-familia.model';
 import { NotificacionMedicamentosService } from '../../services/notificacion-medicamentos.service';
-import { LocalNotifications } from '@capacitor/local-notifications';
+import { ActivityFamiliaService } from 'src/app/services/activity-familia.service';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-detalle-bebe',
@@ -73,7 +76,9 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 export class DetalleBebePage implements OnInit {
   private route = inject(ActivatedRoute);
   private bebeFamiliaService = inject(BebeFamiliaService);
-private notificacionMedicamentosService = inject(NotificacionMedicamentosService);
+  private notificacionMedicamentosService = inject(NotificacionMedicamentosService);
+private alertController = inject(AlertController);
+private activityFamiliaService = inject(ActivityFamiliaService);
 
   bebe: BebeFamilia | null = null;
 
@@ -83,8 +88,13 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
 
   showModalMedicamento = false;
   indiceMedicamentoEditando: number | null = null;
-
   medicamentoForm: MedicamentoBebe = this.crearMedicamentoVacio();
+
+  erroresMedicamento = {
+    nombre: '',
+    dosisGotas: '',
+    horarioFrecuencia: ''
+  };
 
   async ngOnInit() {
     addIcons({
@@ -102,9 +112,9 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
       timeOutline,
       checkmarkCircleOutline
     });
-    
+
     await LocalNotifications.requestPermissions();
-    
+
     await this.cargarBebe();
   }
 
@@ -209,7 +219,7 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
     return {
       id: crypto.randomUUID(),
       nombre: '',
-      dosisGotas: 1,
+      dosisGotas: 0,
       frecuenciaHoras: undefined,
       horario: '',
       observaciones: '',
@@ -220,6 +230,7 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
   abrirModalMedicamento() {
     this.indiceMedicamentoEditando = null;
     this.medicamentoForm = this.crearMedicamentoVacio();
+    this.limpiarErroresMedicamento();
     this.showModalMedicamento = true;
   }
 
@@ -230,6 +241,7 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
       ...medicamento
     };
 
+    this.limpiarErroresMedicamento();
     this.showModalMedicamento = true;
   }
 
@@ -237,6 +249,54 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
     this.showModalMedicamento = false;
     this.indiceMedicamentoEditando = null;
     this.medicamentoForm = this.crearMedicamentoVacio();
+    this.limpiarErroresMedicamento();
+  }
+
+  private limpiarErroresMedicamento() {
+    this.erroresMedicamento = {
+      nombre: '',
+      dosisGotas: '',
+      horarioFrecuencia: ''
+    };
+  }
+
+  private validarMedicamento(): boolean {
+    this.limpiarErroresMedicamento();
+
+    let esValido = true;
+
+    const nombre = this.medicamentoForm.nombre?.trim();
+
+    if (!nombre) {
+      this.erroresMedicamento.nombre = 'El nombre del medicamento es obligatorio.';
+      esValido = false;
+    }
+
+    if (
+      !this.medicamentoForm.dosisGotas ||
+      Number(this.medicamentoForm.dosisGotas) <= 0
+    ) {
+      this.erroresMedicamento.dosisGotas = 'La dosis en gotas es obligatoria.';
+      esValido = false;
+    }
+
+    const tieneFrecuencia =
+      this.medicamentoForm.frecuenciaHoras !== undefined &&
+      this.medicamentoForm.frecuenciaHoras !== null &&
+      String(this.medicamentoForm.frecuenciaHoras).trim() !== '' &&
+      Number(this.medicamentoForm.frecuenciaHoras) > 0;
+
+    const tieneHorario =
+      !!this.medicamentoForm.horario &&
+      this.medicamentoForm.horario.trim() !== '';
+
+    if (!tieneFrecuencia && !tieneHorario) {
+      this.erroresMedicamento.horarioFrecuencia =
+        'Debes indicar una hora fija o cada cuántas horas debe tomarlo.';
+      esValido = false;
+    }
+
+    return esValido;
   }
 
   async guardarMedicamento() {
@@ -244,22 +304,26 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
       return;
     }
 
-    const nombre = this.medicamentoForm.nombre.trim();
-
-    if (!nombre || !this.medicamentoForm.dosisGotas || this.medicamentoForm.dosisGotas <= 0) {
+    if (!this.validarMedicamento()) {
       return;
     }
 
+    const nombre = this.medicamentoForm.nombre.trim();
     const medicamentosActuales = [...(this.bebe.medicamentos || [])];
 
     const medicamentoGuardar: MedicamentoBebe = {
       ...this.medicamentoForm,
       nombre,
       dosisGotas: Number(this.medicamentoForm.dosisGotas),
-      frecuenciaHoras: this.medicamentoForm.frecuenciaHoras
-        ? Number(this.medicamentoForm.frecuenciaHoras)
-        : undefined,
-      observaciones: this.medicamentoForm.observaciones?.trim() || ''
+      frecuenciaHoras:
+        this.medicamentoForm.frecuenciaHoras !== undefined &&
+        this.medicamentoForm.frecuenciaHoras !== null &&
+        String(this.medicamentoForm.frecuenciaHoras).trim() !== ''
+          ? Number(this.medicamentoForm.frecuenciaHoras)
+          : undefined,
+      horario: this.medicamentoForm.horario || '',
+      observaciones: this.medicamentoForm.observaciones?.trim() || '',
+      activo: !!this.medicamentoForm.activo
     };
 
     if (this.indiceMedicamentoEditando !== null) {
@@ -288,26 +352,73 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
   }
 
   const medicamentosActuales = [...(this.bebe.medicamentos || [])];
-  const medicamentoEliminado = medicamentosActuales[index];
+  const medicamento = medicamentosActuales[index];
 
-  medicamentosActuales.splice(index, 1);
-
-  await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
-    medicamentos: medicamentosActuales
-  });
-
-  this.bebe = {
-    ...this.bebe,
-    medicamentos: medicamentosActuales
-  };
-
-  if (medicamentoEliminado) {
-    await this.notificacionMedicamentosService.cancelarNotificacionMedicamento(
-      medicamentoEliminado.id
-    );
+  if (!medicamento) {
+    return;
   }
 
-  await this.programarNotificacionesMedicamentos();
+  const tieneActividades =
+    await this.medicamentoTieneActividadesRegistradas(medicamento.id);
+
+  if (tieneActividades) {
+    const alert = await this.alertController.create({
+      header: 'No se puede eliminar',
+      message:
+        'Este medicamento ya tiene actividades registradas. Para no perder el historial, solo puedes desactivarlo.',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Desactivar',
+          role: 'destructive',
+          handler: async () => {
+            await this.cambiarEstadoMedicamento(index, false);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+    return;
+  }
+
+  const alert = await this.alertController.create({
+    header: 'Eliminar medicamento',
+    message: `¿Confirmas eliminar "${medicamento.nombre}"?`,
+    buttons: [
+      {
+        text: 'Cancelar',
+        role: 'cancel'
+      },
+      {
+        text: 'Eliminar',
+        role: 'destructive',
+        handler: async () => {
+          medicamentosActuales.splice(index, 1);
+
+          await this.bebeFamiliaService.actualizarBebe(this.bebe!.id, {
+            medicamentos: medicamentosActuales
+          });
+
+          this.bebe = {
+            ...this.bebe!,
+            medicamentos: medicamentosActuales
+          };
+
+          await this.notificacionMedicamentosService.cancelarNotificacionMedicamento(
+            medicamento.id
+          );
+
+          await this.programarNotificacionesMedicamentos();
+        }
+      }
+    ]
+  });
+
+  await alert.present();
 }
 
   async cambiarEstadoMedicamento(index: number, activo: boolean) {
@@ -334,6 +445,18 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
     await this.programarNotificacionesMedicamentos();
   }
 
+  private async programarNotificacionesMedicamentos() {
+    if (!this.bebe) {
+      return;
+    }
+
+    await this.notificacionMedicamentosService.programarNotificacionesMedicamentos(
+      this.bebe.id,
+      this.bebe.nombre,
+      this.bebe.medicamentos || []
+    );
+  }
+
   obtenerTextoFrecuencia(medicamento: MedicamentoBebe): string {
     if (medicamento.frecuenciaHoras && medicamento.frecuenciaHoras > 0) {
       return `Cada ${medicamento.frecuenciaHoras} horas`;
@@ -346,15 +469,14 @@ private notificacionMedicamentosService = inject(NotificacionMedicamentosService
     return 'Sin horario definido';
   }
 
-private async programarNotificacionesMedicamentos() {
-  if (!this.bebe) {
-    return;
-  }
+  private async medicamentoTieneActividadesRegistradas(
+  medicamentoId: string
+): Promise<boolean> {
+  const actividades = await this.activityFamiliaService.getAll();
 
-  await this.notificacionMedicamentosService.programarNotificacionesMedicamentos(
-    this.bebe.id,
-    this.bebe.nombre,
-    this.bebe.medicamentos || []
-  );
+  return actividades.some(activity => {
+    return activity.type === 'medicamento' &&
+      (activity as any).medicamentoId === medicamentoId;
+  });
 }
 }

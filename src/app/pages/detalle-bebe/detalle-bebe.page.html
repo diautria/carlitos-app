@@ -226,9 +226,14 @@
               label="Nombre del medicamento"
               label-placement="stacked"
               placeholder="Ej: Vitaminas, hierro, gotas..."
-              [(ngModel)]="medicamentoForm.nombre">
+              [(ngModel)]="medicamentoForm.nombre"
+              required>
             </ion-input>
           </ion-item>
+
+          <p class="field-error" *ngIf="erroresMedicamento.nombre">
+            {{ erroresMedicamento.nombre }}
+          </p>
 
           <ion-item lines="none" class="form-item">
             <ion-input
@@ -237,9 +242,14 @@
               label="Dosis en gotas"
               label-placement="stacked"
               placeholder="Ej: 5"
-              [(ngModel)]="medicamentoForm.dosisGotas">
+              [(ngModel)]="medicamentoForm.dosisGotas"
+              required>
             </ion-input>
           </ion-item>
+
+          <p class="field-error" *ngIf="erroresMedicamento.dosisGotas">
+            {{ erroresMedicamento.dosisGotas }}
+          </p>
 
           <ion-item lines="none" class="form-item">
             <ion-input
@@ -255,11 +265,15 @@
           <ion-item lines="none" class="form-item">
             <ion-input
               type="time"
-              label="Horario fijo opcional"
+              label="Horario fijo"
               label-placement="stacked"
               [(ngModel)]="medicamentoForm.horario">
             </ion-input>
           </ion-item>
+
+          <p class="field-error" *ngIf="erroresMedicamento.horarioFrecuencia">
+            {{ erroresMedicamento.horarioFrecuencia }}
+          </p>
 
           <ion-item lines="none" class="form-item">
             <ion-textarea

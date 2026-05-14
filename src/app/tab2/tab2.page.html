@@ -49,7 +49,7 @@
 
         <div class="filters-summary" *ngIf="hayFiltrosActivos()">
           <span>
-            {{ resumenFiltros.tomas }} tomas · {{ resumenFiltros.panales }} pañales
+            {{ resumenFiltros.tomas }} tomas · {{ resumenFiltros.panales }} pañales · {{ resumenFiltros.medicamentos }} medicamentos
           </span>
 
           <ion-button
@@ -76,6 +76,13 @@
           <ion-icon name="leaf"></ion-icon>
           <ion-label>Cambios de pañal</ion-label>
         </ion-segment-button>
+
+        <ion-segment-button
+  *ngIf="tieneMedicamentosRegistrados()"
+  value="medicamento">
+  <ion-icon name="medical"></ion-icon>
+  <ion-label>Medicamentos</ion-label>
+</ion-segment-button>
       </ion-segment>
 
       <div class="activities-list">
@@ -289,13 +296,123 @@
           </ion-accordion-group>
         </ng-container>
 
+        <!-- Medicamentos -->
+        <ng-container *ngIf="selectedTab === 'medicamento' && groupedMedicamentos.length > 0">
+          <ion-accordion-group
+            multiple="true"
+            [value]="openGroupsMedicamentos"
+            (ionChange)="onYearAccordionChange('medicamento', $event)">
+
+            <ion-accordion
+              *ngFor="let grupoAnio of groupedMedicamentos; trackBy: trackByYear"
+              [value]="grupoAnio.year">
+
+              <ion-item slot="header" color="light">
+                <ion-label>
+                  <h2>{{ grupoAnio.year }}</h2>
+                </ion-label>
+              </ion-item>
+
+              <div slot="content" class="year-content">
+                <ion-accordion-group
+                  multiple="true"
+                  [value]="getOpenMonthGroups('medicamento', grupoAnio.year)"
+                  (ionChange)="onMonthAccordionChange('medicamento', grupoAnio.year, $event)">
+
+                  <ion-accordion
+                    *ngFor="let grupoMes of grupoAnio.months; trackBy: trackByMonth"
+                    [value]="grupoMes.monthKey">
+
+                    <ion-item slot="header" class="month-header">
+                      <ion-label>
+                        <h3>{{ grupoMes.monthName }}</h3>
+                      </ion-label>
+
+                      <ion-badge slot="end" class="activity-count-badge">
+                        {{ grupoMes.activities.length }}
+                      </ion-badge>
+                    </ion-item>
+
+                    <div slot="content">
+                      <ion-accordion-group
+                        multiple="true"
+                        [value]="getOpenDateGroups('medicamento', grupoMes.monthKey)"
+                        (ionChange)="onDateAccordionChange('medicamento', grupoMes.monthKey, $event)">
+
+                        <ion-accordion
+                          *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate"
+                          [value]="grupoFecha.fecha">
+
+                          <ion-item slot="header" class="date-header">
+                            <ion-label>
+                              <h4>{{ formatDateGroup(grupoFecha.fecha) }}</h4>
+                            </ion-label>
+
+                            <ion-badge slot="end" class="activity-count-badge">
+                              {{ grupoFecha.activities.length }}
+                            </ion-badge>
+                          </ion-item>
+
+                          <div slot="content">
+                            <ion-list lines="full">
+                              <ion-item
+                                *ngFor="let act of grupoFecha.activities; trackBy: trackByActivity">
+
+                                <ion-icon
+                                  slot="start"
+                                  class="activity-icon-small"
+                                  name="medical"
+                                  color="tertiary">
+                                </ion-icon>
+
+                                <ion-label>
+                                  <p>
+                                    {{ act.time | date:'HH:mm' }} ·
+                                    {{ $any(act).nombreMedicamento }} ·
+                                    {{ $any(act).dosisGotas }} gotas
+                                  </p>
+
+                                  <ion-note *ngIf="$any(act).observaciones">
+                                    {{ $any(act).observaciones }}
+                                  </ion-note>
+                                </ion-label>
+
+                                <ion-button
+                                  slot="end"
+                                  fill="clear"
+                                  color="primary"
+                                  (click)="$event.stopPropagation(); openEditModal(act)">
+                                  <ion-icon name="create-outline"></ion-icon>
+                                </ion-button>
+
+                                <ion-button
+                                  slot="end"
+                                  fill="clear"
+                                  color="danger"
+                                  (click)="$event.stopPropagation(); deleteActivity(act.id)">
+                                  <ion-icon name="trash-outline"></ion-icon>
+                                </ion-button>
+                              </ion-item>
+                            </ion-list>
+                          </div>
+                        </ion-accordion>
+                      </ion-accordion-group>
+                    </div>
+                  </ion-accordion>
+                </ion-accordion-group>
+              </div>
+            </ion-accordion>
+          </ion-accordion-group>
+        </ng-container>
+
         <div
           class="filters-empty-result"
           *ngIf="
             hayFiltrosActivos() &&
             (
               (selectedTab === 'toma-leche' && groupedTomasLeche.length === 0) ||
-              (selectedTab === 'cambio-panal' && groupedCambiosPanal.length === 0)
+              (selectedTab === 'cambio-panal' && groupedCambiosPanal.length === 0) ||
+              (selectedTab === 'medicamento' && groupedMedicamentos.length === 0)
             )
           ">
           <div class="empty-filter-icon">
@@ -374,6 +491,17 @@
                 <ion-icon name="leaf"></ion-icon>
                 Pañal
               </ion-button>
+
+              <ion-button
+  *ngIf="tieneMedicamentosRegistrados()"
+  expand="block"
+  type="button"
+  [color]="formType === 'medicamento' ? 'primary' : 'medium'"
+  (click)="onTypeChange('medicamento')"
+  size="small">
+  <ion-icon name="medical"></ion-icon>
+  Medicamento
+</ion-button>
             </div>
           </div>
 
@@ -459,6 +587,78 @@
             </div>
           </ng-container>
 
+<ng-container *ngIf="formType === 'medicamento'">
+  <div class="form-section">
+    <label class="section-label">Medicamento</label>
+
+    <div
+      class="medicamentos-inline-list"
+      *ngIf="medicamentosDisponibles.length; else sinMedicamentosRegistrados">
+
+      <button
+        type="button"
+        class="medicamento-option"
+        *ngFor="let medicamento of medicamentosDisponibles"
+        [class.selected]="form.medicamentoId === medicamento.id"
+        (click)="onMedicamentoChange(medicamento.id)">
+
+        <div class="medicamento-option-icon">
+          <ion-icon name="medical"></ion-icon>
+        </div>
+
+        <div class="medicamento-option-info">
+          <strong>{{ medicamento.nombre }}</strong>
+
+          <span>
+            {{ medicamento.dosisGotas }} gotas
+            <ng-container *ngIf="$any(medicamento).nombreBebe">
+              · {{ $any(medicamento).nombreBebe }}
+            </ng-container>
+          </span>
+        </div>
+
+        <ion-icon
+          *ngIf="form.medicamentoId === medicamento.id"
+          name="checkmark-circle"
+          class="selected-icon">
+        </ion-icon>
+      </button>
+    </div>
+
+    <ng-template #sinMedicamentosRegistrados>
+      <div class="empty-state">
+        <p>No hay medicamentos activos registrados.</p>
+        <small>Primero agrégalos desde el detalle del bebé.</small>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="form-section" *ngIf="form.medicamentoId">
+    <label class="section-label">Dosis en gotas</label>
+
+    <ion-input
+      type="number"
+      [(ngModel)]="form.dosisGotas"
+      name="dosisGotas"
+      placeholder="Ej: 3"
+      class="custom-input">
+    </ion-input>
+  </div>
+
+  <div class="form-section" *ngIf="form.medicamentoId">
+    <label class="section-label">Observaciones</label>
+
+    <ion-textarea
+      [(ngModel)]="form.observaciones"
+      name="observaciones"
+      placeholder="Ej: Se lo tomó bien, después de la leche..."
+      auto-grow="true"
+      rows="3"
+      class="custom-input">
+    </ion-textarea>
+  </div>
+</ng-container>
+
           <ion-button expand="block" type="submit" class="save-button">
             <ion-icon name="checkmark"></ion-icon>
             {{ isEdit ? 'Guardar cambios' : 'Agregar actividad' }}
@@ -495,7 +695,8 @@
             <span>Resultado al aplicar</span>
             <strong>
               {{ getPreviewResumenFiltros().tomas }} tomas ·
-              {{ getPreviewResumenFiltros().panales }} pañales
+              {{ getPreviewResumenFiltros().panales }} pañales ·
+              {{ getPreviewResumenFiltros().medicamentos }} medicamentos
             </strong>
           </div>
 
@@ -826,6 +1027,21 @@
               </div>
             </div>
           </ion-card-content>
+        </ion-card>
+
+        <ion-card class="estadisticas-card medicamento-card">
+          <ion-card-header>
+            <div class="estadisticas-card-header">
+              <div class="estadisticas-icon medicamento">
+                <ion-icon name="medical"></ion-icon>
+              </div>
+
+              <div>
+                <ion-card-title>Medicamentos</ion-card-title>
+                <p>{{ estadisticas.totalMedicamentos }} administraciones registradas</p>
+              </div>
+            </div>
+          </ion-card-header>
         </ion-card>
       </ion-content>
     </ng-template>

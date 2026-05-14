@@ -1,6 +1,6 @@
 // Interfaces para actividades del bebé
 
-export type ActivityType = 'toma-leche' | 'cambio-panal';
+export type ActivityType = 'toma-leche' | 'cambio-panal'  | 'medicamento';
 
 export interface BaseActivity {
   id: string;
@@ -21,4 +21,12 @@ export interface CambioPanalActivity extends BaseActivity {
   tieneHeces: boolean;
 }
 
-export type Activity = TomaLecheActivity | CambioPanalActivity;
+export interface MedicamentoActivity extends BaseActivity {
+  type: 'medicamento';
+  medicamentoId?: string;
+  nombreMedicamento: string;
+  dosisGotas: number;
+  observaciones?: string;
+}
+
+export type Activity = TomaLecheActivity | CambioPanalActivity | MedicamentoActivity;

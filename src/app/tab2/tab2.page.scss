@@ -621,3 +621,66 @@ ion-modal {
     grid-template-columns: 1fr;
   }
 }
+
+.medicamentos-inline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.medicamento-option {
+  width: 100%;
+  border: 1px solid rgba(var(--ion-color-medium-rgb), 0.25);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.medicamento-option.selected {
+  border-color: var(--ion-color-success);
+  background: rgba(var(--ion-color-success-rgb), 0.08);
+}
+
+.medicamento-option-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 14px;
+  background: rgba(var(--ion-color-success-rgb), 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.medicamento-option-icon ion-icon {
+  font-size: 22px;
+  color: var(--ion-color-success);
+}
+
+.medicamento-option-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.medicamento-option-info strong {
+  color: var(--ion-color-dark);
+  font-size: 0.95rem;
+}
+
+.medicamento-option-info span {
+  color: var(--ion-color-medium);
+  font-size: 0.82rem;
+}
+
+.selected-icon {
+  font-size: 22px;
+  color: var(--ion-color-success);
+}
