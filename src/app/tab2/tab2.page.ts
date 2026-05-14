@@ -26,7 +26,9 @@ import {
   IonCard,
   IonCardHeader,
   IonCardTitle,
-  IonCardContent
+  IonCardContent,
+  IonFooter,
+  IonDatetimeButton
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -42,7 +44,11 @@ import {
   flask,
   checkmarkCircle,
   alertCircle,
-  checkmark
+  checkmark,
+  filterOutline,
+  refreshOutline,
+  calendarOutline,
+  timeOutline
 } from 'ionicons/icons';
 
 import { ActivityFamiliaService } from '../services/activity-familia.service';
@@ -68,6 +74,24 @@ interface ActivityMonthGroup {
 interface ActivityYearGroup {
   year: string;
   months: ActivityMonthGroup[];
+}
+
+interface ActivityFilters {
+  rangoFecha: 'todos' | 'hoy' | 'ayer' | '7dias' | '30dias' | 'personalizado';
+  fechaDesde: string;
+  fechaHasta: string;
+  horaDesde: string;
+  horaHasta: string;
+  tipoLeche: 'todas' | 'materna' | 'formula';
+  onzasMin: number | null;
+  onzasMax: number | null;
+  tipoPanal: 'todos' | 'pipi' | 'popo';
+}
+
+interface ResumenFiltros {
+  total: number;
+  tomas: number;
+  panales: number;
 }
 
 @Component({
@@ -102,31 +126,48 @@ interface ActivityYearGroup {
     IonCard,
     IonCardHeader,
     IonCardTitle,
-    IonCardContent
+    IonCardContent,
+    IonFooter,
+    IonDatetimeButton
   ]
 })
 export class Tab2Page implements OnInit {
   activities: ActivityFamilia[] = [];
+  filteredActivities: ActivityFamilia[] = [];
+
   loading = false;
-primeraCarga = true;
+  primeraCarga = true;
+
   selectedTab: 'toma-leche' | 'cambio-panal' = 'toma-leche';
 
   groupedTomasLeche: ActivityYearGroup[] = [];
   groupedCambiosPanal: ActivityYearGroup[] = [];
 
   showModal = false;
+  showModalFiltros = false;
+  showModalEstadisticas = false;
+
   isEdit = false;
   formType: ActivityFamiliaType = 'toma-leche';
   form: any = this.getEmptyForm('toma-leche');
+
+  filters: ActivityFilters = this.getDefaultFilters();
+  filtersDraft: ActivityFilters = this.getDefaultFilters();
+
+  resumenFiltros: ResumenFiltros = {
+    total: 0,
+    tomas: 0,
+    panales: 0
+  };
 
   openGroupsTomaLeche: string[] = [];
   openGroupsCambioPanal: string[] = [];
 
   openMonthGroupsTomaLeche: Record<string, string[]> = {};
   openMonthGroupsCambioPanal: Record<string, string[]> = {};
-openDateGroupsTomaLeche: Record<string, string[]> = {};
-openDateGroupsCambioPanal: Record<string, string[]> = {};
-  showModalEstadisticas = false;
+
+  openDateGroupsTomaLeche: Record<string, string[]> = {};
+  openDateGroupsCambioPanal: Record<string, string[]> = {};
 
   estadisticas = {
     promedioOnzasPorDia: 0,
@@ -156,7 +197,11 @@ openDateGroupsCambioPanal: Record<string, string[]> = {};
       flask,
       checkmarkCircle,
       alertCircle,
-      checkmark
+      checkmark,
+      filterOutline,
+      refreshOutline,
+      calendarOutline,
+      timeOutline
     });
   }
 
@@ -169,150 +214,150 @@ openDateGroupsCambioPanal: Record<string, string[]> = {};
   }
 
   async loadActivities() {
-  if (this.primeraCarga) {
-    this.loading = true;
-  }
-
-  try {
-    const gruposTomaActuales = [...this.openGroupsTomaLeche];
-    const gruposPanalActuales = [...this.openGroupsCambioPanal];
-
-    const mesesTomaActuales = { ...this.openMonthGroupsTomaLeche };
-    const mesesPanalActuales = { ...this.openMonthGroupsCambioPanal };
-
-    const fechasTomaActuales = { ...this.openDateGroupsTomaLeche };
-    const fechasPanalActuales = { ...this.openDateGroupsCambioPanal };
-
-    const actividades = await this.activityFamiliaService.getAll();
-
-    this.activities = actividades.sort((a, b) =>
-      b.time.localeCompare(a.time)
-    );
-
-    this.groupedTomasLeche = this.getGroupedActivitiesByType('toma-leche');
-    this.groupedCambiosPanal = this.getGroupedActivitiesByType('cambio-panal');
-
-    this.openGroupsTomaLeche = gruposTomaActuales.length
-      ? gruposTomaActuales
-      : this.getDefaultOpenGroups('toma-leche');
-
-    this.openGroupsCambioPanal = gruposPanalActuales.length
-      ? gruposPanalActuales
-      : this.getDefaultOpenGroups('cambio-panal');
-
-    this.openMonthGroupsTomaLeche = Object.keys(mesesTomaActuales).length
-      ? mesesTomaActuales
-      : this.getDefaultOpenMonthGroupsByYear('toma-leche');
-
-    this.openMonthGroupsCambioPanal = Object.keys(mesesPanalActuales).length
-      ? mesesPanalActuales
-      : this.getDefaultOpenMonthGroupsByYear('cambio-panal');
-
-    this.openDateGroupsTomaLeche = Object.keys(fechasTomaActuales).length
-      ? fechasTomaActuales
-      : this.getDefaultOpenDateGroupsByMonth('toma-leche');
-
-    this.openDateGroupsCambioPanal = Object.keys(fechasPanalActuales).length
-      ? fechasPanalActuales
-      : this.getDefaultOpenDateGroupsByMonth('cambio-panal');
-
-    await this.notificacionTomasService.programarNotificacionProximaToma(
-      this.activities
-    );
-  } catch (error: any) {
-    console.error('Error cargando actividades', error);
-
-    this.activities = [];
-    this.groupedTomasLeche = [];
-    this.groupedCambiosPanal = [];
-
-    if (error?.message && this.primeraCarga) {
-      const alert = await this.alertController.create({
-        header: 'Actividades',
-        message: error.message,
-        buttons: ['Aceptar']
-      });
-
-      await alert.present();
+    if (this.primeraCarga) {
+      this.loading = true;
     }
-  } finally {
-    this.loading = false;
-    this.primeraCarga = false;
+
+    try {
+      const gruposTomaActuales = [...this.openGroupsTomaLeche];
+      const gruposPanalActuales = [...this.openGroupsCambioPanal];
+
+      const mesesTomaActuales = { ...this.openMonthGroupsTomaLeche };
+      const mesesPanalActuales = { ...this.openMonthGroupsCambioPanal };
+
+      const fechasTomaActuales = { ...this.openDateGroupsTomaLeche };
+      const fechasPanalActuales = { ...this.openDateGroupsCambioPanal };
+
+      const actividades = await this.activityFamiliaService.getAll();
+
+      this.activities = actividades.sort((a, b) =>
+        b.time.localeCompare(a.time)
+      );
+
+      this.aplicarFiltros(false);
+
+      this.openGroupsTomaLeche = gruposTomaActuales.length
+        ? gruposTomaActuales
+        : this.getDefaultOpenGroups('toma-leche');
+
+      this.openGroupsCambioPanal = gruposPanalActuales.length
+        ? gruposPanalActuales
+        : this.getDefaultOpenGroups('cambio-panal');
+
+      this.openMonthGroupsTomaLeche = Object.keys(mesesTomaActuales).length
+        ? mesesTomaActuales
+        : this.getDefaultOpenMonthGroupsByYear('toma-leche');
+
+      this.openMonthGroupsCambioPanal = Object.keys(mesesPanalActuales).length
+        ? mesesPanalActuales
+        : this.getDefaultOpenMonthGroupsByYear('cambio-panal');
+
+      this.openDateGroupsTomaLeche = Object.keys(fechasTomaActuales).length
+        ? fechasTomaActuales
+        : this.getDefaultOpenDateGroupsByMonth('toma-leche');
+
+      this.openDateGroupsCambioPanal = Object.keys(fechasPanalActuales).length
+        ? fechasPanalActuales
+        : this.getDefaultOpenDateGroupsByMonth('cambio-panal');
+
+      await this.notificacionTomasService.programarNotificacionProximaToma(
+        this.activities
+      );
+    } catch (error: any) {
+      console.error('Error cargando actividades', error);
+
+      this.activities = [];
+      this.filteredActivities = [];
+      this.groupedTomasLeche = [];
+      this.groupedCambiosPanal = [];
+
+      if (error?.message && this.primeraCarga) {
+        const alert = await this.alertController.create({
+          header: 'Actividades',
+          message: error.message,
+          buttons: ['Aceptar']
+        });
+
+        await alert.present();
+      }
+    } finally {
+      this.loading = false;
+      this.primeraCarga = false;
+    }
   }
-}
 
   onDateAccordionChange(
-  type: ActivityFamiliaType,
-  monthKey: string,
-  event: any
-) {
-  event.stopPropagation();
+    type: ActivityFamiliaType,
+    monthKey: string,
+    event: any
+  ) {
+    event.stopPropagation();
 
-  const value = event.detail.value || [];
-  const values = Array.isArray(value) ? value : [value];
+    const value = event.detail.value || [];
+    const values = Array.isArray(value) ? value : [value];
 
-  if (type === 'toma-leche') {
-    this.openDateGroupsTomaLeche = {
-      ...this.openDateGroupsTomaLeche,
+    if (type === 'toma-leche') {
+      this.openDateGroupsTomaLeche = {
+        ...this.openDateGroupsTomaLeche,
+        [monthKey]: values
+      };
+      return;
+    }
+
+    this.openDateGroupsCambioPanal = {
+      ...this.openDateGroupsCambioPanal,
       [monthKey]: values
     };
-    return;
   }
 
-  this.openDateGroupsCambioPanal = {
-    ...this.openDateGroupsCambioPanal,
-    [monthKey]: values
-  };
-}
+  getOpenDateGroups(type: ActivityFamiliaType, monthKey: string): string[] {
+    if (type === 'toma-leche') {
+      return this.openDateGroupsTomaLeche[monthKey] || [];
+    }
 
-getOpenDateGroups(type: ActivityFamiliaType, monthKey: string): string[] {
-  if (type === 'toma-leche') {
-    return this.openDateGroupsTomaLeche[monthKey] || [];
+    return this.openDateGroupsCambioPanal[monthKey] || [];
   }
 
-  return this.openDateGroupsCambioPanal[monthKey] || [];
-}
+  getDefaultOpenDateGroupsByMonth(
+    type: ActivityFamiliaType
+  ): Record<string, string[]> {
+    const currentYear = new Date().getFullYear().toString();
+    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+    const currentDay = String(new Date().getDate()).padStart(2, '0');
 
-getDefaultOpenDateGroupsByMonth(
-  type: ActivityFamiliaType
-): Record<string, string[]> {
-  const currentYear = new Date().getFullYear().toString();
-  const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-  const currentDay = String(new Date().getDate()).padStart(2, '0');
+    const currentMonthKey = `${currentYear}-${currentMonth}`;
+    const todayKey = `${currentYear}-${currentMonth}-${currentDay}`;
 
-  const currentMonthKey = `${currentYear}-${currentMonth}`;
-  const todayKey = `${currentYear}-${currentMonth}-${currentDay}`;
+    const grupos = type === 'toma-leche'
+      ? this.groupedTomasLeche
+      : this.groupedCambiosPanal;
 
-  const grupos = type === 'toma-leche'
-    ? this.groupedTomasLeche
-    : this.groupedCambiosPanal;
+    const result: Record<string, string[]> = {};
 
-  const result: Record<string, string[]> = {};
+    const grupoAnioActual = grupos.find(g => g.year === currentYear);
 
-  const grupoAnioActual = grupos.find(g => g.year === currentYear);
+    if (!grupoAnioActual) {
+      return result;
+    }
 
-  if (!grupoAnioActual) {
+    const grupoMesActual = grupoAnioActual.months.find(
+      mes => mes.monthKey === currentMonthKey
+    );
+
+    if (!grupoMesActual) {
+      return result;
+    }
+
+    const existeHoy = grupoMesActual.dateGroups.some(
+      fecha => fecha.fecha === todayKey
+    );
+
+    if (existeHoy) {
+      result[currentMonthKey] = [todayKey];
+    }
+
     return result;
   }
-
-  const grupoMesActual = grupoAnioActual.months.find(
-    mes => mes.monthKey === currentMonthKey
-  );
-
-  if (!grupoMesActual) {
-    return result;
-  }
-
-  const existeHoy = grupoMesActual.dateGroups.some(
-    fecha => fecha.fecha === todayKey
-  );
-
-  if (existeHoy) {
-    result[currentMonthKey] = [todayKey];
-  }
-
-  return result;
-}
 
   getEmptyForm(type: ActivityFamiliaType) {
     const base = {
@@ -500,7 +545,7 @@ getDefaultOpenDateGroupsByMonth(
   }
 
   getGroupedActivitiesByType(type: ActivityFamiliaType): ActivityYearGroup[] {
-    const activitiesByType = this.activities.filter(a => a.type === type);
+    const activitiesByType = this.filteredActivities.filter(a => a.type === type);
 
     const yearGroups = activitiesByType.reduce((acc, activity) => {
       const date = new Date(activity.time);
@@ -629,6 +674,337 @@ getDefaultOpenDateGroupsByMonth(
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
+  abrirModalFiltros() {
+    this.filtersDraft = this.clonarFiltros(this.filters);
+    this.showModalFiltros = true;
+  }
+
+  cerrarModalFiltros() {
+    this.showModalFiltros = false;
+  }
+
+  aplicarFiltrosDesdeModal() {
+    this.filters = this.normalizarFiltros(this.filtersDraft);
+    this.aplicarFiltros(true);
+    this.cerrarModalFiltros();
+  }
+
+  limpiarFiltrosDesdeModal() {
+    this.filtersDraft = this.getDefaultFilters();
+  }
+
+  limpiarFiltros() {
+    this.filters = this.getDefaultFilters();
+    this.filtersDraft = this.getDefaultFilters();
+    this.aplicarFiltros(true);
+  }
+
+  getDefaultFilters(): ActivityFilters {
+    return {
+      rangoFecha: 'todos',
+      fechaDesde: '',
+      fechaHasta: '',
+      horaDesde: '',
+      horaHasta: '',
+      tipoLeche: 'todas',
+      onzasMin: null,
+      onzasMax: null,
+      tipoPanal: 'todos'
+    };
+  }
+
+  hayFiltrosActivos(): boolean {
+    return JSON.stringify(this.filters) !== JSON.stringify(this.getDefaultFilters());
+  }
+
+  getCantidadFiltrosActivos(): number {
+    return this.contarFiltrosActivos(this.filters);
+  }
+
+  getPreviewResumenFiltros(): ResumenFiltros {
+    const filtros = this.normalizarFiltros(this.filtersDraft);
+    const actividades = this.filtrarActividadesConFiltros(filtros);
+
+    return this.obtenerResumenFiltros(actividades);
+  }
+
+  aplicarFiltros(resetAcordeones = true) {
+    this.filteredActivities = this.filtrarActividadesConFiltros(this.filters)
+      .sort((a, b) => b.time.localeCompare(a.time));
+
+    this.groupedTomasLeche = this.getGroupedActivitiesByType('toma-leche');
+    this.groupedCambiosPanal = this.getGroupedActivitiesByType('cambio-panal');
+
+    this.resumenFiltros = this.obtenerResumenFiltros(this.filteredActivities);
+
+    if (resetAcordeones) {
+      this.openGroupsTomaLeche = this.getDefaultOpenGroups('toma-leche');
+      this.openGroupsCambioPanal = this.getDefaultOpenGroups('cambio-panal');
+
+      this.openMonthGroupsTomaLeche =
+        this.getDefaultOpenMonthGroupsByYear('toma-leche');
+
+      this.openMonthGroupsCambioPanal =
+        this.getDefaultOpenMonthGroupsByYear('cambio-panal');
+
+      this.openDateGroupsTomaLeche =
+        this.getDefaultOpenDateGroupsByMonth('toma-leche');
+
+      this.openDateGroupsCambioPanal =
+        this.getDefaultOpenDateGroupsByMonth('cambio-panal');
+    }
+  }
+
+  private filtrarActividadesConFiltros(filters: ActivityFilters): ActivityFamilia[] {
+    const filtros = this.normalizarFiltros(filters);
+
+    return this.activities
+      .filter(activity => this.cumpleFiltroFecha(activity, filtros))
+      .filter(activity => this.cumpleFiltroHora(activity, filtros))
+      .filter(activity => this.cumpleFiltroTipoLeche(activity, filtros))
+      .filter(activity => this.cumpleFiltroOnzas(activity, filtros))
+      .filter(activity => this.cumpleFiltroTipoPanal(activity, filtros));
+  }
+
+  private cumpleFiltroFecha(
+    activity: ActivityFamilia,
+    filters: ActivityFilters
+  ): boolean {
+    if (filters.rangoFecha === 'todos') {
+      return true;
+    }
+
+    const fechaActividad = new Date(activity.time);
+    fechaActividad.setHours(0, 0, 0, 0);
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    if (filters.rangoFecha === 'hoy') {
+      return this.isSameDay(fechaActividad, hoy);
+    }
+
+    if (filters.rangoFecha === 'ayer') {
+      const ayer = new Date(hoy);
+      ayer.setDate(ayer.getDate() - 1);
+
+      return this.isSameDay(fechaActividad, ayer);
+    }
+
+    if (filters.rangoFecha === '7dias') {
+      const fechaInicio = new Date(hoy);
+      fechaInicio.setDate(fechaInicio.getDate() - 6);
+
+      return fechaActividad >= fechaInicio && fechaActividad <= hoy;
+    }
+
+    if (filters.rangoFecha === '30dias') {
+      const fechaInicio = new Date(hoy);
+      fechaInicio.setDate(fechaInicio.getDate() - 29);
+
+      return fechaActividad >= fechaInicio && fechaActividad <= hoy;
+    }
+
+    if (filters.rangoFecha === 'personalizado') {
+      if (filters.fechaDesde) {
+        const desde = this.getDateFromInput(filters.fechaDesde);
+
+        if (fechaActividad < desde) {
+          return false;
+        }
+      }
+
+      if (filters.fechaHasta) {
+        const hasta = this.getDateFromInput(filters.fechaHasta);
+
+        if (fechaActividad > hasta) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private cumpleFiltroHora(
+    activity: ActivityFamilia,
+    filters: ActivityFilters
+  ): boolean {
+    if (!filters.horaDesde && !filters.horaHasta) {
+      return true;
+    }
+
+    const fechaActividad = new Date(activity.time);
+
+    const horaActividad =
+      `${String(fechaActividad.getHours()).padStart(2, '0')}:${String(fechaActividad.getMinutes()).padStart(2, '0')}`;
+
+    if (filters.horaDesde && horaActividad < filters.horaDesde) {
+      return false;
+    }
+
+    if (filters.horaHasta && horaActividad > filters.horaHasta) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private cumpleFiltroTipoLeche(
+    activity: ActivityFamilia,
+    filters: ActivityFilters
+  ): boolean {
+    if (activity.type !== 'toma-leche') {
+      return true;
+    }
+
+    if (filters.tipoLeche === 'todas') {
+      return true;
+    }
+
+    const esMaterna = !!(activity as any).esLecheMaterna;
+
+    if (filters.tipoLeche === 'materna') {
+      return esMaterna;
+    }
+
+    if (filters.tipoLeche === 'formula') {
+      return !esMaterna;
+    }
+
+    return true;
+  }
+
+  private cumpleFiltroOnzas(
+    activity: ActivityFamilia,
+    filters: ActivityFilters
+  ): boolean {
+    if (activity.type !== 'toma-leche') {
+      return true;
+    }
+
+    const cantidadOnzas = Number((activity as any).cantidadOnzas || 0);
+
+    if (
+      filters.onzasMin !== null &&
+      filters.onzasMin !== undefined &&
+      cantidadOnzas < Number(filters.onzasMin)
+    ) {
+      return false;
+    }
+
+    if (
+      filters.onzasMax !== null &&
+      filters.onzasMax !== undefined &&
+      cantidadOnzas > Number(filters.onzasMax)
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private cumpleFiltroTipoPanal(
+    activity: ActivityFamilia,
+    filters: ActivityFilters
+  ): boolean {
+    if (activity.type !== 'cambio-panal') {
+      return true;
+    }
+
+    if (filters.tipoPanal === 'todos') {
+      return true;
+    }
+
+    const tieneHeces = !!(activity as any).tieneHeces;
+
+    if (filters.tipoPanal === 'popo') {
+      return tieneHeces;
+    }
+
+    if (filters.tipoPanal === 'pipi') {
+      return !tieneHeces;
+    }
+
+    return true;
+  }
+
+  private getDateFromInput(value: string): Date {
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    date.setHours(0, 0, 0, 0);
+
+    return date;
+  }
+
+  private clonarFiltros(filters: ActivityFilters): ActivityFilters {
+    return {
+      ...filters
+    };
+  }
+
+  private normalizarFiltros(filters: ActivityFilters): ActivityFilters {
+    const filtrosNormalizados = this.clonarFiltros(filters);
+
+    if (filtrosNormalizados.rangoFecha !== 'personalizado') {
+      filtrosNormalizados.fechaDesde = '';
+      filtrosNormalizados.fechaHasta = '';
+    }
+
+    const onzasMin = filtrosNormalizados.onzasMin as any;
+    const onzasMax = filtrosNormalizados.onzasMax as any;
+
+    filtrosNormalizados.onzasMin =
+      onzasMin !== null && onzasMin !== undefined && onzasMin !== ''
+        ? Number(onzasMin)
+        : null;
+
+    filtrosNormalizados.onzasMax =
+      onzasMax !== null && onzasMax !== undefined && onzasMax !== ''
+        ? Number(onzasMax)
+        : null;
+
+    return filtrosNormalizados;
+  }
+
+  private obtenerResumenFiltros(activities: ActivityFamilia[]): ResumenFiltros {
+    return {
+      total: activities.length,
+      tomas: activities.filter(a => a.type === 'toma-leche').length,
+      panales: activities.filter(a => a.type === 'cambio-panal').length
+    };
+  }
+
+  private contarFiltrosActivos(filters: ActivityFilters): number {
+    let cantidad = 0;
+
+    if (filters.rangoFecha !== 'todos') {
+      cantidad++;
+    }
+
+    if (filters.horaDesde || filters.horaHasta) {
+      cantidad++;
+    }
+
+    if (filters.tipoLeche !== 'todas') {
+      cantidad++;
+    }
+
+    if (filters.onzasMin !== null && filters.onzasMin !== undefined) {
+      cantidad++;
+    }
+
+    if (filters.onzasMax !== null && filters.onzasMax !== undefined) {
+      cantidad++;
+    }
+
+    if (filters.tipoPanal !== 'todos') {
+      cantidad++;
+    }
+
+    return cantidad;
+  }
+
   abrirModalEstadisticas() {
     this.calcularEstadisticas();
     this.showModalEstadisticas = true;
@@ -640,10 +1016,10 @@ getDefaultOpenDateGroupsByMonth(
 
   private calcularEstadisticas() {
     const fechaFin = new Date();
-    fechaFin.setHours(0, 0, 0, 0); // inicio de hoy, hoy queda excluido
+    fechaFin.setHours(0, 0, 0, 0);
 
     const fechaInicio = new Date(fechaFin);
-    fechaInicio.setDate(fechaInicio.getDate() - 30); // 30 días anteriores
+    fechaInicio.setDate(fechaInicio.getDate() - 30);
 
     const actividadesUltimoMes = this.activities.filter(activity => {
       const fechaActividad = new Date(activity.time);

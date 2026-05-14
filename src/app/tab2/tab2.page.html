@@ -30,6 +30,38 @@
         </ion-button>
       </div>
 
+      <div class="filters-button-container">
+        <ion-button
+          expand="block"
+          [fill]="hayFiltrosActivos() ? 'solid' : 'outline'"
+          color="secondary"
+          (click)="abrirModalFiltros()">
+          <ion-icon name="filter-outline" slot="start"></ion-icon>
+
+          Filtros de búsqueda
+
+          <ion-badge
+            *ngIf="getCantidadFiltrosActivos() > 0"
+            class="filters-count">
+            {{ getCantidadFiltrosActivos() }}
+          </ion-badge>
+        </ion-button>
+
+        <div class="filters-summary" *ngIf="hayFiltrosActivos()">
+          <span>
+            {{ resumenFiltros.tomas }} tomas · {{ resumenFiltros.panales }} pañales
+          </span>
+
+          <ion-button
+            fill="clear"
+            size="small"
+            color="medium"
+            (click)="limpiarFiltros()">
+            Limpiar
+          </ion-button>
+        </div>
+      </div>
+
       <ion-segment
         [value]="selectedTab"
         color="primary"
@@ -41,17 +73,14 @@
         </ion-segment-button>
 
         <ion-segment-button value="cambio-panal">
-          <ion-icon
-            name="leaf"
-            >
-          </ion-icon>
+          <ion-icon name="leaf"></ion-icon>
           <ion-label>Cambios de pañal</ion-label>
         </ion-segment-button>
       </ion-segment>
 
       <div class="activities-list">
         <!-- Tomas de leche -->
-        <ng-container *ngIf="selectedTab === 'toma-leche'">
+        <ng-container *ngIf="selectedTab === 'toma-leche' && groupedTomasLeche.length > 0">
           <ion-accordion-group
             multiple="true"
             [value]="openGroupsTomaLeche"
@@ -89,9 +118,9 @@
 
                     <div slot="content">
                       <ion-accordion-group
-  multiple="true"
-  [value]="getOpenDateGroups('toma-leche', grupoMes.monthKey)"
-  (ionChange)="onDateAccordionChange('toma-leche', grupoMes.monthKey, $event)">
+                        multiple="true"
+                        [value]="getOpenDateGroups('toma-leche', grupoMes.monthKey)"
+                        (ionChange)="onDateAccordionChange('toma-leche', grupoMes.monthKey, $event)">
 
                         <ion-accordion
                           *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate"
@@ -156,7 +185,7 @@
         </ng-container>
 
         <!-- Cambios de pañal -->
-        <ng-container *ngIf="selectedTab === 'cambio-panal'">
+        <ng-container *ngIf="selectedTab === 'cambio-panal' && groupedCambiosPanal.length > 0">
           <ion-accordion-group
             multiple="true"
             [value]="openGroupsCambioPanal"
@@ -194,9 +223,9 @@
 
                     <div slot="content">
                       <ion-accordion-group
-  multiple="true"
-  [value]="getOpenDateGroups('cambio-panal', grupoMes.monthKey)"
-  (ionChange)="onDateAccordionChange('cambio-panal', grupoMes.monthKey, $event)">
+                        multiple="true"
+                        [value]="getOpenDateGroups('cambio-panal', grupoMes.monthKey)"
+                        (ionChange)="onDateAccordionChange('cambio-panal', grupoMes.monthKey, $event)">
 
                         <ion-accordion
                           *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate"
@@ -259,6 +288,42 @@
             </ion-accordion>
           </ion-accordion-group>
         </ng-container>
+
+        <div
+          class="filters-empty-result"
+          *ngIf="
+            hayFiltrosActivos() &&
+            (
+              (selectedTab === 'toma-leche' && groupedTomasLeche.length === 0) ||
+              (selectedTab === 'cambio-panal' && groupedCambiosPanal.length === 0)
+            )
+          ">
+          <div class="empty-filter-icon">
+            <ion-icon name="filter-outline"></ion-icon>
+          </div>
+
+          <h3>No hay resultados</h3>
+
+          <p>
+            No encontramos actividades para este tab con los filtros aplicados.
+          </p>
+
+          <ion-button
+            size="small"
+            fill="outline"
+            color="primary"
+            (click)="abrirModalFiltros()">
+            Cambiar filtros
+          </ion-button>
+
+          <ion-button
+            size="small"
+            fill="clear"
+            color="medium"
+            (click)="limpiarFiltros()">
+            Limpiar filtros
+          </ion-button>
+        </div>
       </div>
     </ng-container>
 
@@ -269,6 +334,7 @@
     </ng-template>
   </ng-container>
 
+  <!-- Modal agregar / editar actividad -->
   <ion-modal [isOpen]="showModal" (didDismiss)="onModalDismiss()" class="custom-modal">
     <ng-template>
       <ion-header>
@@ -402,6 +468,279 @@
     </ng-template>
   </ion-modal>
 
+  <!-- Modal filtros -->
+  <ion-modal
+    [isOpen]="showModalFiltros"
+    [backdropDismiss]="false"
+    (didDismiss)="cerrarModalFiltros()"
+    class="filters-modal">
+
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Filtrar actividades</ion-title>
+
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarModalFiltros()" color="medium">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="filters-modal-content">
+
+        <div class="filters-preview-card">
+          <div>
+            <span>Resultado al aplicar</span>
+            <strong>
+              {{ getPreviewResumenFiltros().tomas }} tomas ·
+              {{ getPreviewResumenFiltros().panales }} pañales
+            </strong>
+          </div>
+
+          <ion-badge color="secondary">
+            {{ getPreviewResumenFiltros().total }}
+          </ion-badge>
+        </div>
+
+        <div class="filter-card">
+          <div class="filter-card-title">
+            <ion-icon name="calendar-outline"></ion-icon>
+
+            <div>
+              <h3>Fecha</h3>
+            </div>
+          </div>
+
+          <div class="filter-chip-grid">
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.rangoFecha === 'todos' ? 'solid' : 'outline'"
+              color="primary"
+              (click)="filtersDraft.rangoFecha = 'todos'">
+              Todas
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.rangoFecha === 'hoy' ? 'solid' : 'outline'"
+              color="primary"
+              (click)="filtersDraft.rangoFecha = 'hoy'">
+              Hoy
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.rangoFecha === 'ayer' ? 'solid' : 'outline'"
+              color="primary"
+              (click)="filtersDraft.rangoFecha = 'ayer'">
+              Ayer
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.rangoFecha === '7dias' ? 'solid' : 'outline'"
+              color="primary"
+              (click)="filtersDraft.rangoFecha = '7dias'">
+              7 días
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.rangoFecha === '30dias' ? 'solid' : 'outline'"
+              color="primary"
+              (click)="filtersDraft.rangoFecha = '30dias'">
+              30 días
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.rangoFecha === 'personalizado' ? 'solid' : 'outline'"
+              color="primary"
+              (click)="filtersDraft.rangoFecha = 'personalizado'">
+              Rango
+            </ion-button>
+          </div>
+
+          <div class="filter-grid" *ngIf="filtersDraft.rangoFecha === 'personalizado'">
+            <ion-input
+              type="date"
+              label="Desde"
+              labelPlacement="stacked"
+              [(ngModel)]="filtersDraft.fechaDesde"
+              name="fechaDesde">
+            </ion-input>
+
+            <ion-input
+              type="date"
+              label="Hasta"
+              labelPlacement="stacked"
+              [(ngModel)]="filtersDraft.fechaHasta"
+              name="fechaHasta">
+            </ion-input>
+          </div>
+        </div>
+
+        <div class="filter-card">
+          <div class="filter-card-title">
+            <ion-icon name="time-outline"></ion-icon>
+
+            <div>
+              <h3>Horario</h3>
+            </div>
+          </div>
+
+          <div class="filter-grid">
+            <ion-input
+              type="time"
+              label="Desde"
+              labelPlacement="stacked"
+              [(ngModel)]="filtersDraft.horaDesde"
+              name="horaDesde">
+            </ion-input>
+
+            <ion-input
+              type="time"
+              label="Hasta"
+              labelPlacement="stacked"
+              [(ngModel)]="filtersDraft.horaHasta"
+              name="horaHasta">
+            </ion-input>
+          </div>
+        </div>
+
+        <div class="filter-card milk-filter-card">
+          <div class="filter-card-title">
+            <ion-icon name="water"></ion-icon>
+
+            <div>
+              <h3>Tomas de leche</h3>
+            </div>
+          </div>
+
+          <div class="filter-chip-grid three">
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.tipoLeche === 'todas' ? 'solid' : 'outline'"
+              color="primary"
+              (click)="filtersDraft.tipoLeche = 'todas'">
+              Todas
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.tipoLeche === 'materna' ? 'solid' : 'outline'"
+              color="danger"
+              (click)="filtersDraft.tipoLeche = 'materna'">
+              Materna
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.tipoLeche === 'formula' ? 'solid' : 'outline'"
+              color="primary"
+              (click)="filtersDraft.tipoLeche = 'formula'">
+              Fórmula
+            </ion-button>
+          </div>
+
+          <label class="filter-subtitle">Cantidad de onzas</label>
+
+          <div class="filter-grid">
+            <ion-input
+              type="number"
+              label="Mínimo"
+              labelPlacement="stacked"
+              [(ngModel)]="filtersDraft.onzasMin"
+              name="onzasMin"
+              placeholder="Ej: 2">
+            </ion-input>
+
+            <ion-input
+              type="number"
+              label="Máximo"
+              labelPlacement="stacked"
+              [(ngModel)]="filtersDraft.onzasMax"
+              name="onzasMax"
+              placeholder="Ej: 6">
+            </ion-input>
+          </div>
+        </div>
+
+        <div class="filter-card diaper-filter-card">
+          <div class="filter-card-title">
+            <ion-icon name="leaf"></ion-icon>
+
+            <div>
+              <h3>Cambios de pañal</h3>
+            </div>
+          </div>
+
+          <div class="filter-chip-grid three">
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.tipoPanal === 'todos' ? 'solid' : 'outline'"
+              color="success"
+              (click)="filtersDraft.tipoPanal = 'todos'">
+              Todos
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.tipoPanal === 'pipi' ? 'solid' : 'outline'"
+              color="success"
+              (click)="filtersDraft.tipoPanal = 'pipi'">
+              Solo pipí
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="filtersDraft.tipoPanal === 'popo' ? 'solid' : 'outline'"
+              color="warning"
+              (click)="filtersDraft.tipoPanal = 'popo'">
+              Con popó
+            </ion-button>
+          </div>
+        </div>
+      </ion-content>
+
+      <ion-footer>
+        <ion-toolbar>
+          <div class="filters-footer-actions">
+            <ion-button
+              fill="clear"
+              color="medium"
+              (click)="limpiarFiltrosDesdeModal()">
+              <ion-icon name="refresh-outline" slot="start"></ion-icon>
+              Limpiar
+            </ion-button>
+
+            <ion-button
+              color="secondary"
+              (click)="aplicarFiltrosDesdeModal()">
+              <ion-icon name="checkmark" slot="start"></ion-icon>
+              Aplicar filtros
+            </ion-button>
+          </div>
+        </ion-toolbar>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal estadísticas -->
   <ion-modal [isOpen]="showModalEstadisticas" (didDismiss)="cerrarModalEstadisticas()">
     <ng-template>
       <ion-header>
