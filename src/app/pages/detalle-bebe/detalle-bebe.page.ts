@@ -40,6 +40,8 @@ import {
 
 import { BebeFamiliaService } from '../../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../../models/bebe-familia.model';
+import { NotificacionMedicamentosService } from '../../services/notificacion-medicamentos.service';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 @Component({
   selector: 'app-detalle-bebe',
@@ -71,6 +73,7 @@ import { BebeFamilia, MedicamentoBebe } from '../../models/bebe-familia.model';
 export class DetalleBebePage implements OnInit {
   private route = inject(ActivatedRoute);
   private bebeFamiliaService = inject(BebeFamiliaService);
+private notificacionMedicamentosService = inject(NotificacionMedicamentosService);
 
   bebe: BebeFamilia | null = null;
 
@@ -99,7 +102,9 @@ export class DetalleBebePage implements OnInit {
       timeOutline,
       checkmarkCircleOutline
     });
-
+    
+    await LocalNotifications.requestPermissions();
+    
     await this.cargarBebe();
   }
 
@@ -272,26 +277,38 @@ export class DetalleBebePage implements OnInit {
       medicamentos: medicamentosActuales
     };
 
+    await this.programarNotificacionesMedicamentos();
+
     this.cerrarModalMedicamento();
   }
 
   async eliminarMedicamento(index: number) {
-    if (!this.bebe) {
-      return;
-    }
-
-    const medicamentosActuales = [...(this.bebe.medicamentos || [])];
-    medicamentosActuales.splice(index, 1);
-
-    await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
-      medicamentos: medicamentosActuales
-    });
-
-    this.bebe = {
-      ...this.bebe,
-      medicamentos: medicamentosActuales
-    };
+  if (!this.bebe) {
+    return;
   }
+
+  const medicamentosActuales = [...(this.bebe.medicamentos || [])];
+  const medicamentoEliminado = medicamentosActuales[index];
+
+  medicamentosActuales.splice(index, 1);
+
+  await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
+    medicamentos: medicamentosActuales
+  });
+
+  this.bebe = {
+    ...this.bebe,
+    medicamentos: medicamentosActuales
+  };
+
+  if (medicamentoEliminado) {
+    await this.notificacionMedicamentosService.cancelarNotificacionMedicamento(
+      medicamentoEliminado.id
+    );
+  }
+
+  await this.programarNotificacionesMedicamentos();
+}
 
   async cambiarEstadoMedicamento(index: number, activo: boolean) {
     if (!this.bebe) {
@@ -313,6 +330,8 @@ export class DetalleBebePage implements OnInit {
       ...this.bebe,
       medicamentos: medicamentosActuales
     };
+
+    await this.programarNotificacionesMedicamentos();
   }
 
   obtenerTextoFrecuencia(medicamento: MedicamentoBebe): string {
@@ -326,4 +345,16 @@ export class DetalleBebePage implements OnInit {
 
     return 'Sin horario definido';
   }
+
+private async programarNotificacionesMedicamentos() {
+  if (!this.bebe) {
+    return;
+  }
+
+  await this.notificacionMedicamentosService.programarNotificacionesMedicamentos(
+    this.bebe.id,
+    this.bebe.nombre,
+    this.bebe.medicamentos || []
+  );
+}
 }
