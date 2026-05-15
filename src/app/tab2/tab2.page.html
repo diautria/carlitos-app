@@ -38,7 +38,7 @@
           (click)="abrirModalFiltros()">
           <ion-icon name="filter-outline" slot="start"></ion-icon>
 
-          Filtros de búsqueda
+          FILTROS
 
           <ion-badge
             *ngIf="getCantidadFiltrosActivos() > 0"
@@ -875,7 +875,8 @@
             <strong>
               {{ getPreviewResumenFiltros().tomas }} tomas ·
               {{ getPreviewResumenFiltros().panales }} pañales ·
-              {{ getPreviewResumenFiltros().medicamentos }} medicamentos
+              {{ getPreviewResumenFiltros().medicamentos }} medicamentos ·
+{{ getPreviewResumenFiltros().suenos }} sueños
             </strong>
           </div>
 
