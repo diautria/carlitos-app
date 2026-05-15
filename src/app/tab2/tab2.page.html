@@ -69,19 +69,19 @@
 
         <ion-segment-button value="toma-leche">
           <ion-icon name="water"></ion-icon>
-          <ion-label>Tomas de leche</ion-label>
+          <!-- <ion-label>Tomas de leche</ion-label> -->
         </ion-segment-button>
 
         <ion-segment-button value="cambio-panal">
           <ion-icon name="leaf"></ion-icon>
-          <ion-label>Cambios de pañal</ion-label>
+          <!-- <ion-label>Cambios de pañal</ion-label> -->
         </ion-segment-button>
 
         <ion-segment-button
   *ngIf="tieneMedicamentosRegistrados()"
   value="medicamento">
   <ion-icon name="medical"></ion-icon>
-  <ion-label>Medicamentos</ion-label>
+  <!-- <ion-label>Medicamentos</ion-label> -->
 </ion-segment-button>
       </ion-segment>
 
@@ -475,32 +475,35 @@
               <ion-button
                 expand="block"
                 type="button"
+                 aria-label="Leche"
+    title="Leche"
                 [color]="formType === 'toma-leche' ? 'primary' : 'medium'"
                 (click)="onTypeChange('toma-leche')"
                 size="small">
                 <ion-icon name="water"></ion-icon>
-                Leche
               </ion-button>
 
               <ion-button
                 expand="block"
                 type="button"
+                aria-label="Pañal"
+    title="Pañal"
                 [color]="formType === 'cambio-panal' ? 'primary' : 'medium'"
                 (click)="onTypeChange('cambio-panal')"
                 size="small">
                 <ion-icon name="leaf"></ion-icon>
-                Pañal
               </ion-button>
 
               <ion-button
   *ngIf="tieneMedicamentosRegistrados()"
   expand="block"
   type="button"
+  aria-label="Medicamento"
+    title="Medicamento"
   [color]="formType === 'medicamento' ? 'primary' : 'medium'"
   (click)="onTypeChange('medicamento')"
   size="small">
   <ion-icon name="medical"></ion-icon>
-  Medicamento
 </ion-button>
             </div>
           </div>
@@ -1033,7 +1036,7 @@
           <ion-card-header>
             <div class="estadisticas-card-header">
               <div class="estadisticas-icon medicamento">
-                <ion-icon name="medical"></ion-icon>
+                <ion-icon name="medical" color="success"></ion-icon>
               </div>
 
               <div>

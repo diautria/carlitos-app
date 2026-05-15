@@ -63,6 +63,7 @@ import {
 import { NotificacionTomasService } from '../services/notificacion-tomas.service';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../models/bebe-familia.model';
+import { NotificacionMedicamentosService } from '../services/notificacion-medicamentos.service';
 
 interface ActivityDateGroup {
   fecha: string;
@@ -207,7 +208,8 @@ export class Tab2Page implements OnInit {
     private activityFamiliaService: ActivityFamiliaService,
     private alertController: AlertController,
     private notificacionTomasService: NotificacionTomasService,
-    private bebeFamiliaService: BebeFamiliaService
+    private bebeFamiliaService: BebeFamiliaService,
+    private notificacionMedicamentosService: NotificacionMedicamentosService
   ) {
     addIcons({addCircle,statsChartOutline,filterOutline,water,leaf,medicalOutline,createOutline,trashOutline,medical,close,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline});
   }
@@ -418,110 +420,148 @@ export class Tab2Page implements OnInit {
   }
 
   async saveActivity() {
-    try {
-      this.form.type = this.formType;
+  try {
+    this.form.type = this.formType;
 
-      if (this.formType === 'toma-leche') {
-        this.form.cantidadOnzas = Number(this.form.cantidadOnzas || 0);
-        this.form.esLecheMaterna = !!this.form.esLecheMaterna;
-      }
+    let medicamentoAdministrado: any = null;
 
-      if (this.formType === 'cambio-panal') {
-        this.form.tieneHeces = !!this.form.tieneHeces;
-      }
-
-      if (this.formType === 'medicamento') {
-        if (!this.form.medicamentoId) {
-          const alert = await this.alertController.create({
-            header: 'Medicamento',
-            message: 'Debes seleccionar un medicamento registrado.',
-            buttons: ['Aceptar']
-          });
-
-          await alert.present();
-          return;
-        }
-
-        const medicamento = this.medicamentosDisponibles.find(
-          item => item.id === this.form.medicamentoId
-        );
-
-        if (!medicamento) {
-          const alert = await this.alertController.create({
-            header: 'Medicamento',
-            message: 'No se encontró el medicamento seleccionado.',
-            buttons: ['Aceptar']
-          });
-
-          await alert.present();
-          return;
-        }
-
-        this.form.nombreMedicamento = medicamento.nombre;
-        this.form.dosisGotas = Number(this.form.dosisGotas || medicamento.dosisGotas || 0);
-        this.form.observaciones = this.form.observaciones?.trim() || '';
-        this.form.bebeId = medicamento.bebeId;
-
-        if (!this.form.dosisGotas || this.form.dosisGotas <= 0) {
-          const alert = await this.alertController.create({
-            header: 'Medicamento',
-            message: 'La dosis en gotas debe ser mayor que cero.',
-            buttons: ['Aceptar']
-          });
-
-          await alert.present();
-          return;
-        }
-      }
-
-      if (!this.form.id) {
-        this.form.id = '';
-        this.form.createdAt = new Date().toISOString();
-
-        await this.activityFamiliaService.add(this.form);
-      } else {
-        this.form.updatedAt = new Date().toISOString();
-
-        await this.activityFamiliaService.update(this.form);
-      }
-
-      this.closeModal();
-      await this.loadActivities();
-    } catch (error: any) {
-      console.error('Error guardando actividad', error);
-
-      const alert = await this.alertController.create({
-        header: 'No se pudo guardar',
-        message: error?.message || 'No se pudo guardar la actividad.',
-        buttons: ['Aceptar']
-      });
-
-      await alert.present();
+    if (this.formType === 'toma-leche') {
+      this.form.cantidadOnzas = Number(this.form.cantidadOnzas || 0);
+      this.form.esLecheMaterna = !!this.form.esLecheMaterna;
     }
-  }
 
-  async deleteActivity(id: string) {
+    if (this.formType === 'cambio-panal') {
+      this.form.tieneHeces = !!this.form.tieneHeces;
+    }
+
+    if (this.formType === 'medicamento') {
+      if (!this.form.medicamentoId) {
+        const alert = await this.alertController.create({
+          header: 'Medicamento',
+          message: 'Debes seleccionar un medicamento registrado.',
+          buttons: ['Aceptar']
+        });
+
+        await alert.present();
+        return;
+      }
+
+      const medicamento = this.medicamentosDisponibles.find(
+        item => item.id === this.form.medicamentoId
+      );
+
+      if (!medicamento) {
+        const alert = await this.alertController.create({
+          header: 'Medicamento',
+          message: 'No se encontró el medicamento seleccionado.',
+          buttons: ['Aceptar']
+        });
+
+        await alert.present();
+        return;
+      }
+
+      medicamentoAdministrado = medicamento;
+
+      this.form.nombreMedicamento = medicamento.nombre;
+      this.form.dosisGotas = Number(this.form.dosisGotas || medicamento.dosisGotas || 0);
+      this.form.observaciones = this.form.observaciones?.trim() || '';
+      this.form.bebeId = medicamento.bebeId;
+
+      if (!this.form.dosisGotas || this.form.dosisGotas <= 0) {
+        const alert = await this.alertController.create({
+          header: 'Medicamento',
+          message: 'La dosis en gotas debe ser mayor que cero.',
+          buttons: ['Aceptar']
+        });
+
+        await alert.present();
+        return;
+      }
+    }
+
+    if (!this.form.id) {
+      this.form.id = '';
+      this.form.createdAt = new Date().toISOString();
+
+      await this.activityFamiliaService.add(this.form);
+    } else {
+      this.form.updatedAt = new Date().toISOString();
+
+      await this.activityFamiliaService.update(this.form);
+    }
+
+    await this.loadActivities();
+
+    if (this.formType === 'medicamento' && medicamentoAdministrado) {
+      await this.
+        notificacionMedicamentosService.reprogramarMedicamentoDespuesDeAdministrar(
+          medicamentoAdministrado.bebeId,
+          medicamentoAdministrado.nombreBebe || '',
+          medicamentoAdministrado,
+          this.activities
+        );
+    }
+
+    this.closeModal();
+  } catch (error: any) {
+    console.error('Error guardando actividad', error);
+
     const alert = await this.alertController.create({
-      header: 'Eliminar actividad',
-      message: '¿Confirmas eliminar esta actividad?',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: async () => {
-            await this.activityFamiliaService.delete(id);
-            await this.loadActivities();
-          }
-        }
-      ]
+      header: 'No se pudo guardar',
+      message: error?.message || 'No se pudo guardar la actividad.',
+      buttons: ['Aceptar']
     });
 
     await alert.present();
   }
+}
+
+  async deleteActivity(id: string) {
+  const actividadAEliminar = this.activities.find(
+    activity => activity.id === id
+  );
+
+  const alert = await this.alertController.create({
+    header: 'Eliminar actividad',
+    message: '¿Confirmas eliminar esta actividad?',
+    buttons: [
+      {
+        text: 'Cancelar',
+        role: 'cancel'
+      },
+      {
+        text: 'Eliminar',
+        role: 'destructive',
+        handler: async () => {
+          await this.activityFamiliaService.delete(id);
+          await this.loadActivities();
+
+          if (
+            actividadAEliminar?.type === 'medicamento' &&
+            (actividadAEliminar as any).medicamentoId
+          ) {
+            const medicamento = this.medicamentosDisponibles.find(
+              item => item.id === (actividadAEliminar as any).medicamentoId
+            );
+
+            if (medicamento) {
+              await this.notificacionMedicamentosService
+                .reprogramarMedicamentoDespuesDeAdministrar(
+                  medicamento.bebeId,
+                  (medicamento as any).nombreBebe || '',
+                  medicamento,
+                  this.activities
+                );
+            }
+          }
+        }
+      }
+    ]
+  });
+
+  await alert.present();
+}
 
   onTypeChange(type: ActivityFamiliaType) {
     this.formType = type;

@@ -21,8 +21,6 @@ import {
   IonToggle
 } from '@ionic/angular/standalone';
 
-import { LocalNotifications } from '@capacitor/local-notifications';
-
 import { addIcons } from 'ionicons';
 import {
   calendar,
@@ -112,8 +110,6 @@ private activityFamiliaService = inject(ActivityFamiliaService);
       timeOutline,
       checkmarkCircleOutline
     });
-
-    await LocalNotifications.requestPermissions();
 
     await this.cargarBebe();
   }

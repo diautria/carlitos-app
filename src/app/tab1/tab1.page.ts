@@ -114,7 +114,7 @@ getIconoActividad(actividad: any): string {
   }
 
   if (actividad.type === 'medicamento') {
-    return 'tertiary';
+    return 'medium';
   }
 
   return 'medium';
