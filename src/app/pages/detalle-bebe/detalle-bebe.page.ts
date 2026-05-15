@@ -453,17 +453,24 @@ private activityFamiliaService = inject(ActivityFamiliaService);
     );
   }
 
-  obtenerTextoFrecuencia(medicamento: MedicamentoBebe): string {
-    if (medicamento.frecuenciaHoras && medicamento.frecuenciaHoras > 0) {
-      return `Cada ${medicamento.frecuenciaHoras} horas`;
-    }
+  obtenerTextoFrecuencia(medicamento: any): string {
+  const frecuenciaHoras = Number(medicamento.frecuenciaHoras || 0);
+  const horario = medicamento.horario;
 
-    if (medicamento.horario) {
-      return `A las ${medicamento.horario}`;
-    }
-
-    return 'Sin horario definido';
+  if (frecuenciaHoras > 0 && horario) {
+    return `Cada ${frecuenciaHoras} h desde las ${horario}`;
   }
+
+  if (frecuenciaHoras > 0) {
+    return `Cada ${frecuenciaHoras} h`;
+  }
+
+  if (horario) {
+    return `Horario fijo: ${horario}`;
+  }
+
+  return 'Sin horario definido';
+}
 
   private async medicamentoTieneActividadesRegistradas(
   medicamentoId: string
