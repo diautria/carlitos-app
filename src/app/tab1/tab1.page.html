@@ -117,6 +117,59 @@
       </ion-card>
     </section>
 
+    <section class="seccion-sueno">
+  <ion-card class="sueno-card" [class.sueno-activo]="suenoActivo">
+    <ion-card-content>
+      <div class="sueno-card-content">
+
+        <div class="sueno-icon-wrapper">
+          <div class="sueno-icon-bg">
+            <ion-icon name="moon-outline"></ion-icon>
+          </div>
+        </div>
+
+        <div class="sueno-info">
+          <h2 *ngIf="suenoActivo">Está durmiendo</h2>
+          <h2 *ngIf="!suenoActivo">No está durmiendo</h2>
+
+          <p *ngIf="suenoActivo" class="sueno-subtitle">
+            Desde {{ $any(suenoActivo).inicio || suenoActivo.time | date:'HH:mm' }}
+          </p>
+
+          <strong *ngIf="suenoActivo">
+            {{ duracionSuenoActivoTexto }}
+          </strong>
+
+          <p *ngIf="!suenoActivo" class="sueno-subtitle">
+            Registra el inicio cuando se duerma
+          </p>
+        </div>
+
+        <ion-button
+          *ngIf="!suenoActivo"
+          color="primary"
+          shape="round"
+          size="small"
+          class="sueno-action-button"
+          (click)="iniciarSuenoRapido()">
+          Iniciar
+        </ion-button>
+
+        <ion-button
+          *ngIf="suenoActivo"
+          color="warning"
+          shape="round"
+          size="small"
+          class="sueno-action-button"
+          (click)="finalizarSuenoActivo()">
+          Finalizar
+        </ion-button>
+
+      </div>
+    </ion-card-content>
+  </ion-card>
+</section>
+
     <!-- Sección de Actividades Recientes -->
     <section class="seccion-actividades">
       <div class="actividad-header">

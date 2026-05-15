@@ -1,13 +1,15 @@
-// Interfaces para actividades del bebé
-
-export type ActivityType = 'toma-leche' | 'cambio-panal'  | 'medicamento';
+export type ActivityType =
+  | 'toma-leche'
+  | 'cambio-panal'
+  | 'medicamento'
+  | 'sueno';
 
 export interface BaseActivity {
   id: string;
   type: ActivityType;
-  time: string; // ISO string
-  createdAt: string; // ISO string
-  updatedAt?: string; // ISO string
+  time: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface TomaLecheActivity extends BaseActivity {
@@ -29,4 +31,16 @@ export interface MedicamentoActivity extends BaseActivity {
   observaciones?: string;
 }
 
-export type Activity = TomaLecheActivity | CambioPanalActivity | MedicamentoActivity;
+export interface SuenoActivity extends BaseActivity {
+  type: 'sueno';
+  inicio: string;
+  fin: string | null;
+  duracionMinutos: number;
+  observaciones?: string;
+}
+
+export type Activity =
+  | TomaLecheActivity
+  | CambioPanalActivity
+  | MedicamentoActivity
+  | SuenoActivity;

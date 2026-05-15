@@ -1,7 +1,8 @@
 export type ActivityFamiliaType =
   | 'toma-leche'
   | 'cambio-panal'
-  | 'medicamento';
+  | 'medicamento'
+  | 'sueno';
 
 export interface BaseActivityFamilia {
   id: string;
@@ -34,7 +35,32 @@ export interface MedicamentoFamiliaActivity extends BaseActivityFamilia {
   observaciones?: string;
 }
 
+export interface SuenoFamiliaActivity extends BaseActivityFamilia {
+  type: 'sueno';
+
+  /**
+   * Inicio del sueño.
+   * Normalmente será igual que time.
+   */
+  inicio: string;
+
+  /**
+   * Fin del sueño.
+   * Si está null, significa que el bebé sigue durmiendo.
+   */
+  fin: string | null;
+
+  /**
+   * Duración en minutos.
+   * Se calcula cuando se registra el fin.
+   */
+  duracionMinutos: number;
+
+  observaciones?: string;
+}
+
 export type ActivityFamilia =
   | TomaLecheFamiliaActivity
   | CambioPanalFamiliaActivity
-  | MedicamentoFamiliaActivity;
+  | MedicamentoFamiliaActivity
+  | SuenoFamiliaActivity;

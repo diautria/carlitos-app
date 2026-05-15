@@ -15,7 +15,7 @@ import { people, time, medical, chevronForward, water, logoWhatsapp,documentText
 import { personOutline, trashOutline, close  } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
-import { addOutline, createOutline, documentTextOutline  } from 'ionicons/icons';
+import { addOutline, createOutline, moonOutline   } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import { ActivityFamilia } from '../models/activity-familia.model';
 import { ActivityFamiliaService } from '../services/activity-familia.service';
@@ -78,14 +78,19 @@ bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
   onzasDiariasObjetivo = 24;
   porcentajeOnzas = 0;
   progresoOnzas = 0;
+suenoActivo: ActivityFamilia | null = null;
+duracionSuenoActivoTexto = '';
+private intervaloSuenoActivo: any;
 
   async ngOnInit() {
-   addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText  });
+   addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline   });
 
     await this.cargarDatosBebe();
 
     await this.cargarActividadesDeHoy();
     await this.cargarProgresoOnzas();
+
+    await this.cargarSuenoActivo();
   }
 
 getIconoActividad(actividad: any): string {
@@ -99,6 +104,10 @@ getIconoActividad(actividad: any): string {
 
   if (actividad.type === 'medicamento') {
     return 'medical';
+  }
+
+   if (actividad.type === 'sueno') {
+    return 'moon';
   }
 
   return 'ellipse';
@@ -115,6 +124,10 @@ getIconoActividad(actividad: any): string {
 
   if (actividad.type === 'medicamento') {
     return 'medium';
+  }
+
+   if (actividad.type === 'sueno') {
+    return actividad.fin ? 'tertiary' : 'warning';
   }
 
   return 'medium';
@@ -136,6 +149,7 @@ getIconoActividad(actividad: any): string {
     await this.cargarDatosBebe();
     await this.cargarActividadesDeHoy();
     await this.cargarProgresoOnzas();
+    await this.cargarSuenoActivo();
   }
 
   private async cargarActividadesDeHoy() {
@@ -163,6 +177,10 @@ getIconoActividad(actividad: any): string {
       return 'Medicamento';
     }
 
+    if (actividad.type === 'sueno') {
+    return (actividad as any).fin ? 'Sueño' : 'Sueño en curso';
+  }
+
     return 'Actividad';
   }
 
@@ -179,6 +197,20 @@ getIconoActividad(actividad: any): string {
     if (actividad.type === 'medicamento') {
       return `${actividad.dosisGotas} gotas - ${actividad.nombreMedicamento}`;
     }
+
+    if (actividad.type === 'sueno') {
+    const sueno = actividad as any;
+
+    if (!sueno.fin) {
+      return `Durmiendo desde ${new Date(sueno.inicio || sueno.time).toLocaleTimeString('es-UY', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })}`;
+    }
+
+    return `Duró ${this.formatearDuracion(Number(sueno.duracionMinutos || 0))}`;
+  }
 
     return '';
   }
@@ -351,6 +383,7 @@ async seleccionarBebe(bebe: BebeFamilia) {
     // acá recargaremos actividades del bebé seleccionado.
     await this.cargarActividadesDeHoy();
     await this.cargarProgresoOnzas();
+    await this.cargarSuenoActivo();
   } catch (error) {
     console.error('Error seleccionando bebé activo', error);
   }
@@ -619,6 +652,88 @@ private async cargarPermisosFamilia() {
   } catch (error) {
     console.error('Error cargando permisos de familia', error);
     this.esAdminFamilia = false;
+  }
+}
+
+private async cargarSuenoActivo() {
+  try {
+    this.suenoActivo = await this.activityFamiliaService.obtenerSuenoActivo();
+    this.actualizarDuracionSuenoActivo();
+
+    if (this.intervaloSuenoActivo) {
+      clearInterval(this.intervaloSuenoActivo);
+    }
+
+    if (this.suenoActivo) {
+      this.intervaloSuenoActivo = setInterval(() => {
+        this.actualizarDuracionSuenoActivo();
+      }, 60000);
+    }
+  } catch (error) {
+    console.error('Error cargando sueño activo', error);
+    this.suenoActivo = null;
+    this.duracionSuenoActivoTexto = '';
+  }
+}
+
+private actualizarDuracionSuenoActivo() {
+  if (!this.suenoActivo) {
+    this.duracionSuenoActivoTexto = '';
+    return;
+  }
+
+  const inicio = new Date((this.suenoActivo as any).inicio || this.suenoActivo.time);
+  const ahora = new Date();
+
+  const minutos = Math.max(
+    0,
+    Math.round((ahora.getTime() - inicio.getTime()) / 60000)
+  );
+
+  this.duracionSuenoActivoTexto = this.formatearDuracion(minutos);
+}
+
+formatearDuracion(minutos: number): string {
+  const horas = Math.floor(minutos / 60);
+  const mins = minutos % 60;
+
+  if (horas <= 0) {
+    return `${mins} min`;
+  }
+
+  if (mins <= 0) {
+    return `${horas} h`;
+  }
+
+  return `${horas} h ${mins} min`;
+}
+
+async iniciarSuenoRapido() {
+  try {
+    await this.activityFamiliaService.iniciarSueno(new Date());
+
+    await this.cargarSuenoActivo();
+    await this.cargarActividadesDeHoy();
+  } catch (error: any) {
+    alert(error?.message || 'No se pudo iniciar el sueño.');
+  }
+}
+
+async finalizarSuenoActivo() {
+  if (!this.suenoActivo) {
+    return;
+  }
+
+  try {
+    await this.activityFamiliaService.finalizarSueno(
+      this.suenoActivo.id,
+      new Date()
+    );
+
+    await this.cargarSuenoActivo();
+    await this.cargarActividadesDeHoy();
+  } catch (error: any) {
+    alert(error?.message || 'No se pudo finalizar el sueño.');
   }
 }
 }

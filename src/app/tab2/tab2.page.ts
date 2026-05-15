@@ -52,7 +52,7 @@ import {
   refreshOutline,
   calendarOutline,
   timeOutline,
-  medical, medicalOutline } from 'ionicons/icons';
+  medical, medicalOutline, moonOutline, moon } from 'ionicons/icons';
 
 import { ActivityFamiliaService } from '../services/activity-familia.service';
 import {
@@ -92,6 +92,10 @@ interface ActivityFilters {
   onzasMin: number | null;
   onzasMax: number | null;
   tipoPanal: 'todos' | 'pipi' | 'popo';
+
+  estadoSueno: 'todos' | 'en-curso' | 'finalizados';
+  duracionSuenoMin: number | null;
+  duracionSuenoMax: number | null;
 }
 
 interface ResumenFiltros {
@@ -99,6 +103,7 @@ interface ResumenFiltros {
   tomas: number;
   panales: number;
   medicamentos: number;
+  suenos: number;
 }
 
 interface MedicamentoDisponible extends MedicamentoBebe {
@@ -177,7 +182,8 @@ export class Tab2Page implements OnInit {
     total: 0,
     tomas: 0,
     panales: 0,
-    medicamentos: 0
+    medicamentos: 0,
+  suenos: 0
   };
 
   openGroupsTomaLeche: string[] = [];
@@ -193,16 +199,28 @@ export class Tab2Page implements OnInit {
   openDateGroupsMedicamentos: Record<string, string[]> = {};
 
   estadisticas = {
-    promedioOnzasPorDia: 0,
-    totalFormula: 0,
-    totalMaterna: 0,
-    totalTomas: 0,
-    totalPanales: 0,
-    totalPopo: 0,
-    totalPipi: 0,
-    totalMedicamentos: 0,
-    promedioPanalesPorDia: 0
-  };
+  promedioOnzasPorDia: 0,
+  totalFormula: 0,
+  totalMaterna: 0,
+  totalTomas: 0,
+  totalPanales: 0,
+  totalPopo: 0,
+  totalPipi: 0,
+  totalMedicamentos: 0,
+  promedioPanalesPorDia: 0,
+
+  totalSuenos: 0,
+  totalMinutosSueno: 0,
+  totalSuenoTexto: '0 min',
+  promedioSuenoTexto: '0 min',
+  suenoMasLargoTexto: '0 min',
+  suenosEnCurso: 0
+};
+
+  groupedSuenos: ActivityYearGroup[] = [];
+openGroupsSuenos: string[] = [];
+openMonthGroupsSuenos: Record<string, string[]> = {};
+openDateGroupsSuenos: Record<string, string[]> = {};
 
   constructor(
     private activityFamiliaService: ActivityFamiliaService,
@@ -211,7 +229,7 @@ export class Tab2Page implements OnInit {
     private bebeFamiliaService: BebeFamiliaService,
     private notificacionMedicamentosService: NotificacionMedicamentosService
   ) {
-    addIcons({addCircle,statsChartOutline,filterOutline,water,leaf,medicalOutline,createOutline,trashOutline,medical,close,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline});
+    addIcons({addCircle,statsChartOutline,filterOutline,water,leaf,medical,moonOutline,createOutline,trashOutline,close,moon,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline,medicalOutline});
   }
 
   async ngOnInit() {
@@ -376,6 +394,16 @@ export class Tab2Page implements OnInit {
       };
     }
 
+    if (type === 'sueno') {
+  return {
+    ...base,
+    inicio: base.time,
+    fin: null,
+    duracionMinutos: 0,
+    observaciones: ''
+  };
+}
+
     return base;
   }
 
@@ -480,6 +508,48 @@ export class Tab2Page implements OnInit {
       }
     }
 
+    if (this.formType === 'sueno') {
+  this.form.inicio = this.form.time;
+
+  if (this.form.fin) {
+    const inicio = new Date(this.form.inicio);
+    const fin = new Date(this.form.fin);
+
+    if (fin <= inicio) {
+      const alert = await this.alertController.create({
+        header: 'Sueño',
+        message: 'La hora de fin debe ser posterior a la hora de inicio.',
+        buttons: ['Aceptar']
+      });
+
+      await alert.present();
+      return;
+    }
+
+    this.form.duracionMinutos = Math.round(
+      (fin.getTime() - inicio.getTime()) / 60000
+    );
+  } else {
+    const suenoActivo = await this.activityFamiliaService.obtenerSuenoActivo();
+
+    if (suenoActivo && suenoActivo.id !== this.form.id) {
+      const alert = await this.alertController.create({
+        header: 'Sueño en curso',
+        message: 'Ya hay un sueño en curso. Primero debes finalizarlo.',
+        buttons: ['Aceptar']
+      });
+
+      await alert.present();
+      return;
+    }
+
+    this.form.fin = null;
+    this.form.duracionMinutos = 0;
+  }
+
+  this.form.observaciones = this.form.observaciones?.trim() || '';
+}
+
     if (!this.form.id) {
       this.form.id = '';
       this.form.createdAt = new Date().toISOString();
@@ -579,82 +649,109 @@ export class Tab2Page implements OnInit {
   this.selectedTab = value;
 }
 
-  onYearAccordionChange(type: ActivityFamiliaType, event: any) {
-    const value = event.detail.value || [];
-    const values = Array.isArray(value) ? value : [value];
+ onYearAccordionChange(type: ActivityFamiliaType, event: any) {
+  const value = event.detail.value || [];
+  const values = Array.isArray(value) ? value : [value];
 
-    if (type === 'toma-leche') {
-      this.openGroupsTomaLeche = values;
-      return;
-    }
-
-    if (type === 'cambio-panal') {
-      this.openGroupsCambioPanal = values;
-      return;
-    }
-
-    this.openGroupsMedicamentos = values;
+  if (type === 'toma-leche') {
+    this.openGroupsTomaLeche = values;
+    return;
   }
 
+  if (type === 'cambio-panal') {
+    this.openGroupsCambioPanal = values;
+    return;
+  }
+
+  if (type === 'medicamento') {
+    this.openGroupsMedicamentos = values;
+    return;
+  }
+
+  if (type === 'sueno') {
+    this.openGroupsSuenos = values;
+  }
+}
+
   onMonthAccordionChange(type: ActivityFamiliaType, year: string, event: any) {
-    event.stopPropagation();
+  event.stopPropagation();
 
-    const value = event.detail.value || [];
-    const values = Array.isArray(value) ? value : [value];
+  const value = event.detail.value || [];
+  const values = Array.isArray(value) ? value : [value];
 
-    if (type === 'toma-leche') {
-      this.openMonthGroupsTomaLeche = {
-        ...this.openMonthGroupsTomaLeche,
-        [year]: values
-      };
-      return;
-    }
+  if (type === 'toma-leche') {
+    this.openMonthGroupsTomaLeche = {
+      ...this.openMonthGroupsTomaLeche,
+      [year]: values
+    };
+    return;
+  }
 
-    if (type === 'cambio-panal') {
-      this.openMonthGroupsCambioPanal = {
-        ...this.openMonthGroupsCambioPanal,
-        [year]: values
-      };
-      return;
-    }
+  if (type === 'cambio-panal') {
+    this.openMonthGroupsCambioPanal = {
+      ...this.openMonthGroupsCambioPanal,
+      [year]: values
+    };
+    return;
+  }
 
+  if (type === 'medicamento') {
     this.openMonthGroupsMedicamentos = {
       ...this.openMonthGroupsMedicamentos,
       [year]: values
     };
+    return;
   }
 
+  if (type === 'sueno') {
+    this.openMonthGroupsSuenos = {
+      ...this.openMonthGroupsSuenos,
+      [year]: values
+    };
+  }
+}
+
   onDateAccordionChange(
-    type: ActivityFamiliaType,
-    monthKey: string,
-    event: any
-  ) {
-    event.stopPropagation();
+  type: ActivityFamiliaType,
+  monthKey: string,
+  event: any
+) {
+  event.stopPropagation();
 
-    const value = event.detail.value || [];
-    const values = Array.isArray(value) ? value : [value];
+  const value = event.detail.value || [];
+  const values = Array.isArray(value) ? value : [value];
 
-    if (type === 'toma-leche') {
-      this.openDateGroupsTomaLeche = {
-        ...this.openDateGroupsTomaLeche,
-        [monthKey]: values
-      };
-      return;
-    }
+  if (type === 'toma-leche') {
+    this.openDateGroupsTomaLeche = {
+      ...this.openDateGroupsTomaLeche,
+      [monthKey]: values
+    };
+    return;
+  }
 
-    if (type === 'cambio-panal') {
-      this.openDateGroupsCambioPanal = {
-        ...this.openDateGroupsCambioPanal,
-        [monthKey]: values
-      };
-      return;
-    }
+  if (type === 'cambio-panal') {
+    this.openDateGroupsCambioPanal = {
+      ...this.openDateGroupsCambioPanal,
+      [monthKey]: values
+    };
+    return;
+  }
 
+  if (type === 'medicamento') {
     this.openDateGroupsMedicamentos = {
       ...this.openDateGroupsMedicamentos,
       [monthKey]: values
     };
+    return;
   }
+
+  if (type === 'sueno') {
+    this.openDateGroupsSuenos = {
+      ...this.openDateGroupsSuenos,
+      [monthKey]: values
+    };
+  }
+}
 
   getOpenMonthGroups(type: ActivityFamiliaType, year: string): string[] {
     if (type === 'toma-leche') {
@@ -665,7 +762,11 @@ export class Tab2Page implements OnInit {
       return this.openMonthGroupsCambioPanal[year] || [];
     }
 
+     if (type === 'medicamento') {
     return this.openMonthGroupsMedicamentos[year] || [];
+  }
+
+  return this.openMonthGroupsSuenos[year] || [];
   }
 
   getOpenDateGroups(type: ActivityFamiliaType, monthKey: string): string[] {
@@ -677,7 +778,11 @@ export class Tab2Page implements OnInit {
       return this.openDateGroupsCambioPanal[monthKey] || [];
     }
 
+    if (type === 'medicamento') {
     return this.openDateGroupsMedicamentos[monthKey] || [];
+  }
+
+  return this.openDateGroupsSuenos[monthKey] || [];
   }
 
   getDefaultOpenGroups(type: ActivityFamiliaType): string[] {
@@ -761,7 +866,11 @@ export class Tab2Page implements OnInit {
       return this.groupedCambiosPanal;
     }
 
+    if (type === 'medicamento') {
     return this.groupedMedicamentos;
+  }
+
+  return this.groupedSuenos;
   }
 
   getGroupedActivitiesByType(type: ActivityFamiliaType): ActivityYearGroup[] {
@@ -929,7 +1038,11 @@ export class Tab2Page implements OnInit {
       tipoLeche: 'todas',
       onzasMin: null,
       onzasMax: null,
-      tipoPanal: 'todos'
+      tipoPanal: 'todos',
+
+      estadoSueno: 'todos',
+    duracionSuenoMin: null,
+    duracionSuenoMax: null
     };
   }
 
@@ -955,6 +1068,7 @@ export class Tab2Page implements OnInit {
     this.groupedTomasLeche = this.getGroupedActivitiesByType('toma-leche');
     this.groupedCambiosPanal = this.getGroupedActivitiesByType('cambio-panal');
     this.groupedMedicamentos = this.getGroupedActivitiesByType('medicamento');
+    this.groupedSuenos = this.getGroupedActivitiesByType('sueno');
 
     this.resumenFiltros = this.obtenerResumenFiltros(this.filteredActivities);
 
@@ -962,6 +1076,7 @@ export class Tab2Page implements OnInit {
       this.openGroupsTomaLeche = this.getDefaultOpenGroups('toma-leche');
       this.openGroupsCambioPanal = this.getDefaultOpenGroups('cambio-panal');
       this.openGroupsMedicamentos = this.getDefaultOpenGroups('medicamento');
+      this.openGroupsSuenos = this.getDefaultOpenGroups('sueno');
 
       this.openMonthGroupsTomaLeche =
         this.getDefaultOpenMonthGroupsByYear('toma-leche');
@@ -972,6 +1087,9 @@ export class Tab2Page implements OnInit {
       this.openMonthGroupsMedicamentos =
         this.getDefaultOpenMonthGroupsByYear('medicamento');
 
+        this.openMonthGroupsSuenos =
+  this.getDefaultOpenMonthGroupsByYear('sueno');
+
       this.openDateGroupsTomaLeche =
         this.getDefaultOpenDateGroupsByMonth('toma-leche');
 
@@ -980,6 +1098,9 @@ export class Tab2Page implements OnInit {
 
       this.openDateGroupsMedicamentos =
         this.getDefaultOpenDateGroupsByMonth('medicamento');
+
+        this.openDateGroupsSuenos =
+  this.getDefaultOpenDateGroupsByMonth('sueno');
     }
   }
 
@@ -991,8 +1112,48 @@ export class Tab2Page implements OnInit {
       .filter(activity => this.cumpleFiltroHora(activity, filtros))
       .filter(activity => this.cumpleFiltroTipoLeche(activity, filtros))
       .filter(activity => this.cumpleFiltroOnzas(activity, filtros))
-      .filter(activity => this.cumpleFiltroTipoPanal(activity, filtros));
+      .filter(activity => this.cumpleFiltroTipoPanal(activity, filtros))
+      .filter(activity => this.cumpleFiltroSueno(activity, filtros));;
   }
+
+  private cumpleFiltroSueno(
+  activity: ActivityFamilia,
+  filters: ActivityFilters
+): boolean {
+  if (activity.type !== 'sueno') {
+    return true;
+  }
+
+  const sueno = activity as any;
+
+  if (filters.estadoSueno === 'en-curso' && sueno.fin) {
+    return false;
+  }
+
+  if (filters.estadoSueno === 'finalizados' && !sueno.fin) {
+    return false;
+  }
+
+  const duracion = Number(sueno.duracionMinutos || 0);
+
+  if (
+    filters.duracionSuenoMin !== null &&
+    filters.duracionSuenoMin !== undefined &&
+    duracion < filters.duracionSuenoMin
+  ) {
+    return false;
+  }
+
+  if (
+    filters.duracionSuenoMax !== null &&
+    filters.duracionSuenoMax !== undefined &&
+    duracion > filters.duracionSuenoMax
+  ) {
+    return false;
+  }
+
+  return true;
+}
 
   private cumpleFiltroFecha(
     activity: ActivityFamilia,
@@ -1200,7 +1361,8 @@ export class Tab2Page implements OnInit {
       total: activities.length,
       tomas: activities.filter(a => a.type === 'toma-leche').length,
       panales: activities.filter(a => a.type === 'cambio-panal').length,
-      medicamentos: activities.filter(a => a.type === 'medicamento').length
+      medicamentos: activities.filter(a => a.type === 'medicamento').length,
+      suenos: activities.filter(a => a.type === 'sueno').length
     };
   }
 
@@ -1230,6 +1392,18 @@ export class Tab2Page implements OnInit {
     if (filters.tipoPanal !== 'todos') {
       cantidad++;
     }
+
+    if (filters.estadoSueno !== 'todos') {
+  cantidad++;
+}
+
+if (filters.duracionSuenoMin !== null && filters.duracionSuenoMin !== undefined) {
+  cantidad++;
+}
+
+if (filters.duracionSuenoMax !== null && filters.duracionSuenoMax !== undefined) {
+  cantidad++;
+}
 
     return cantidad;
   }
@@ -1290,6 +1464,23 @@ export class Tab2Page implements OnInit {
       ? diasConActividad
       : 1;
 
+      const suenos = actividadesUltimoMes.filter(a => a.type === 'sueno');
+
+const suenosFinalizados = suenos.filter(sueno => !!(sueno as any).fin);
+const suenosEnCurso = suenos.filter(sueno => !(sueno as any).fin).length;
+
+const totalMinutosSueno = suenosFinalizados.reduce((total, sueno) => {
+  return total + Number((sueno as any).duracionMinutos || 0);
+}, 0);
+
+const promedioSuenoMinutos = suenosFinalizados.length > 0
+  ? Math.round(totalMinutosSueno / suenosFinalizados.length)
+  : 0;
+
+const suenoMasLargoMinutos = suenosFinalizados.reduce((max, sueno) => {
+  return Math.max(max, Number((sueno as any).duracionMinutos || 0));
+}, 0);
+
     this.estadisticas = {
       promedioOnzasPorDia: Number((totalOnzas / diasParaPromedio).toFixed(1)),
       totalFormula: Number(totalFormula.toFixed(1)),
@@ -1299,7 +1490,13 @@ export class Tab2Page implements OnInit {
       totalPopo,
       totalPipi,
       totalMedicamentos: medicamentos.length,
-      promedioPanalesPorDia: Number((panales.length / diasParaPromedio).toFixed(1))
+      promedioPanalesPorDia: Number((panales.length / diasParaPromedio).toFixed(1)),
+      totalSuenos: suenos.length,
+totalMinutosSueno,
+totalSuenoTexto: this.formatearDuracion(totalMinutosSueno),
+promedioSuenoTexto: this.formatearDuracion(promedioSuenoMinutos),
+suenoMasLargoTexto: this.formatearDuracion(suenoMasLargoMinutos),
+suenosEnCurso
     };
   }
 
@@ -1397,4 +1594,36 @@ export class Tab2Page implements OnInit {
   tieneMedicamentosRegistrados(): boolean {
     return this.medicamentosDisponibles && this.medicamentosDisponibles.length > 0;
   }
+
+  async finalizarSuenoDesdeListado(activity: ActivityFamilia) {
+  try {
+    await this.activityFamiliaService.finalizarSueno(activity.id, new Date());
+    await this.loadActivities();
+  } catch (error: any) {
+    const alert = await this.alertController.create({
+      header: 'No se pudo finalizar',
+      message: error?.message || 'No se pudo finalizar el sueño.',
+      buttons: ['Aceptar']
+    });
+
+    await alert.present();
+  }
+}
+
+formatearDuracion(minutos: number): string {
+  minutos = Number(minutos || 0);
+
+  const horas = Math.floor(minutos / 60);
+  const mins = minutos % 60;
+
+  if (horas <= 0) {
+    return `${mins} min`;
+  }
+
+  if (mins <= 0) {
+    return `${horas} h`;
+  }
+
+  return `${horas} h ${mins} min`;
+}
 }

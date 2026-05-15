@@ -49,7 +49,10 @@
 
         <div class="filters-summary" *ngIf="hayFiltrosActivos()">
           <span>
-            {{ resumenFiltros.tomas }} tomas · {{ resumenFiltros.panales }} pañales · {{ resumenFiltros.medicamentos }} medicamentos
+            {{ resumenFiltros.tomas }} tomas ·
+{{ resumenFiltros.panales }} pañales ·
+{{ resumenFiltros.medicamentos }} medicamentos ·
+{{ resumenFiltros.suenos }} sueños
           </span>
 
           <ion-button
@@ -82,6 +85,10 @@
   value="medicamento">
   <ion-icon name="medical"></ion-icon>
   <!-- <ion-label>Medicamentos</ion-label> -->
+</ion-segment-button>
+
+<ion-segment-button value="sueno">
+  <ion-icon name="moon-outline"></ion-icon>
 </ion-segment-button>
       </ion-segment>
 
@@ -405,6 +412,130 @@
           </ion-accordion-group>
         </ng-container>
 
+        <ng-container *ngIf="selectedTab === 'sueno' && groupedSuenos.length > 0">
+  <ion-accordion-group
+    multiple="true"
+    [value]="openGroupsSuenos"
+    (ionChange)="onYearAccordionChange('sueno', $event)">
+
+    <ion-accordion
+      *ngFor="let grupoAnio of groupedSuenos; trackBy: trackByYear"
+      [value]="grupoAnio.year">
+
+      <ion-item slot="header" color="light">
+        <ion-label>
+          <h2>{{ grupoAnio.year }}</h2>
+        </ion-label>
+      </ion-item>
+
+      <div slot="content" class="year-content">
+        <ion-accordion-group
+          multiple="true"
+          [value]="getOpenMonthGroups('sueno', grupoAnio.year)"
+          (ionChange)="onMonthAccordionChange('sueno', grupoAnio.year, $event)">
+
+          <ion-accordion
+            *ngFor="let grupoMes of grupoAnio.months; trackBy: trackByMonth"
+            [value]="grupoMes.monthKey">
+
+            <ion-item slot="header" class="month-header">
+              <ion-label>
+                <h3>{{ grupoMes.monthName }}</h3>
+              </ion-label>
+
+              <ion-badge slot="end" class="activity-count-badge">
+                {{ grupoMes.activities.length }}
+              </ion-badge>
+            </ion-item>
+
+            <div slot="content">
+              <ion-accordion-group
+                multiple="true"
+                [value]="getOpenDateGroups('sueno', grupoMes.monthKey)"
+                (ionChange)="onDateAccordionChange('sueno', grupoMes.monthKey, $event)">
+
+                <ion-accordion
+                  *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate"
+                  [value]="grupoFecha.fecha">
+
+                  <ion-item slot="header" class="date-header">
+                    <ion-label>
+                      <h4>{{ formatDateGroup(grupoFecha.fecha) }}</h4>
+                    </ion-label>
+
+                    <ion-badge slot="end" class="activity-count-badge">
+                      {{ grupoFecha.activities.length }}
+                    </ion-badge>
+                  </ion-item>
+
+                  <div slot="content">
+                    <ion-list lines="full">
+                      <ion-item
+                        *ngFor="let act of grupoFecha.activities; trackBy: trackByActivity">
+
+                        <ion-icon
+                          slot="start"
+                          class="activity-icon-small"
+                          name="moon"
+                          [color]="$any(act).fin ? 'tertiary' : 'warning'">
+                        </ion-icon>
+
+                        <ion-label>
+                          <p>
+                            Inicio: {{ $any(act).inicio || act.time | date:'HH:mm' }}
+
+                            <ng-container *ngIf="$any(act).fin">
+                              · Fin: {{ $any(act).fin | date:'HH:mm' }}
+                              · {{ formatearDuracion($any(act).duracionMinutos || 0) }}
+                            </ng-container>
+
+                            <ion-badge *ngIf="!$any(act).fin" color="warning">
+                              En curso
+                            </ion-badge>
+                          </p>
+
+                          <ion-note *ngIf="$any(act).observaciones">
+                            {{ $any(act).observaciones }}
+                          </ion-note>
+                        </ion-label>
+
+                        <ion-button
+                          *ngIf="!$any(act).fin"
+                          slot="end"
+                          fill="clear"
+                          color="warning"
+                          (click)="$event.stopPropagation(); finalizarSuenoDesdeListado(act)">
+                          Finalizar
+                        </ion-button>
+
+                        <ion-button
+                          slot="end"
+                          fill="clear"
+                          color="primary"
+                          (click)="$event.stopPropagation(); openEditModal(act)">
+                          <ion-icon name="create-outline"></ion-icon>
+                        </ion-button>
+
+                        <ion-button
+                          slot="end"
+                          fill="clear"
+                          color="danger"
+                          (click)="$event.stopPropagation(); deleteActivity(act.id)">
+                          <ion-icon name="trash-outline"></ion-icon>
+                        </ion-button>
+                      </ion-item>
+                    </ion-list>
+                  </div>
+                </ion-accordion>
+              </ion-accordion-group>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
+</ng-container>
+
         <div
           class="filters-empty-result"
           *ngIf="
@@ -412,7 +543,8 @@
             (
               (selectedTab === 'toma-leche' && groupedTomasLeche.length === 0) ||
               (selectedTab === 'cambio-panal' && groupedCambiosPanal.length === 0) ||
-              (selectedTab === 'medicamento' && groupedMedicamentos.length === 0)
+              (selectedTab === 'medicamento' && groupedMedicamentos.length === 0) ||
+              (selectedTab === 'sueno' && groupedSuenos.length === 0)
             )
           ">
           <div class="empty-filter-icon">
@@ -504,6 +636,17 @@
   (click)="onTypeChange('medicamento')"
   size="small">
   <ion-icon name="medical"></ion-icon>
+</ion-button>
+
+<ion-button
+  expand="block"
+  type="button"
+  aria-label="Sueño"
+  title="Sueño"
+  [color]="formType === 'sueno' ? 'primary' : 'medium'"
+  (click)="onTypeChange('sueno')"
+  size="small">
+  <ion-icon name="moon"></ion-icon>
 </ion-button>
             </div>
           </div>
@@ -655,6 +798,39 @@
       [(ngModel)]="form.observaciones"
       name="observaciones"
       placeholder="Ej: Se lo tomó bien, después de la leche..."
+      auto-grow="true"
+      rows="3"
+      class="custom-input">
+    </ion-textarea>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="formType === 'sueno'">
+  <div class="form-section">
+    <label class="section-label">Fin del sueño</label>
+
+    <div class="time-picker">
+      <ion-datetime
+        presentation="time"
+        [(ngModel)]="form.fin"
+        name="fin"
+        locale="es-UY"
+        hour-cycle="h23">
+      </ion-datetime>
+    </div>
+
+    <ion-note>
+      Si no seleccionas fin, quedará como sueño en curso.
+    </ion-note>
+  </div>
+
+  <div class="form-section">
+    <label class="section-label">Observaciones</label>
+
+    <ion-textarea
+      [(ngModel)]="form.observaciones"
+      name="observacionesSueno"
+      placeholder="Ej: Siesta corta, se despertó tranquilo."
       auto-grow="true"
       rows="3"
       class="custom-input">
@@ -1046,6 +1222,44 @@
             </div>
           </ion-card-header>
         </ion-card>
+        <ion-card class="estadisticas-card sueno-card">
+  <ion-card-header>
+    <div class="estadisticas-card-header">
+      <div class="estadisticas-icon sueno">
+        <ion-icon name="moon-outline"></ion-icon>
+      </div>
+
+      <div>
+        <ion-card-title>Sueño</ion-card-title>
+        <p>{{ estadisticas.totalSuenos }} registros de sueño</p>
+      </div>
+    </div>
+  </ion-card-header>
+
+  <ion-card-content>
+    <div class="estadistica-principal">
+      <span>{{ estadisticas.totalSuenoTexto }}</span>
+      <small>total dormido</small>
+    </div>
+
+    <div class="estadisticas-grid">
+      <div class="estadistica-box">
+        <strong>{{ estadisticas.promedioSuenoTexto }}</strong>
+        <span>Promedio</span>
+      </div>
+
+      <div class="estadistica-box">
+        <strong>{{ estadisticas.suenoMasLargoTexto }}</strong>
+        <span>Más largo</span>
+      </div>
+
+      <!-- <div class="estadistica-box">
+        <strong>{{ estadisticas.suenosEnCurso }}</strong>
+        <span>En curso</span>
+      </div> -->
+    </div>
+  </ion-card-content>
+</ion-card>
       </ion-content>
     </ng-template>
   </ion-modal>

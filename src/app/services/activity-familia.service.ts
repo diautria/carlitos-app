@@ -192,4 +192,95 @@ export class ActivityFamiliaService {
     }))
     .sort((a, b) => b.time.localeCompare(a.time));
 }
+
+async obtenerSuenoActivo(): Promise<ActivityFamilia | null> {
+  const actividades = await this.getAll();
+
+  const suenoActivo = actividades.find(activity => {
+    return activity.type === 'sueno' && !(activity as any).fin;
+  });
+
+  return suenoActivo || null;
+}
+
+async iniciarSueno(fechaInicio: Date = new Date()): Promise<void> {
+  const suenoActivo = await this.obtenerSuenoActivo();
+
+  if (suenoActivo) {
+    throw new Error('Ya hay un sueño en curso. Primero debes finalizarlo.');
+  }
+
+  const inicioIso = fechaInicio.toISOString();
+
+  const actividad: any = {
+    id: '',
+    type: 'sueno',
+    time: inicioIso,
+    inicio: inicioIso,
+    fin: null,
+    duracionMinutos: 0,
+    observaciones: ''
+  };
+
+  await this.add(actividad);
+}
+
+async finalizarSueno(suenoId: string, fechaFin: Date = new Date()): Promise<void> {
+  const actividades = await this.getAll();
+
+  const sueno = actividades.find(activity => activity.id === suenoId);
+
+  if (!sueno || sueno.type !== 'sueno') {
+    throw new Error('No se encontró el sueño activo.');
+  }
+
+  const inicio = new Date((sueno as any).inicio || sueno.time);
+  const fin = fechaFin;
+
+  if (fin <= inicio) {
+    throw new Error('La hora de fin debe ser posterior a la hora de inicio.');
+  }
+
+  const duracionMinutos = Math.round(
+    (fin.getTime() - inicio.getTime()) / 60000
+  );
+
+  await this.update({
+    ...(sueno as any),
+    fin: fin.toISOString(),
+    duracionMinutos
+  });
+}
+
+async agregarSuenoManual(
+  inicio: Date,
+  fin: Date | null,
+  observaciones: string = ''
+): Promise<void> {
+  const suenoActivo = await this.obtenerSuenoActivo();
+
+  if (suenoActivo && !fin) {
+    throw new Error('Ya hay un sueño en curso. Primero debes finalizarlo.');
+  }
+
+  if (fin && fin <= inicio) {
+    throw new Error('La hora de fin debe ser posterior a la hora de inicio.');
+  }
+
+  const duracionMinutos = fin
+    ? Math.round((fin.getTime() - inicio.getTime()) / 60000)
+    : 0;
+
+  const actividad: any = {
+    id: '',
+    type: 'sueno',
+    time: inicio.toISOString(),
+    inicio: inicio.toISOString(),
+    fin: fin ? fin.toISOString() : null,
+    duracionMinutos,
+    observaciones: observaciones?.trim() || ''
+  };
+
+  await this.add(actividad);
+}
 }

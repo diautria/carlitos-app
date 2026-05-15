@@ -515,3 +515,101 @@ ion-progress-bar {
 .bebe-card.agregar-bebe-card::part(native) {
   border-radius: 20px;
 }
+
+.seccion-sueno {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.sueno-card {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #f7f8ff, #ffffff);
+  box-shadow: 0 8px 22px rgba(70, 80, 140, 0.12);
+  overflow: hidden;
+}
+
+.sueno-card.sueno-activo {
+  background: linear-gradient(135deg, #eef1ff, #faf7ff);
+}
+
+.sueno-card ion-card-content {
+  padding: 14px 14px;
+}
+
+.sueno-card-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sueno-icon-wrapper {
+  width: 50px;
+  height: 50px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(82, 92, 220, 0.16), rgba(159, 128, 255, 0.14));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sueno-icon-bg {
+  width: 38px;
+  height: 38px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(90, 100, 230, 0.08);
+
+  ion-icon {
+    font-size: 24px;
+    color: #5961d8;
+  }
+}
+
+.sueno-info {
+  flex: 1;
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 750;
+    color: #2f3152;
+    line-height: 1.15;
+  }
+
+  .sueno-subtitle {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #747895;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  strong {
+    display: block;
+    margin-top: 2px;
+    color: #4b55d8;
+    font-size: 14px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
+
+.sueno-action-button {
+  min-width: 76px;
+  height: 34px;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  --border-radius: 999px;
+}
