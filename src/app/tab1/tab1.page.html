@@ -173,27 +173,30 @@
     <!-- Sección de Actividades Recientes -->
     <section class="seccion-actividades">
       <div class="actividad-header">
-        <h2 class="titulo-seccion">
-          <ion-icon name="time"></ion-icon>
-          Actividad Reciente
-        </h2>
+  <h2 class="titulo-seccion">
+    <ion-icon name="time"></ion-icon>
+    <span>Actividad Reciente</span>
+  </h2>
 
-        <ion-button style="margin-left: 140px;"
-          *ngIf="actividadesRecientes.length > 0"
-          fill="clear"
-          size="small"
-          color="success"
-          (click)="compartirActividadesDelDiaPorWhatsapp()">
-          <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
-        </ion-button>
+  <div class="actividad-actions">
+    <ion-button
+      *ngIf="actividadesRecientes.length > 0"
+      fill="clear"
+      size="small"
+      color="success"
+      (click)="compartirActividadesDelDiaPorWhatsapp()">
+      <ion-icon name="logo-whatsapp" slot="icon-only"></ion-icon>
+    </ion-button>
 
-        <ion-button
-          fill="clear"
-          color="primary"
-          (click)="abrirModalAgregarActividad()">
-          <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
-        </ion-button>
-      </div>
+    <ion-button
+      fill="clear"
+      color="primary"
+      class="btn-agregar-actividad"
+      (click)="abrirModalAgregarActividad()">
+      <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</div>
 
       <ion-list
         class="actividades-list"
