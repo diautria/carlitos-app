@@ -15,7 +15,7 @@ import { people, time, medical, chevronForward, water, logoWhatsapp,documentText
 import { personOutline, trashOutline, close  } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
-import { addOutline, createOutline, moonOutline   } from 'ionicons/icons';
+import { addOutline, createOutline, moonOutline } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import { ActivityFamilia } from '../models/activity-familia.model';
 import { ActivityFamiliaService } from '../services/activity-familia.service';
@@ -107,7 +107,7 @@ getIconoActividad(actividad: any): string {
   }
 
    if (actividad.type === 'sueno') {
-    return 'moon';
+    return 'moon-outline';
   }
 
   return 'ellipse';
@@ -123,11 +123,11 @@ getIconoActividad(actividad: any): string {
   }
 
   if (actividad.type === 'medicamento') {
-    return 'medium';
+    return 'medicamento';
   }
 
-   if (actividad.type === 'sueno') {
-    return actividad.fin ? 'tertiary' : 'warning';
+  if (actividad.type === 'sueno') {
+    return actividad.fin ? 'sueno' : 'warning';
   }
 
   return 'medium';

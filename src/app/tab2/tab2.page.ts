@@ -52,7 +52,7 @@ import {
   refreshOutline,
   calendarOutline,
   timeOutline,
-  medical, medicalOutline, moonOutline, moon } from 'ionicons/icons';
+  medical, medicalOutline, moonOutline, moon, waterOutline, leafOutline } from 'ionicons/icons';
 
 import { ActivityFamiliaService } from '../services/activity-familia.service';
 import {
@@ -229,7 +229,7 @@ openDateGroupsSuenos: Record<string, string[]> = {};
     private bebeFamiliaService: BebeFamiliaService,
     private notificacionMedicamentosService: NotificacionMedicamentosService
   ) {
-    addIcons({addCircle,statsChartOutline,filterOutline,water,leaf,medical,moonOutline,createOutline,trashOutline,close,moon,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline,medicalOutline});
+    addIcons({addCircle,statsChartOutline,filterOutline,waterOutline,leafOutline,medical,moonOutline,createOutline,trashOutline,leaf,moon,close,water,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline,medicalOutline});
   }
 
   async ngOnInit() {

@@ -34,7 +34,7 @@
         <ion-button
           expand="block"
           [fill]="hayFiltrosActivos() ? 'solid' : 'outline'"
-          color="secondary"
+          color="success"
           (click)="abrirModalFiltros()">
           <ion-icon name="filter-outline" slot="start"></ion-icon>
 
@@ -71,19 +71,19 @@
         (ionChange)="onTabChange($event)">
 
         <ion-segment-button value="toma-leche">
-          <ion-icon name="water"></ion-icon>
+          <ion-icon name="water-outline"></ion-icon>
           <!-- <ion-label>Tomas de leche</ion-label> -->
         </ion-segment-button>
 
         <ion-segment-button value="cambio-panal">
-          <ion-icon name="leaf"></ion-icon>
+          <ion-icon name="leaf-outline"></ion-icon>
           <!-- <ion-label>Cambios de pañal</ion-label> -->
         </ion-segment-button>
 
         <ion-segment-button
   *ngIf="tieneMedicamentosRegistrados()"
   value="medicamento">
-  <ion-icon name="medical"></ion-icon>
+  <ion-icon name="medical-outline"></ion-icon>
   <!-- <ion-label>Medicamentos</ion-label> -->
 </ion-segment-button>
 
