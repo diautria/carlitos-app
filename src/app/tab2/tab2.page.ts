@@ -272,93 +272,109 @@ openDateGroupsSuenos: Record<string, string[]> = {};
   }
 
   async loadActivities() {
-    if (this.primeraCarga) {
-      this.loading = true;
-    }
-
-    try {
-      const gruposTomaActuales = [...this.openGroupsTomaLeche];
-      const gruposPanalActuales = [...this.openGroupsCambioPanal];
-      const gruposMedicamentosActuales = [...this.openGroupsMedicamentos];
-
-      const mesesTomaActuales = { ...this.openMonthGroupsTomaLeche };
-      const mesesPanalActuales = { ...this.openMonthGroupsCambioPanal };
-      const mesesMedicamentosActuales = { ...this.openMonthGroupsMedicamentos };
-
-      const fechasTomaActuales = { ...this.openDateGroupsTomaLeche };
-      const fechasPanalActuales = { ...this.openDateGroupsCambioPanal };
-      const fechasMedicamentosActuales = { ...this.openDateGroupsMedicamentos };
-
-      const actividades = await this.activityFamiliaService.getAll();
-
-      this.activities = actividades.sort((a, b) =>
-        b.time.localeCompare(a.time)
-      );
-
-      this.aplicarFiltros(false);
-
-      this.openGroupsTomaLeche = gruposTomaActuales.length
-        ? gruposTomaActuales
-        : this.getDefaultOpenGroups('toma-leche');
-
-      this.openGroupsCambioPanal = gruposPanalActuales.length
-        ? gruposPanalActuales
-        : this.getDefaultOpenGroups('cambio-panal');
-
-      this.openGroupsMedicamentos = gruposMedicamentosActuales.length
-        ? gruposMedicamentosActuales
-        : this.getDefaultOpenGroups('medicamento');
-
-      this.openMonthGroupsTomaLeche = Object.keys(mesesTomaActuales).length
-        ? mesesTomaActuales
-        : this.getDefaultOpenMonthGroupsByYear('toma-leche');
-
-      this.openMonthGroupsCambioPanal = Object.keys(mesesPanalActuales).length
-        ? mesesPanalActuales
-        : this.getDefaultOpenMonthGroupsByYear('cambio-panal');
-
-      this.openMonthGroupsMedicamentos = Object.keys(mesesMedicamentosActuales).length
-        ? mesesMedicamentosActuales
-        : this.getDefaultOpenMonthGroupsByYear('medicamento');
-
-      this.openDateGroupsTomaLeche = Object.keys(fechasTomaActuales).length
-        ? fechasTomaActuales
-        : this.getDefaultOpenDateGroupsByMonth('toma-leche');
-
-      this.openDateGroupsCambioPanal = Object.keys(fechasPanalActuales).length
-        ? fechasPanalActuales
-        : this.getDefaultOpenDateGroupsByMonth('cambio-panal');
-
-      this.openDateGroupsMedicamentos = Object.keys(fechasMedicamentosActuales).length
-        ? fechasMedicamentosActuales
-        : this.getDefaultOpenDateGroupsByMonth('medicamento');
-
-      await this.notificacionTomasService.programarNotificacionProximaToma(
-        this.activities
-      );
-    } catch (error: any) {
-      console.error('Error cargando actividades', error);
-
-      this.activities = [];
-      this.filteredActivities = [];
-      this.groupedTomasLeche = [];
-      this.groupedCambiosPanal = [];
-      this.groupedMedicamentos = [];
-
-      if (error?.message && this.primeraCarga) {
-        const alert = await this.alertController.create({
-          header: 'Actividades',
-          message: error.message,
-          buttons: ['Aceptar']
-        });
-
-        await alert.present();
-      }
-    } finally {
-      this.loading = false;
-      this.primeraCarga = false;
-    }
+  if (this.primeraCarga) {
+    this.loading = true;
   }
+
+  try {
+    const gruposTomaActuales = [...this.openGroupsTomaLeche];
+    const gruposPanalActuales = [...this.openGroupsCambioPanal];
+    const gruposMedicamentosActuales = [...this.openGroupsMedicamentos];
+    const gruposSuenosActuales = [...this.openGroupsSuenos];
+
+    const mesesTomaActuales = { ...this.openMonthGroupsTomaLeche };
+    const mesesPanalActuales = { ...this.openMonthGroupsCambioPanal };
+    const mesesMedicamentosActuales = { ...this.openMonthGroupsMedicamentos };
+    const mesesSuenosActuales = { ...this.openMonthGroupsSuenos };
+
+    const fechasTomaActuales = { ...this.openDateGroupsTomaLeche };
+    const fechasPanalActuales = { ...this.openDateGroupsCambioPanal };
+    const fechasMedicamentosActuales = { ...this.openDateGroupsMedicamentos };
+    const fechasSuenosActuales = { ...this.openDateGroupsSuenos };
+
+    const actividades = await this.activityFamiliaService.getAll();
+
+    this.activities = actividades.sort((a, b) =>
+      b.time.localeCompare(a.time)
+    );
+
+    this.aplicarFiltros(false);
+
+    this.openGroupsTomaLeche = gruposTomaActuales.length
+      ? gruposTomaActuales
+      : this.getDefaultOpenGroups('toma-leche');
+
+    this.openGroupsCambioPanal = gruposPanalActuales.length
+      ? gruposPanalActuales
+      : this.getDefaultOpenGroups('cambio-panal');
+
+    this.openGroupsMedicamentos = gruposMedicamentosActuales.length
+      ? gruposMedicamentosActuales
+      : this.getDefaultOpenGroups('medicamento');
+
+    this.openGroupsSuenos = gruposSuenosActuales.length
+      ? gruposSuenosActuales
+      : this.getDefaultOpenGroups('sueno');
+
+    this.openMonthGroupsTomaLeche = Object.keys(mesesTomaActuales).length
+      ? mesesTomaActuales
+      : this.getDefaultOpenMonthGroupsByYear('toma-leche');
+
+    this.openMonthGroupsCambioPanal = Object.keys(mesesPanalActuales).length
+      ? mesesPanalActuales
+      : this.getDefaultOpenMonthGroupsByYear('cambio-panal');
+
+    this.openMonthGroupsMedicamentos = Object.keys(mesesMedicamentosActuales).length
+      ? mesesMedicamentosActuales
+      : this.getDefaultOpenMonthGroupsByYear('medicamento');
+
+    this.openMonthGroupsSuenos = Object.keys(mesesSuenosActuales).length
+      ? mesesSuenosActuales
+      : this.getDefaultOpenMonthGroupsByYear('sueno');
+
+    this.openDateGroupsTomaLeche = Object.keys(fechasTomaActuales).length
+      ? fechasTomaActuales
+      : this.getDefaultOpenDateGroupsByMonth('toma-leche');
+
+    this.openDateGroupsCambioPanal = Object.keys(fechasPanalActuales).length
+      ? fechasPanalActuales
+      : this.getDefaultOpenDateGroupsByMonth('cambio-panal');
+
+    this.openDateGroupsMedicamentos = Object.keys(fechasMedicamentosActuales).length
+      ? fechasMedicamentosActuales
+      : this.getDefaultOpenDateGroupsByMonth('medicamento');
+
+    this.openDateGroupsSuenos = Object.keys(fechasSuenosActuales).length
+      ? fechasSuenosActuales
+      : this.getDefaultOpenDateGroupsByMonth('sueno');
+
+    await this.notificacionTomasService.programarNotificacionProximaToma(
+      this.activities
+    );
+  } catch (error: any) {
+    console.error('Error cargando actividades', error);
+
+    this.activities = [];
+    this.filteredActivities = [];
+    this.groupedTomasLeche = [];
+    this.groupedCambiosPanal = [];
+    this.groupedMedicamentos = [];
+    this.groupedSuenos = [];
+
+    if (error?.message && this.primeraCarga) {
+      const alert = await this.alertController.create({
+        header: 'Actividades',
+        message: error.message,
+        buttons: ['Aceptar']
+      });
+
+      await alert.present();
+    }
+  } finally {
+    this.loading = false;
+    this.primeraCarga = false;
+  }
+}
 
   getEmptyForm(type: ActivityFamiliaType) {
     const base = {
