@@ -107,12 +107,19 @@
   --ion-tab-bar-background: #ffffff;
 
 /* Medicamento */
---ion-color-medicamento: #8a94a6;
---ion-color-medicamento-rgb: 138, 148, 166;
+// --ion-color-medicamento: #8a94a6;
+// --ion-color-medicamento-rgb: 138, 148, 166;
+// --ion-color-medicamento-contrast: #ffffff;
+// --ion-color-medicamento-contrast-rgb: 255, 255, 255;
+// --ion-color-medicamento-shade: #798292;
+// --ion-color-medicamento-tint: #96a0b0;
+
+--ion-color-medicamento: #6f8fc8;
+--ion-color-medicamento-rgb: 111, 143, 200;
 --ion-color-medicamento-contrast: #ffffff;
 --ion-color-medicamento-contrast-rgb: 255, 255, 255;
---ion-color-medicamento-shade: #798292;
---ion-color-medicamento-tint: #96a0b0;
+--ion-color-medicamento-shade: #627eb0;
+--ion-color-medicamento-tint: #7d9aca;
 
   /* Sueño terminado */
   --ion-color-sueno: #1048c2;

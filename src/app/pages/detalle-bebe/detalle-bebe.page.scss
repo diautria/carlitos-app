@@ -46,41 +46,114 @@
 }
 
 .bebe-stats {
-  display: flex;
-  justify-content: space-around;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.055);
-  border-radius: 18px;
-  padding: 16px 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   margin-bottom: 20px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.045);
 }
 
-.stat-item {
+.stat-card {
+  min-width: 0;
+  min-height: 86px;
+  padding: 10px 6px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
+  box-shadow: 0 8px 22px rgba(37, 56, 76, 0.06);
+
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   text-align: center;
-  flex: 1;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   ion-icon {
-    font-size: 1.5rem;
-    color: var(--ion-color-primary);
+    font-size: 1.2rem;
   }
 }
 
-.stat-value {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--ion-color-dark);
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  width: 100%;
 }
 
 .stat-label {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
+  font-weight: 800;
   color: var(--ion-color-medium);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.35px;
+  line-height: 1.1;
+}
+
+.stat-value {
+  max-width: 100%;
+  font-size: 0.9rem;
+  font-weight: 850;
+  color: var(--ion-color-dark);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Peso */
+.peso-card {
+  background: linear-gradient(
+    135deg,
+    #ffffff,
+    rgba(var(--ion-color-primary-rgb), 0.045)
+  );
+}
+
+.peso-card .stat-icon {
+  background: rgba(var(--ion-color-primary-rgb), 0.11);
+  color: var(--ion-color-primary);
+}
+
+/* Altura */
+.altura-card {
+  background: linear-gradient(
+    135deg,
+    #ffffff,
+    rgba(var(--ion-color-success-rgb), 0.07)
+  );
+  border-color: rgba(var(--ion-color-success-rgb), 0.16);
+}
+
+.altura-card .stat-icon {
+  background: rgba(var(--ion-color-success-rgb), 0.13);
+  color: var(--ion-color-success-shade);
+}
+
+/* Vacuna */
+.vacuna-card {
+  background: linear-gradient(
+    135deg,
+    #ffffff,
+    rgba(var(--ion-color-warning-rgb), 0.1)
+  );
+  border-color: rgba(var(--ion-color-warning-rgb), 0.18);
+}
+
+.vacuna-card .stat-icon {
+  background: rgba(var(--ion-color-warning-rgb), 0.18);
+  color: var(--ion-color-warning-shade);
 }
 
 .seccion-card {
@@ -117,16 +190,33 @@
 .medicamentos-list {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 10px;
 }
 
 .medicamento-card {
-  background: #fbfcff;
-  border: 1px solid rgba(0, 0, 0, 0.045);
-  border-radius: 16px;
-  padding: 11px 12px;
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    #ffffff,
+    rgba(var(--ion-color-primary-rgb), 0.035)
+  );
+  border: 1px solid rgba(var(--ion-color-medicamento-rgb), 0.2);
+  border-radius: 18px;
+  padding: 12px;
   transition: 0.2s ease;
-  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.035);
+  box-shadow: 0 8px 22px rgba(37, 56, 76, 0.07);
+  overflow: hidden;
+}
+
+.medicamento-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--ion-color-medicamento);
 }
 
 .medicamento-card:active {
@@ -134,30 +224,36 @@
 }
 
 .medicamento-inactivo {
-  opacity: 0.58;
-  filter: grayscale(0.15);
+  opacity: 0.62;
+  filter: grayscale(0.25);
+}
+
+.medicamento-inactivo::before {
+  background: rgba(var(--ion-color-medium-rgb), 0.45);
 }
 
 .medicamento-main {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 11px;
+  padding-left: 2px;
 }
 
 .medicamento-icon {
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
-  border-radius: 12px;
-  background: rgba(var(--ion-color-success-rgb), 0.1);
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 14px;
+  background: rgba(var(--ion-color-medicamento-rgb), 0.12);
+  border: 1px solid rgba(var(--ion-color-medicamento-rgb), 0.16);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 1px;
 
   ion-icon {
-    font-size: 1.15rem;
-    color: var(--ion-color-success);
+    font-size: 1.22rem;
+    color: var(--ion-color-medicamento);
   }
 }
 
@@ -168,14 +264,14 @@
 
 .medicamento-title-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 
   h3 {
     margin: 0;
-    font-size: 0.94rem;
-    font-weight: 750;
+    font-size: 0.98rem;
+    font-weight: 800;
     color: var(--ion-color-dark);
     line-height: 1.2;
   }
@@ -183,91 +279,98 @@
 
 .estado-pill {
   font-size: 0.62rem;
-  font-weight: 700;
-  padding: 3px 7px;
+  font-weight: 800;
+  padding: 4px 8px;
   border-radius: 999px;
   white-space: nowrap;
-  line-height: 1.1;
+  line-height: 1;
 }
 
 .estado-activo {
-  color: var(--ion-color-primary);
-  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  color: var(--ion-color-medicamento);
+  background: rgba(var(--ion-color-medicamento-rgb), 0.13);
 }
 
 .estado-inactivo {
   color: var(--ion-color-medium);
-  background: rgba(var(--ion-color-medium-rgb), 0.11);
+  background: rgba(var(--ion-color-medium-rgb), 0.12);
 }
 
 .dosis {
-  margin: 4px 0 3px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--ion-color-primary);
+  width: fit-content;
+  margin: 7px 0 5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ion-color-dark);
+  background: rgba(var(--ion-color-medicamento-rgb), 0.1);
 }
 
 .frecuencia {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   margin: 0;
   font-size: 0.78rem;
+  font-weight: 600;
   color: var(--ion-color-medium);
   line-height: 1.25;
 
   ion-icon {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    color: var(--ion-color-medicamento);
   }
 }
 
 .observaciones {
-  margin: 7px 0 0;
+  margin: 8px 0 0;
   font-size: 0.77rem;
   color: var(--ion-color-medium-shade);
-  background: rgba(255, 255, 255, 0.72);
-  border-radius: 10px;
-  padding: 7px 9px;
-  line-height: 1.3;
+  background: #ffffff;
+  border: 1px solid rgba(var(--ion-color-medicamento-rgb), 0.11);
+  border-radius: 12px;
+  padding: 8px 10px;
+  line-height: 1.35;
 }
 
 .medicamento-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 2px;
-  margin-top: 6px;
-  padding-top: 5px;
-  border-top: 1px solid rgba(0, 0, 0, 0.035);
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(var(--ion-color-medicamento-rgb), 0.11);
 
   ion-toggle {
-    transform: scale(0.68);
+    transform: scale(0.72);
     transform-origin: center;
-    width: 38px;
+    width: 40px;
     margin: 0;
   }
 
   ion-button {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
-    min-height: 26px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
     --padding-start: 0;
     --padding-end: 0;
     --padding-top: 0;
     --padding-bottom: 0;
-    --border-radius: 7px;
+    --border-radius: 9px;
     margin: 0;
   }
 
   ion-button::part(native) {
     padding: 0;
-    width: 26px;
-    height: 26px;
-    min-height: 26px;
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
   }
 
   ion-button ion-icon {
-    font-size: 0.82rem;
+    font-size: 0.9rem;
   }
 }

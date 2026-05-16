@@ -29,26 +29,45 @@
     </div>
 
     <div class="bebe-stats">
-      <div class="stat-item">
-        <ion-icon name="fitness"></ion-icon>
-        <span class="stat-value">{{ bebe.peso }} kg</span>
-        <span class="stat-label">Peso</span>
-      </div>
-
-      <div class="stat-item">
-        <ion-icon name="resize"></ion-icon>
-        <span class="stat-value">{{ bebe.altura }} cm</span>
-        <span class="stat-label">Altura</span>
-      </div>
-
-      <div class="stat-item">
-        <ion-icon name="calendar"></ion-icon>
-        <span class="stat-value">
-          {{ bebe.proximaVacuna ? (bebe.proximaVacuna | date:'dd/MM') : '-' }}
-        </span>
-        <span class="stat-label">Próxima Vacuna</span>
-      </div>
+  <div class="stat-card peso-card">
+    <div class="stat-icon">
+      <ion-icon name="fitness-outline"></ion-icon>
     </div>
+
+    <div class="stat-info">
+      <span class="stat-label">Peso</span>
+      <strong class="stat-value">
+        {{ bebe.peso ? bebe.peso + ' kg' : '-' }}
+      </strong>
+    </div>
+  </div>
+
+  <div class="stat-card altura-card">
+    <div class="stat-icon">
+      <ion-icon name="resize-outline"></ion-icon>
+    </div>
+
+    <div class="stat-info">
+      <span class="stat-label">Altura</span>
+      <strong class="stat-value">
+        {{ bebe.altura ? bebe.altura + ' cm' : '-' }}
+      </strong>
+    </div>
+  </div>
+
+  <div class="stat-card vacuna-card">
+    <div class="stat-icon">
+      <ion-icon name="calendar-outline"></ion-icon>
+    </div>
+
+    <div class="stat-info">
+      <span class="stat-label">Próxima vacuna</span>
+      <strong class="stat-value">
+        {{ bebe.proximaVacuna ? (bebe.proximaVacuna | date:'dd/MM') : '-' }}
+      </strong>
+    </div>
+  </div>
+</div>
 
     <section class="seccion-card">
       <div class="section-header">
@@ -108,11 +127,11 @@
           </div>
 
           <div class="medicamento-actions">
-            <ion-toggle
-              [checked]="medicamento.activo"
-              color="success"
-              (ionChange)="cambiarEstadoMedicamento(i, $event.detail.checked)">
-            </ion-toggle>
+           <ion-toggle
+  [checked]="medicamento.activo"
+  color="medicamento"
+  (ionChange)="cambiarEstadoMedicamento(i, $event.detail.checked)">
+</ion-toggle>
 
             <ion-button
               fill="clear"
@@ -293,9 +312,9 @@
             </ion-label>
 
             <ion-toggle
-              color="success"
-              [(ngModel)]="medicamentoForm.activo">
-            </ion-toggle>
+  color="medicamento"
+  [(ngModel)]="medicamentoForm.activo">
+</ion-toggle>
           </ion-item>
         </ion-list>
 

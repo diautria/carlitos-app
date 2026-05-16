@@ -35,8 +35,7 @@ import {
   medicalOutline,
   waterOutline,
   timeOutline,
-  checkmarkCircleOutline
-} from 'ionicons/icons';
+  checkmarkCircleOutline, fitnessOutline, resizeOutline, calendarOutline } from 'ionicons/icons';
 
 import { BebeFamiliaService } from '../../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../../models/bebe-familia.model';
