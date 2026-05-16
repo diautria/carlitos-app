@@ -316,6 +316,8 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
 
   const tomas = activities.filter(a => a.type === 'toma-leche');
   const panales = activities.filter(a => a.type === 'cambio-panal');
+  const medicamentos = activities.filter(a => a.type === 'medicamento');
+  const suenos = activities.filter(a => a.type === 'sueno');
 
   const totalOnzas = tomas.reduce((total, toma) => {
     return total + Number((toma as any).cantidadOnzas || 0);
@@ -336,6 +338,10 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
   const totalPopo = panales.filter(panal => (panal as any).tieneHeces).length;
   const totalPipi = panales.filter(panal => !(panal as any).tieneHeces).length;
 
+  const totalMinutosSueno = suenos.reduce((total, sueno) => {
+    return total + this.obtenerDuracionSuenoMinutos(sueno);
+  }, 0);
+
   const lineas: string[] = [];
 
   lineas.push(`Actividades del bebé - ${fecha}`);
@@ -348,10 +354,18 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
   lineas.push(`- Pañales: ${panales.length}`);
   lineas.push(`- Con popó: ${totalPopo}`);
   lineas.push(`- Solo pipí: ${totalPipi}`);
+  lineas.push(`- Medicamentos: ${medicamentos.length}`);
+  lineas.push(`- Sueños: ${suenos.length}`);
+
+  if (totalMinutosSueno > 0) {
+    lineas.push(`- Tiempo dormido: ${this.formatearMinutosSueno(totalMinutosSueno)}`);
+  }
+
   lineas.push('');
   lineas.push('Detalle:');
 
   activities
+    .slice()
     .sort((a, b) => a.time.localeCompare(b.time))
     .forEach(activity => {
       const hora = new Date(activity.time).toLocaleTimeString('es-UY', {
@@ -372,9 +386,156 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
 
         lineas.push(`- ${hora} · Cambio de pañal · ${tipoPanal}`);
       }
+
+      if (activity.type === 'medicamento') {
+        const nombreMedicamento =
+          (activity as any).nombreMedicamento ||
+          (activity as any).medicamentoNombre ||
+          'Medicamento';
+
+        const dosis =
+          (activity as any).dosisGotas ??
+          (activity as any).dosis ??
+          null;
+
+        const observaciones = (activity as any).observaciones;
+
+        let linea = `- ${hora} · Medicamento · ${nombreMedicamento}`;
+
+        if (dosis !== null && dosis !== undefined && dosis !== '') {
+          linea += ` · ${dosis} gotas`;
+        }
+
+        if (observaciones) {
+          linea += ` · ${observaciones}`;
+        }
+
+        lineas.push(linea);
+      }
+
+      if (activity.type === 'sueno') {
+        const horaInicio = this.obtenerHoraSuenoInicio(activity);
+        const horaFin = this.obtenerHoraSuenoFin(activity);
+        const duracionMinutos = this.obtenerDuracionSuenoMinutos(activity);
+
+        let linea = `- ${hora} · Sueño`;
+
+        if (horaInicio && horaFin) {
+          linea += ` · ${horaInicio} a ${horaFin}`;
+        } else if (horaInicio) {
+          linea += ` · inició ${horaInicio}`;
+        }
+
+        if (duracionMinutos > 0) {
+          linea += ` · ${this.formatearMinutosSueno(duracionMinutos)}`;
+        } else {
+          linea += ` · en curso`;
+        }
+
+        lineas.push(linea);
+      }
     });
 
   return lineas.join('\n');
+}
+
+private obtenerDuracionSuenoMinutos(activity: ActivityFamilia): number {
+  const duracionDirecta =
+    (activity as any).duracionMinutos ??
+    (activity as any).minutosDormidos ??
+    null;
+
+  if (duracionDirecta !== null && duracionDirecta !== undefined) {
+    return Number(duracionDirecta || 0);
+  }
+
+  const inicioRaw =
+    (activity as any).horaInicio ||
+    (activity as any).inicio ||
+    (activity as any).fechaInicio ||
+    activity.time;
+
+  const finRaw =
+    (activity as any).horaFin ||
+    (activity as any).fin ||
+    (activity as any).fechaFin;
+
+  if (!inicioRaw || !finRaw) {
+    return 0;
+  }
+
+  const inicio = new Date(inicioRaw);
+  const fin = new Date(finRaw);
+
+  if (isNaN(inicio.getTime()) || isNaN(fin.getTime())) {
+    return 0;
+  }
+
+  const minutos = Math.floor((fin.getTime() - inicio.getTime()) / 60000);
+
+  return minutos > 0 ? minutos : 0;
+}
+
+private obtenerHoraSuenoInicio(activity: ActivityFamilia): string {
+  const inicioRaw =
+    (activity as any).horaInicio ||
+    (activity as any).inicio ||
+    (activity as any).fechaInicio ||
+    activity.time;
+
+  return this.formatearHoraActividad(inicioRaw);
+}
+
+private obtenerHoraSuenoFin(activity: ActivityFamilia): string {
+  const finRaw =
+    (activity as any).horaFin ||
+    (activity as any).fin ||
+    (activity as any).fechaFin;
+
+  if (!finRaw) {
+    return '';
+  }
+
+  return this.formatearHoraActividad(finRaw);
+}
+
+private formatearHoraActividad(fechaRaw: string): string {
+  if (!fechaRaw) {
+    return '';
+  }
+
+  const fecha = new Date(fechaRaw);
+
+  if (isNaN(fecha.getTime())) {
+    return '';
+  }
+
+  return fecha.toLocaleTimeString('es-UY', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+}
+
+private formatearMinutosSueno(totalMinutos: number): string {
+  const minutos = Number(totalMinutos || 0);
+
+  if (minutos <= 0) {
+    return '0 min';
+  }
+
+  const horas = Math.floor(minutos / 60);
+  const minutosRestantes = minutos % 60;
+
+  if (horas > 0 && minutosRestantes > 0) {
+    return `${horas} h ${minutosRestantes} min`;
+  }
+
+  if (horas > 0) {
+    return `${horas} h`;
+  }
+
+  return `${minutosRestantes} min`;
 }
 
 async seleccionarBebe(bebe: BebeFamilia) {
