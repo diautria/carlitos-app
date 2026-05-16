@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ModalController } from '@ionic/angular/standalone';
+import { ActividadFormModalComponent } from '../components/actividad-form-modal/actividad-form-modal.component';
 import {
   IonHeader,
   IonToolbar,
@@ -227,7 +229,8 @@ openDateGroupsSuenos: Record<string, string[]> = {};
     private alertController: AlertController,
     private notificacionTomasService: NotificacionTomasService,
     private bebeFamiliaService: BebeFamiliaService,
-    private notificacionMedicamentosService: NotificacionMedicamentosService
+    private notificacionMedicamentosService: NotificacionMedicamentosService,
+    private modalController: ModalController
   ) {
     addIcons({addCircle,statsChartOutline,filterOutline,waterOutline,leafOutline,medical,moonOutline,createOutline,trashOutline,leaf,moon,close,water,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline,medicalOutline});
   }
@@ -423,19 +426,50 @@ openDateGroupsSuenos: Record<string, string[]> = {};
     return base;
   }
 
-  openAddModal() {
-    this.isEdit = false;
-    this.formType = 'toma-leche';
-    this.form = this.getEmptyForm('toma-leche');
-    this.showModal = true;
-  }
+  async openAddModal() {
+  const tipoInicial =
+    this.selectedTab === 'medicamento' && !this.tieneMedicamentosRegistrados()
+      ? 'toma-leche'
+      : this.selectedTab;
 
-  openEditModal(activity: ActivityFamilia) {
-    this.isEdit = true;
-    this.formType = activity.type;
-    this.form = { ...activity };
-    this.showModal = true;
+  const modal = await this.modalController.create({
+    component: ActividadFormModalComponent,
+    cssClass: 'custom-modal',
+    componentProps: {
+      modo: 'crear',
+      tipoInicial
+    }
+  });
+
+  await modal.present();
+
+  const { data } = await modal.onDidDismiss();
+
+  if (data?.actividadGuardada) {
+    await this.cargarMedicamentosRegistrados();
+    await this.loadActivities();
   }
+}
+
+ async openEditModal(activity: ActivityFamilia) {
+  const modal = await this.modalController.create({
+    component: ActividadFormModalComponent,
+    cssClass: 'custom-modal',
+    componentProps: {
+      modo: 'editar',
+      actividad: activity
+    }
+  });
+
+  await modal.present();
+
+  const { data } = await modal.onDidDismiss();
+
+  if (data?.actividadGuardada) {
+    await this.cargarMedicamentosRegistrados();
+    await this.loadActivities();
+  }
+}
 
   closeModal() {
     this.showModal = false;

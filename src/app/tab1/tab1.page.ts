@@ -11,7 +11,7 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, Io
   IonAlert
  } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { people, time, medical, chevronForward, water, logoWhatsapp,documentText } from 'ionicons/icons';
+import { people, time, medical, chevronForward, water, logoWhatsapp,documentText, addCircleOutline } from 'ionicons/icons';
 import { personOutline, trashOutline, close  } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
@@ -22,6 +22,8 @@ import { ActivityFamiliaService } from '../services/activity-familia.service';
 import { NotificacionVacunasService } from '../services/notificacion-vacunas.service';
 import { Router } from '@angular/router';
 import { FamiliaMiembrosService } from '../services/familia-miembros.service';
+import { ModalController } from '@ionic/angular/standalone';
+import { ActividadFormModalComponent } from '../components/actividad-form-modal/actividad-form-modal.component';
 
 @Component({
   selector: 'app-tab1',
@@ -81,6 +83,7 @@ bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
 suenoActivo: ActivityFamilia | null = null;
 duracionSuenoActivoTexto = '';
 private intervaloSuenoActivo: any;
+private modalController = inject(ModalController);
 
   async ngOnInit() {
    addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline   });
@@ -734,6 +737,33 @@ async finalizarSuenoActivo() {
     await this.cargarActividadesDeHoy();
   } catch (error: any) {
     alert(error?.message || 'No se pudo finalizar el sueño.');
+  }
+}
+
+async abrirModalAgregarActividad() {
+  const modal = await this.modalController.create({
+    component: ActividadFormModalComponent,
+    cssClass: 'custom-modal',
+    componentProps: {
+      modo: 'crear',
+      tipoInicial: 'toma-leche'
+    }
+  });
+
+  await modal.present();
+
+  const { data } = await modal.onDidDismiss();
+
+  if (data?.actividadGuardada) {
+    await this.cargarActividadesDeHoy();
+    await this.cargarProgresoOnzas();
+    await this.cargarSuenoActivo();
+
+    // Si ya tienes este método por el card de sueño, déjalo.
+    // Si no existe, bórralo.
+    if ((this as any).cargarResumenSueno) {
+      await (this as any).cargarResumenSueno();
+    }
   }
 }
 }

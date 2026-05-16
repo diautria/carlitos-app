@@ -178,13 +178,20 @@
           Actividad Reciente
         </h2>
 
-        <ion-button
+        <ion-button style="margin-left: 140px;"
           *ngIf="actividadesRecientes.length > 0"
           fill="clear"
           size="small"
           color="success"
           (click)="compartirActividadesDelDiaPorWhatsapp()">
           <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
+        </ion-button>
+
+        <ion-button
+          fill="clear"
+          color="primary"
+          (click)="abrirModalAgregarActividad()">
+          <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
         </ion-button>
       </div>
 
