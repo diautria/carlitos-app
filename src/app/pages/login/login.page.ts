@@ -86,7 +86,7 @@ export class LoginPage {
       const usuarioData = usuarioSnap.data();
 
       if (usuarioData['familiaActivaId']) {
-        console.log('Usuario con familia activa, navegando a Mi bebé');
+        console.log('Usuario con familia activa, navegando a Mis bebés');
 
         await this.router.navigateByUrl('/tabs/tab1', {
           replaceUrl: true

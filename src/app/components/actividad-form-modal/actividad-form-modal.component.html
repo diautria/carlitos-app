@@ -87,12 +87,14 @@
           <label class="section-label">Cantidad (oz)</label>
 
           <ion-input
-            type="number"
-            [(ngModel)]="form.cantidadOnzas"
-            name="cantidadOnzas"
-            placeholder="0"
-            class="custom-input">
-          </ion-input>
+  type="number"
+  [(ngModel)]="form.cantidadOnzas"
+  name="cantidadOnzas"
+  placeholder="0"
+  class="custom-input"
+  (ionFocus)="limpiarCeroInput('cantidadOnzas')"
+  (ionBlur)="restaurarCeroInput('cantidadOnzas')">
+</ion-input>
         </div>
 
         <div class="form-section">
@@ -166,7 +168,7 @@
               (click)="onMedicamentoChange(medicamento.id)">
 
               <div class="medicamento-option-icon">
-                <ion-icon name="medical"></ion-icon>
+                <ion-icon name="medical-outline" color="medicamento"></ion-icon>
               </div>
 
               <div class="medicamento-option-info">
@@ -201,12 +203,14 @@
           <label class="section-label">Dosis en gotas</label>
 
           <ion-input
-            type="number"
-            [(ngModel)]="form.dosisGotas"
-            name="dosisGotas"
-            placeholder="Ej: 3"
-            class="custom-input">
-          </ion-input>
+  type="number"
+  [(ngModel)]="form.dosisGotas"
+  name="dosisGotas"
+  placeholder="Ej: 3"
+  class="custom-input"
+  (ionFocus)="limpiarCeroInput('dosisGotas')"
+  (ionBlur)="restaurarCeroInput('dosisGotas')">
+</ion-input>
         </div>
 
         <div class="form-section" *ngIf="form.medicamentoId">

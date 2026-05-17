@@ -82,8 +82,8 @@
 }
 
 .medicamento-option.selected {
-  border-color: var(--ion-color-success);
-  background: rgba(var(--ion-color-success-rgb), 0.08);
+  border-color: var(--ion-color-medicamento);
+  background: rgba(var(--ion-color-medicamento), 0.08);
 }
 
 .medicamento-option-icon {
@@ -91,7 +91,7 @@
   height: 42px;
   min-width: 42px;
   border-radius: 14px;
-  background: rgba(var(--ion-color-success-rgb), 0.14);
+  background: rgba(var(--ion-color-medicamento), 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,7 +99,7 @@
 
 .medicamento-option-icon ion-icon {
   font-size: 22px;
-  color: var(--ion-color-success);
+  color: var(--ion-color-medicamento);
 }
 
 .medicamento-option-info {
@@ -116,11 +116,11 @@
 }
 
 .medicamento-option-info span {
-  color: var(--ion-color-medium);
+  color: var(--ion-color-medicamento);
   font-size: 0.82rem;
 }
 
 .selected-icon {
   font-size: 22px;
-  color: var(--ion-color-success);
+  color: var(--ion-color-medicamento);
 }

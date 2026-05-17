@@ -30,8 +30,7 @@ import {
   leaf,
   medical,
   moon,
-  water
-} from 'ionicons/icons';
+  water, medicalOutline } from 'ionicons/icons';
 
 import {
   ActivityFamilia,
@@ -90,18 +89,7 @@ export class ActividadFormModalComponent implements OnInit {
 modalLista = false;
 
   constructor() {
-    addIcons({
-      close,
-      water,
-      leaf,
-      medical,
-      moon,
-      heart,
-      flask,
-      checkmarkCircle,
-      alertCircle,
-      checkmark
-    });
+    addIcons({close,water,leaf,medical,moon,heart,flask,checkmarkCircle,alertCircle,medicalOutline,checkmark});
   }
 
   async ngOnInit() {
@@ -389,4 +377,23 @@ modalLista = false;
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
+
+  limpiarCeroInput(campo: 'cantidadOnzas' | 'dosisGotas') {
+  if (
+    this.form[campo] === 0 ||
+    this.form[campo] === '0'
+  ) {
+    this.form[campo] = null;
+  }
+}
+
+restaurarCeroInput(campo: 'cantidadOnzas' | 'dosisGotas') {
+  if (
+    this.form[campo] === null ||
+    this.form[campo] === undefined ||
+    this.form[campo] === ''
+  ) {
+    this.form[campo] = 0;
+  }
+}
 }

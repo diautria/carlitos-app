@@ -632,3 +632,51 @@ ion-progress-bar {
 .btn-agregar-actividad ion-icon {
   font-size: 18px;
 }
+
+.seccion-bebes.unico-bebe {
+  overflow-x: hidden;
+  display: block;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.seccion-bebes.unico-bebe .bebe-card {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  flex: 1 1 100%;
+}
+
+.seccion-bebes.unico-bebe .bebe-card ion-card-header {
+  padding: 18px 14px 14px;
+}
+
+.seccion-bebes.unico-bebe .bebe-avatar {
+  width: 64px;
+  height: 64px;
+}
+
+.seccion-bebes.unico-bebe .bebe-avatar ion-icon {
+  font-size: 40px;
+}
+
+.seccion-bebes.unico-bebe .bebe-nombre {
+  font-size: 16px;
+}
+
+.seccion-bebes.unico-bebe .bebe-edad-card {
+  font-size: 12px;
+}
+
+.seccion-bebes.unico-bebe .bebe-actions {
+  margin-top: 8px;
+}
+
+.seccion-bebes.unico-bebe .bebe-action-button {
+  width: 32px;
+  height: 32px;
+}
+
+.seccion-bebes.unico-bebe .bebe-action-button ion-icon {
+  font-size: 18px;
+}

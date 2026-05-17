@@ -536,6 +536,57 @@
   </ion-accordion-group>
 </ng-container>
 
+<div
+  class="tab-empty-state"
+  *ngIf="
+    !hayFiltrosActivos() &&
+    (
+      (selectedTab === 'toma-leche' && groupedTomasLeche.length === 0) ||
+      (selectedTab === 'cambio-panal' && groupedCambiosPanal.length === 0) ||
+      (selectedTab === 'medicamento' && groupedMedicamentos.length === 0) ||
+      (selectedTab === 'sueno' && groupedSuenos.length === 0)
+    )
+  ">
+
+  <div class="tab-empty-icon">
+    <ion-icon
+      [name]="
+        selectedTab === 'toma-leche'
+          ? 'water-outline'
+          : selectedTab === 'cambio-panal'
+            ? 'leaf-outline'
+            : selectedTab === 'medicamento'
+              ? 'medical-outline'
+              : 'moon-outline'
+      ">
+    </ion-icon>
+  </div>
+
+  <h3>
+    {{
+      selectedTab === 'toma-leche'
+        ? 'No hay tomas registradas'
+        : selectedTab === 'cambio-panal'
+          ? 'No hay cambios de pañal registrados'
+          : selectedTab === 'medicamento'
+            ? 'No hay medicamentos registrados'
+            : 'No hay sueños registrados'
+    }}
+  </h3>
+
+  <p>
+    {{
+      selectedTab === 'toma-leche'
+        ? 'Cuando agregues una toma de leche, aparecerá en este tab.'
+        : selectedTab === 'cambio-panal'
+          ? 'Cuando registres un cambio de pañal, aparecerá en este tab.'
+          : selectedTab === 'medicamento'
+            ? 'Cuando registres una administración de medicamento, aparecerá en este tab.'
+            : 'Cuando registres un horario de sueño, aparecerá en este tab.'
+    }}
+  </p>
+</div>
+
         <div
           class="filters-empty-result"
           *ngIf="
@@ -1343,7 +1394,7 @@
           <ion-card-header>
             <div class="estadisticas-card-header">
               <div class="estadisticas-icon medicamento">
-                <ion-icon name="medical" color="success"></ion-icon>
+                <ion-icon name="medical" color="medicamento"></ion-icon>
               </div>
 
               <div>
@@ -1357,7 +1408,7 @@
   <ion-card-header>
     <div class="estadisticas-card-header">
       <div class="estadisticas-icon sueno">
-        <ion-icon name="moon-outline"></ion-icon>
+        <ion-icon name="moon-outline" color="sueno"></ion-icon>
       </div>
 
       <div>
