@@ -90,10 +90,16 @@ interface ActivityFilters {
   fechaHasta: string;
   horaDesde: string;
   horaHasta: string;
+
   tipoLeche: 'todas' | 'materna' | 'formula';
   onzasMin: number | null;
   onzasMax: number | null;
+
   tipoPanal: 'todos' | 'pipi' | 'popo';
+
+  medicamentoId: string;
+  dosisGotasMin: number | null;
+  dosisGotasMax: number | null;
 
   estadoSueno: 'todos' | 'en-curso' | 'finalizados';
   duracionSuenoMin: number | null;
@@ -1079,22 +1085,28 @@ openDateGroupsSuenos: Record<string, string[]> = {};
   }
 
   getDefaultFilters(): ActivityFilters {
-    return {
-      rangoFecha: 'todos',
-      fechaDesde: '',
-      fechaHasta: '',
-      horaDesde: '',
-      horaHasta: '',
-      tipoLeche: 'todas',
-      onzasMin: null,
-      onzasMax: null,
-      tipoPanal: 'todos',
+  return {
+    rangoFecha: 'todos',
+    fechaDesde: '',
+    fechaHasta: '',
+    horaDesde: '',
+    horaHasta: '',
 
-      estadoSueno: 'todos',
+    tipoLeche: 'todas',
+    onzasMin: null,
+    onzasMax: null,
+
+    tipoPanal: 'todos',
+
+    medicamentoId: '',
+    dosisGotasMin: null,
+    dosisGotasMax: null,
+
+    estadoSueno: 'todos',
     duracionSuenoMin: null,
     duracionSuenoMax: null
-    };
-  }
+  };
+}
 
   hayFiltrosActivos(): boolean {
     return JSON.stringify(this.filters) !== JSON.stringify(this.getDefaultFilters());
@@ -1155,16 +1167,55 @@ openDateGroupsSuenos: Record<string, string[]> = {};
   }
 
   private filtrarActividadesConFiltros(filters: ActivityFilters): ActivityFamilia[] {
-    const filtros = this.normalizarFiltros(filters);
+  const filtros = this.normalizarFiltros(filters);
 
-    return this.activities
-      .filter(activity => this.cumpleFiltroFecha(activity, filtros))
-      .filter(activity => this.cumpleFiltroHora(activity, filtros))
-      .filter(activity => this.cumpleFiltroTipoLeche(activity, filtros))
-      .filter(activity => this.cumpleFiltroOnzas(activity, filtros))
-      .filter(activity => this.cumpleFiltroTipoPanal(activity, filtros))
-      .filter(activity => this.cumpleFiltroSueno(activity, filtros));;
+  return this.activities
+    .filter(activity => this.cumpleFiltroFecha(activity, filtros))
+    .filter(activity => this.cumpleFiltroHora(activity, filtros))
+    .filter(activity => this.cumpleFiltroTipoLeche(activity, filtros))
+    .filter(activity => this.cumpleFiltroOnzas(activity, filtros))
+    .filter(activity => this.cumpleFiltroTipoPanal(activity, filtros))
+    .filter(activity => this.cumpleFiltroMedicamento(activity, filtros))
+    .filter(activity => this.cumpleFiltroSueno(activity, filtros));
+}
+
+private cumpleFiltroMedicamento(
+  activity: ActivityFamilia,
+  filters: ActivityFilters
+): boolean {
+  if (activity.type !== 'medicamento') {
+    return true;
   }
+
+  const medicamento = activity as any;
+
+  if (
+    filters.medicamentoId &&
+    medicamento.medicamentoId !== filters.medicamentoId
+  ) {
+    return false;
+  }
+
+  const dosisGotas = Number(medicamento.dosisGotas || 0);
+
+  if (
+    filters.dosisGotasMin !== null &&
+    filters.dosisGotasMin !== undefined &&
+    dosisGotas < Number(filters.dosisGotasMin)
+  ) {
+    return false;
+  }
+
+  if (
+    filters.dosisGotasMax !== null &&
+    filters.dosisGotasMax !== undefined &&
+    dosisGotas > Number(filters.dosisGotasMax)
+  ) {
+    return false;
+  }
+
+  return true;
+}
 
   private cumpleFiltroSueno(
   activity: ActivityFamilia,
@@ -1402,6 +1453,48 @@ openDateGroupsSuenos: Record<string, string[]> = {};
       onzasMax !== null && onzasMax !== undefined && onzasMax !== ''
         ? Number(onzasMax)
         : null;
+
+        filtrosNormalizados.onzasMin =
+    filtrosNormalizados.onzasMin !== null &&
+    filtrosNormalizados.onzasMin !== undefined &&
+    filtrosNormalizados.onzasMin !== ('' as any)
+      ? Number(filtrosNormalizados.onzasMin)
+      : null;
+
+  filtrosNormalizados.onzasMax =
+    filtrosNormalizados.onzasMax !== null &&
+    filtrosNormalizados.onzasMax !== undefined &&
+    filtrosNormalizados.onzasMax !== ('' as any)
+      ? Number(filtrosNormalizados.onzasMax)
+      : null;
+
+  filtrosNormalizados.dosisGotasMin =
+    filtrosNormalizados.dosisGotasMin !== null &&
+    filtrosNormalizados.dosisGotasMin !== undefined &&
+    filtrosNormalizados.dosisGotasMin !== ('' as any)
+      ? Number(filtrosNormalizados.dosisGotasMin)
+      : null;
+
+  filtrosNormalizados.dosisGotasMax =
+    filtrosNormalizados.dosisGotasMax !== null &&
+    filtrosNormalizados.dosisGotasMax !== undefined &&
+    filtrosNormalizados.dosisGotasMax !== ('' as any)
+      ? Number(filtrosNormalizados.dosisGotasMax)
+      : null;
+
+  filtrosNormalizados.duracionSuenoMin =
+    filtrosNormalizados.duracionSuenoMin !== null &&
+    filtrosNormalizados.duracionSuenoMin !== undefined &&
+    filtrosNormalizados.duracionSuenoMin !== ('' as any)
+      ? Number(filtrosNormalizados.duracionSuenoMin)
+      : null;
+
+  filtrosNormalizados.duracionSuenoMax =
+    filtrosNormalizados.duracionSuenoMax !== null &&
+    filtrosNormalizados.duracionSuenoMax !== undefined &&
+    filtrosNormalizados.duracionSuenoMax !== ('' as any)
+      ? Number(filtrosNormalizados.duracionSuenoMax)
+      : null;
 
     return filtrosNormalizados;
   }

@@ -1096,6 +1096,136 @@
             </ion-button>
           </div>
         </div>
+
+                  <div class="filter-card medicine-filter-card" *ngIf="tieneMedicamentosRegistrados()">
+  <div class="filter-card-title">
+    <ion-icon name="medical" color="medicamento"></ion-icon>
+
+    <div>
+      <h3>Medicamentos</h3>
+    </div>
+  </div>
+
+  <label class="filter-subtitle">Medicamento</label>
+
+  <div class="medicamento-filter-list">
+    <button
+      type="button"
+      class="medicamento-filter-option"
+      [class.selected]="filtersDraft.medicamentoId === ''"
+      (click)="filtersDraft.medicamentoId = ''">
+      <span>Todos</span>
+      <ion-icon
+        *ngIf="filtersDraft.medicamentoId === ''"
+        name="checkmark-circle">
+      </ion-icon>
+    </button>
+
+    <button
+      type="button"
+      class="medicamento-filter-option"
+      *ngFor="let medicamento of medicamentosDisponibles"
+      [class.selected]="filtersDraft.medicamentoId === medicamento.id"
+      (click)="filtersDraft.medicamentoId = medicamento.id">
+      <span>
+        {{ medicamento.nombre }}
+        <small *ngIf="$any(medicamento).nombreBebe">
+          · {{ $any(medicamento).nombreBebe }}
+        </small>
+      </span>
+
+      <ion-icon
+        *ngIf="filtersDraft.medicamentoId === medicamento.id"
+        name="checkmark-circle">
+      </ion-icon>
+    </button>
+  </div>
+
+  <label class="filter-subtitle">Dosis en gotas</label>
+
+  <div class="filter-grid">
+    <ion-input
+      type="number"
+      label="Mínimo"
+      labelPlacement="stacked"
+      [(ngModel)]="filtersDraft.dosisGotasMin"
+      name="dosisGotasMin"
+      placeholder="Ej: 2">
+    </ion-input>
+
+    <ion-input
+      type="number"
+      label="Máximo"
+      labelPlacement="stacked"
+      [(ngModel)]="filtersDraft.dosisGotasMax"
+      name="dosisGotasMax"
+      placeholder="Ej: 6">
+    </ion-input>
+  </div>
+</div>
+
+<div class="filter-card sleep-filter-card">
+  <div class="filter-card-title">
+    <ion-icon name="moon-outline" color="sueno"></ion-icon>
+
+    <div>
+      <h3>Sueño</h3>
+    </div>
+  </div>
+
+  <label class="filter-subtitle">Estado</label>
+
+  <div class="filter-chip-grid three">
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.estadoSueno === 'todos' ? 'solid' : 'outline'"
+      color="primary"
+      (click)="filtersDraft.estadoSueno = 'todos'">
+      Todos
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.estadoSueno === 'en-curso' ? 'solid' : 'outline'"
+      color="warning"
+      (click)="filtersDraft.estadoSueno = 'en-curso'">
+      En curso
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.estadoSueno === 'finalizados' ? 'solid' : 'outline'"
+      color="tertiary"
+      (click)="filtersDraft.estadoSueno = 'finalizados'">
+      Finalizados
+    </ion-button>
+  </div>
+
+  <label class="filter-subtitle">Duración en minutos</label>
+
+  <div class="filter-grid">
+    <ion-input
+      type="number"
+      label="Mínimo"
+      labelPlacement="stacked"
+      [(ngModel)]="filtersDraft.duracionSuenoMin"
+      name="duracionSuenoMin"
+      placeholder="Ej: 30">
+    </ion-input>
+
+    <ion-input
+      type="number"
+      label="Máximo"
+      labelPlacement="stacked"
+      [(ngModel)]="filtersDraft.duracionSuenoMax"
+      name="duracionSuenoMax"
+      placeholder="Ej: 120">
+    </ion-input>
+  </div>
+</div>
       </ion-content>
 
       <ion-footer>

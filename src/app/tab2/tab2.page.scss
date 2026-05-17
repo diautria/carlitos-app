@@ -689,3 +689,51 @@ ion-modal {
   margin-right: 15px;
 }
 
+.medicine-filter-card {
+  border-left: 4px solid rgba(var(--ion-color-medicamento-rgb), 0.28);
+}
+
+.sleep-filter-card {
+  border-left: 4px solid rgba(var(--ion-color-tertiary-rgb), 0.24);
+}
+
+.medicamento-filter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.medicamento-filter-option {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--ion-color-medium-rgb), 0.22);
+  background: #f8f9fd;
+  color: var(--ion-color-dark);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.medicamento-filter-option small {
+  color: var(--ion-color-medium);
+  font-weight: 600;
+}
+
+.medicamento-filter-option.selected {
+  border-color: var(--ion-color-medicamento);
+  background: rgba(var(--ion-color-medicamento-rgb), 0.1);
+  color: var(--ion-color-medicamento-shade);
+}
+
+.medicamento-filter-option ion-icon {
+  font-size: 20px;
+  color: var(--ion-color-medicamento);
+  flex-shrink: 0;
+}
+
