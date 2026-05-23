@@ -83,6 +83,7 @@ mensajeBebe = '';
 bebeEditandoId = '';
 fotoSeleccionada?: File;
 showEliminarBebeAlert = false;
+cargandoTab1 = true;
 bebeAEliminar: BebeFamilia | null = null;
 private familiaMiembrosService = inject(FamiliaMiembrosService);
 esAdminFamilia = false;
@@ -96,16 +97,12 @@ suenoActivo: ActivityFamilia | null = null;
 duracionSuenoActivoTexto = '';
 private intervaloSuenoActivo?: ReturnType<typeof setInterval>;
 private bebesSubscription?: Subscription;
+private cargandoVistaInicial = false;
+private vistaInicialCargada = false;
 private modalController = inject(ModalController);
 
   async ngOnInit() {
    addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline   });
-
-    await this.cargarDatosBebe();
-
-    await this.cargarActividadesYProgresoDeHoy();
-
-    await this.cargarSuenoActivo();
   }
 
 getIconoActividad(actividad: any): string {
@@ -160,16 +157,34 @@ getIconoActividad(actividad: any): string {
   }
 
   async ionViewWillEnter() {
-      await this.cargarPermisosFamilia();
-    await this.cargarDatosBebe();
-    await this.cargarActividadesYProgresoDeHoy();
-    await this.cargarSuenoActivo();
+    await this.cargarVistaInicialTab1();
   }
 
   ngOnDestroy() {
     this.bebesSubscription?.unsubscribe();
     this.limpiarIntervaloSuenoActivo();
   }
+
+private async cargarVistaInicialTab1() {
+  if (this.cargandoVistaInicial) {
+    return;
+  }
+
+  this.cargandoVistaInicial = true;
+  this.cargandoTab1 = !this.vistaInicialCargada;
+
+  try {
+    await this.cargarPermisosFamilia();
+    await this.cargarDatosBebe();
+    await this.cargarActividadesYProgresoDeHoy();
+    await this.cargarSuenoActivo();
+
+    this.vistaInicialCargada = true;
+  } finally {
+    this.cargandoTab1 = false;
+    this.cargandoVistaInicial = false;
+  }
+}
 
   private async cargarActividadesDeHoy() {
   try {
@@ -308,28 +323,44 @@ private async cargarActividadesYProgresoDeHoy() {
       (await this.bebeFamiliaService.obtenerBebeActivoId()) || '';
 
     this.bebesSubscription?.unsubscribe();
-    this.bebesSubscription = this.bebeFamiliaService.obtenerBebes().subscribe({
-      next: async bebes => {
-        this.bebes = bebes || [];
-        this.actualizarBebesVista();
-
-        if (!this.bebeActivoId && this.bebes.length > 0) {
-          await this.seleccionarBebe(this.bebes[0]);
+    await new Promise<void>(resolve => {
+      let primeraCargaPendiente = true;
+      const finalizarPrimeraCarga = () => {
+        if (!primeraCargaPendiente) {
+          return;
         }
-      },
-      error: error => {
-        console.error('Error cargando bebÃ©s de la familia', error);
-        this.bebes = [];
-        this.bebesVista = [];
-      }
+
+        primeraCargaPendiente = false;
+        resolve();
+      };
+
+      this.bebesSubscription = this.bebeFamiliaService.obtenerBebes().subscribe({
+        next: async bebes => {
+          try {
+            this.bebes = bebes || [];
+            this.actualizarBebesVista();
+
+            if (!this.bebeActivoId && this.bebes.length > 0) {
+              await this.seleccionarBebe(this.bebes[0]);
+            }
+          } finally {
+            finalizarPrimeraCarga();
+          }
+        },
+        error: error => {
+          console.error('Error cargando bebés de la familia', error);
+          this.bebes = [];
+          this.bebesVista = [];
+          finalizarPrimeraCarga();
+        }
+      });
     });
   } catch (error) {
-    console.error('Error cargando datos de bebÃ©s', error);
+    console.error('Error cargando datos de bebés', error);
     this.bebes = [];
     this.bebesVista = [];
   }
 }
-
   compartirActividadesDelDiaPorWhatsapp() {
   const actividadesHoy = this.actividadesRecientes;
 

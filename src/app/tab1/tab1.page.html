@@ -4,7 +4,8 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="dashboard-container">
+  <ng-container *ngIf="!cargandoTab1; else cargandoTab1Template">
+    <div class="dashboard-container">
 
     <!-- Sección de Bebés -->
     <section
@@ -237,7 +238,15 @@
       </ng-template>
     </section>
 
-  </div>
+    </div>
+  </ng-container>
+
+  <ng-template #cargandoTab1Template>
+    <div class="tab-loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando información...</p>
+    </div>
+  </ng-template>
 
   <ion-modal [isOpen]="showModalBebe" (didDismiss)="cerrarModalBebe()">
     <ng-template>

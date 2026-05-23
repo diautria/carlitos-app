@@ -17,7 +17,7 @@
     </ion-toolbar>
   </ion-header>
 
-  <ng-container *ngIf="!loading">
+  <ng-container *ngIf="!loading; else loadingState">
     <ng-container *ngIf="activities.length > 0; else emptyState">
       <div class="estadisticas-button-container">
         <ion-button
@@ -653,6 +653,13 @@
       </div>
     </ng-template>
   </ng-container>
+
+  <ng-template #loadingState>
+    <div class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando actividades...</p>
+    </div>
+  </ng-template>
 
   <!-- Modal agregar / editar actividad -->
   <!-- <ion-modal [isOpen]="showModal" (didDismiss)="onModalDismiss()" class="custom-modal">

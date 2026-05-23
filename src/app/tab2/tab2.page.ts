@@ -168,7 +168,7 @@ export class Tab2Page implements OnInit {
   bebes: BebeFamilia[] = [];
   medicamentosDisponibles: MedicamentoDisponible[] = [];
 
-  loading = false;
+  loading = true;
   primeraCarga = true;
 
   selectedTab: ActivityFamiliaType = 'toma-leche';
