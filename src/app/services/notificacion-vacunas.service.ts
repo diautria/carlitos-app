@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { BebeFamilia } from '../models/bebe-familia.model';
 import { BebeFamiliaService } from './bebe-familia.service';
@@ -36,12 +36,26 @@ export class NotificacionVacunasService {
 
     await this.cancelarNotificacionPorId(notificationId);
 
+    const permisoOk = await this.asegurarPermiso();
+
+    if (!permisoOk) {
+      return;
+    }
+
     if (!bebe.proximaVacuna) {
       console.log('No hay próxima vacuna para:', bebe.nombre);
       return;
     }
 
     const fechaVacuna = this.parseFechaLocal(bebe.proximaVacuna);
+
+    if (Number.isNaN(fechaVacuna.getTime())) {
+      console.log('Fecha de próxima vacuna inválida:', {
+        bebe: bebe.nombre,
+        proximaVacuna: bebe.proximaVacuna
+      });
+      return;
+    }
 
     const fechaNotificacion = new Date(
       fechaVacuna.getTime() - 7 * 24 * 60 * 60 * 1000
@@ -50,6 +64,23 @@ export class NotificacionVacunasService {
     const ahora = new Date();
 
     if (fechaNotificacion <= ahora) {
+      if (fechaVacuna > ahora) {
+        await this.programarNotificacion(
+          notificationId,
+          bebe,
+          new Date(ahora.getTime() + 1000),
+          'La próxima vacuna está dentro de los próximos 7 días.'
+        );
+
+        console.log('Notificación de vacuna próxima programada:', {
+          bebe: bebe.nombre,
+          notificationId,
+          fechaVacuna
+        });
+
+        return;
+      }
+
       console.log('No se programa vacuna porque la fecha ya pasó:', {
         bebe: bebe.nombre,
         fechaVacuna,
@@ -58,19 +89,12 @@ export class NotificacionVacunasService {
       return;
     }
 
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: notificationId,
-          title: `Próxima vacuna de ${bebe.nombre || 'tu bebé'}`,
-          body: 'Falta una semana para la próxima vacuna.',
-          schedule: {
-            at: fechaNotificacion,
-            allowWhileIdle: true
-          }
-        }
-      ]
-    });
+    await this.programarNotificacion(
+      notificationId,
+      bebe,
+      fechaNotificacion,
+      'Falta una semana para la próxima vacuna.'
+    );
 
     console.log('Notificación de vacuna programada:', {
       bebe: bebe.nombre,
@@ -119,6 +143,31 @@ export class NotificacionVacunasService {
     });
   }
 
+  private async programarNotificacion(
+    notificationId: number,
+    bebe: BebeFamilia,
+    fechaNotificacion: Date,
+    body: string
+  ): Promise<void> {
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: notificationId,
+          title: `Próxima vacuna de ${bebe.nombre || 'tu bebé'}`,
+          body,
+          schedule: {
+            at: fechaNotificacion,
+            allowWhileIdle: true
+          },
+          smallIcon: 'ic_stat_icon_config_sample',
+          extra: {
+            bebeId: bebe.id
+          }
+        }
+      ]
+    });
+  }
+
   private obtenerNotificationIdBebe(bebeId: string): number {
     return this.notificationBaseId + this.hashStringToNumber(bebeId, 99999);
   }
@@ -148,11 +197,16 @@ export class NotificacionVacunasService {
 
   private parseFechaLocal(value: string): Date {
     if (!value) {
-      return new Date();
+      return new Date(NaN);
     }
 
-    const cleanValue = value.replace('Z', '');
-    const [fecha, hora] = cleanValue.split('T');
+    const tieneZonaHoraria = /(?:z|[+-]\d{2}:\d{2})$/i.test(value);
+
+    if (tieneZonaHoraria) {
+      return new Date(value);
+    }
+
+    const [fecha, hora] = value.split('T');
 
     if (!fecha) {
       return new Date(value);
@@ -160,13 +214,17 @@ export class NotificacionVacunasService {
 
     const [year, month, day] = fecha.split('-').map(Number);
 
+    if (!year || !month || !day) {
+      return new Date(value);
+    }
+
     let hours = 9;
     let minutes = 0;
 
     if (hora) {
-      const partesHora = hora.split(':').map(Number);
-      hours = partesHora[0] || 9;
-      minutes = partesHora[1] || 0;
+      const partesHora = hora.split(':');
+      hours = Number(partesHora[0]) || 9;
+      minutes = Number(partesHora[1]) || 0;
     }
 
     return new Date(
