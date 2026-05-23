@@ -18,7 +18,9 @@ import {
   IonModal,
   IonTextarea,
   IonInput,
-  IonToggle
+  IonToggle,
+  IonAccordion,
+  IonAccordionGroup
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -28,6 +30,7 @@ import {
   fitness,
   resize,
   documentText,
+  addCircle,
   addCircleOutline,
   createOutline,
   trashOutline,
@@ -65,7 +68,9 @@ import { AlertController } from '@ionic/angular';
     IonModal,
     IonTextarea,
     IonInput,
-    IonToggle
+    IonToggle,
+    IonAccordion,
+    IonAccordionGroup
   ],
   templateUrl: './detalle-bebe.page.html',
   styleUrls: ['./detalle-bebe.page.scss']
@@ -78,6 +83,7 @@ private alertController = inject(AlertController);
 private activityFamiliaService = inject(ActivityFamiliaService);
 
   bebe: BebeFamilia | null = null;
+  seccionesAbiertas: string[] = [];
 
   showModalNota = false;
   nuevaNota = '';
@@ -100,6 +106,7 @@ private activityFamiliaService = inject(ActivityFamiliaService);
       fitness,
       resize,
       documentText,
+      addCircle,
       addCircleOutline,
       createOutline,
       trashOutline,
@@ -107,7 +114,10 @@ private activityFamiliaService = inject(ActivityFamiliaService);
       medicalOutline,
       waterOutline,
       timeOutline,
-      checkmarkCircleOutline
+      checkmarkCircleOutline,
+      fitnessOutline,
+      resizeOutline,
+      calendarOutline
     });
 
     await this.cargarBebe();

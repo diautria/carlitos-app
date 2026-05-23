@@ -69,148 +69,172 @@
   </div>
 </div>
 
-    <section class="seccion-card">
-      <div class="section-header">
-        <h2 class="titulo-seccion">
-          <ion-icon name="medical-outline" color="black"></ion-icon>
-          Medicamentos
-        </h2>
+    <ion-accordion-group
+      class="detalle-accordion-group"
+      multiple="true"
+      [value]="seccionesAbiertas">
 
-        <ion-button
-          fill="clear"
-          size="small"
-          color="success"
-          (click)="abrirModalMedicamento()">
-          <ion-icon name="add-circle" slot="icon-only"></ion-icon>
-        </ion-button>
-      </div>
-
-      <div
-        class="medicamentos-list"
-        *ngIf="bebe.medicamentos && bebe.medicamentos.length; else sinMedicamentos">
-
-        <div
-          class="medicamento-card"
-          *ngFor="let medicamento of bebe.medicamentos; let i = index"
-          [class.medicamento-inactivo]="!medicamento.activo">
-
-          <div class="medicamento-main">
-            <div class="medicamento-icon">
+      <ion-accordion value="medicamentos" class="seccion-card accordion-card">
+        <ion-item slot="header" lines="none" class="accordion-header-item">
+          <ion-label>
+            <h2 class="titulo-seccion">
               <ion-icon name="medical-outline"></ion-icon>
-            </div>
+              Medicamentos
+            </h2>
+            <p>
+              {{ bebe.medicamentos?.length || 0 }}
+              {{ (bebe.medicamentos?.length || 0) === 1 ? 'registrado' : 'registrados' }}
+            </p>
+          </ion-label>
 
-            <div class="medicamento-info">
-              <div class="medicamento-title-row">
-                <h3>{{ medicamento.nombre }}</h3>
+          <ion-button
+            slot="end"
+            fill="clear"
+            size="small"
+            color="success"
+            (click)="$event.stopPropagation(); abrirModalMedicamento()">
+            <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-item>
 
-                <span
-                  class="estado-pill"
-                  [class.estado-activo]="medicamento.activo"
-                  [class.estado-inactivo]="!medicamento.activo">
-                  {{ medicamento.activo ? 'Activo' : 'Pausado' }}
-                </span>
+        <div slot="content" class="accordion-content">
+          <div
+            class="medicamentos-list"
+            *ngIf="bebe.medicamentos && bebe.medicamentos.length; else sinMedicamentos">
+
+            <div
+              class="medicamento-card"
+              *ngFor="let medicamento of bebe.medicamentos; let i = index"
+              [class.medicamento-inactivo]="!medicamento.activo">
+
+              <div class="medicamento-main">
+                <div class="medicamento-icon">
+                  <ion-icon name="medical-outline"></ion-icon>
+                </div>
+
+                <div class="medicamento-info">
+                  <div class="medicamento-title-row">
+                    <h3>{{ medicamento.nombre }}</h3>
+
+                    <span
+                      class="estado-pill"
+                      [class.estado-activo]="medicamento.activo"
+                      [class.estado-inactivo]="!medicamento.activo">
+                      {{ medicamento.activo ? 'Activo' : 'Pausado' }}
+                    </span>
+                  </div>
+
+                  <p class="dosis">
+                    {{ medicamento.dosisGotas }} gotas
+                  </p>
+
+                  <p class="frecuencia">
+                    <ion-icon name="time-outline"></ion-icon>
+                    {{ obtenerTextoFrecuencia(medicamento) }}
+                  </p>
+
+                  <p class="observaciones" *ngIf="medicamento.observaciones">
+                    {{ medicamento.observaciones }}
+                  </p>
+                </div>
               </div>
 
-              <p class="dosis">
-                {{ medicamento.dosisGotas }} gotas
-              </p>
+              <div class="medicamento-actions">
+                <ion-toggle
+                  [checked]="medicamento.activo"
+                  color="medicamento"
+                  (ionChange)="cambiarEstadoMedicamento(i, $event.detail.checked)">
+                </ion-toggle>
 
-              <p class="frecuencia">
-                <ion-icon name="time-outline"></ion-icon>
-                {{ obtenerTextoFrecuencia(medicamento) }}
-              </p>
+                <ion-button
+                  fill="clear"
+                  color="primary"
+                  (click)="abrirModalEditarMedicamento(i, medicamento)">
+                  <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                </ion-button>
 
-              <p class="observaciones" *ngIf="medicamento.observaciones">
-                {{ medicamento.observaciones }}
-              </p>
+                <ion-button
+                  fill="clear"
+                  color="danger"
+                  (click)="eliminarMedicamento(i)">
+                  <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
             </div>
           </div>
 
-          <div class="medicamento-actions">
-           <ion-toggle
-  [checked]="medicamento.activo"
-  color="medicamento"
-  (ionChange)="cambiarEstadoMedicamento(i, $event.detail.checked)">
-</ion-toggle>
-
-            <ion-button
-              fill="clear"
-              color="primary"
-              (click)="abrirModalEditarMedicamento(i, medicamento)">
-              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-
-            <ion-button
-              fill="clear"
-              color="danger"
-              (click)="eliminarMedicamento(i)">
-              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-          </div>
+          <ng-template #sinMedicamentos>
+            <div class="empty-state medicamentos-empty">
+              <ion-icon name="medical-outline"></ion-icon>
+              <p>No hay medicamentos registrados.</p>
+              <small>Agrega los medicamentos tomados, dosis en gotas y horarios.</small>
+            </div>
+          </ng-template>
         </div>
-      </div>
+      </ion-accordion>
 
-      <ng-template #sinMedicamentos>
-        <div class="empty-state medicamentos-empty">
-          <ion-icon name="medical-outline"></ion-icon>
-          <p>No hay medicamentos registrados.</p>
-          <small>Agrega los medicamentos tomados, dosis en gotas y horarios.</small>
-        </div>
-      </ng-template>
-    </section>
+      <ion-accordion value="notas" class="seccion-card accordion-card">
+        <ion-item slot="header" lines="none" class="accordion-header-item">
+          <ion-label>
+            <h2 class="titulo-seccion">
+              <ion-icon name="document-text"></ion-icon>
+              Notas
+            </h2>
+            <p>
+              {{ bebe.notas?.length || 0 }}
+              {{ (bebe.notas?.length || 0) === 1 ? 'nota guardada' : 'notas guardadas' }}
+            </p>
+          </ion-label>
 
-    <section class="seccion-card">
-      <div class="section-header">
-        <h2 class="titulo-seccion">
-          <ion-icon name="document-text" color="black"></ion-icon>
-          Notas
-        </h2>
-
-        <ion-button
-          fill="clear"
-          size="small"
-          color="success"
-          (click)="abrirModalNota()">
-          <ion-icon name="add-circle" slot="icon-only"></ion-icon>
-        </ion-button>
-      </div>
-
-      <ion-list
-        class="notas-list"
-        lines="none"
-        *ngIf="bebe.notas && bebe.notas.length; else sinNotas">
-
-        <ion-item
-          lines="none"
-          *ngFor="let nota of bebe.notas; let i = index"
-          class="nota-item">
-
-          <ion-label>{{ nota }}</ion-label>
-
-          <ion-buttons slot="end">
-            <ion-button
-              fill="clear"
-              color="primary"
-              (click)="abrirModalEditarNota(i, nota)">
-              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-
-            <ion-button
-              fill="clear"
-              color="danger"
-              (click)="eliminarNota(i)">
-              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-          </ion-buttons>
+          <ion-button
+            slot="end"
+            fill="clear"
+            size="small"
+            color="success"
+            (click)="$event.stopPropagation(); abrirModalNota()">
+            <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+          </ion-button>
         </ion-item>
-      </ion-list>
 
-      <ng-template #sinNotas>
-        <div class="empty-state">
-          <p>No hay notas registradas.</p>
+        <div slot="content" class="accordion-content">
+          <ion-list
+            class="notas-list"
+            lines="none"
+            *ngIf="bebe.notas && bebe.notas.length; else sinNotas">
+
+            <ion-item
+              lines="none"
+              *ngFor="let nota of bebe.notas; let i = index"
+              class="nota-item">
+
+              <ion-label>{{ nota }}</ion-label>
+
+              <ion-buttons slot="end">
+                <ion-button
+                  fill="clear"
+                  color="primary"
+                  (click)="abrirModalEditarNota(i, nota)">
+                  <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+
+                <ion-button
+                  fill="clear"
+                  color="danger"
+                  (click)="eliminarNota(i)">
+                  <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-item>
+          </ion-list>
+
+          <ng-template #sinNotas>
+            <div class="empty-state">
+              <p>No hay notas registradas.</p>
+            </div>
+          </ng-template>
         </div>
-      </ng-template>
-    </section>
+      </ion-accordion>
+    </ion-accordion-group>
   </div>
 
   <ion-modal [isOpen]="showModalMedicamento" (didDismiss)="cerrarModalMedicamento()">

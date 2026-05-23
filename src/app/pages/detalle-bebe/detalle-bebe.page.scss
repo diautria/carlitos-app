@@ -164,6 +164,56 @@
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
 }
 
+.detalle-accordion-group {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.accordion-card {
+  display: block;
+  padding: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.accordion-card::part(native) {
+  background: #ffffff;
+}
+
+.accordion-header-item {
+  --background: transparent;
+  --padding-start: 16px;
+  --padding-end: 10px;
+  --inner-padding-end: 0;
+  --min-height: 74px;
+}
+
+.accordion-header-item ion-label {
+  margin: 12px 0;
+}
+
+.accordion-header-item ion-label > p {
+  margin: 5px 0 0 32px;
+  color: var(--ion-color-medium);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.accordion-header-item ion-button {
+  width: 38px;
+  height: 38px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --border-radius: 14px;
+  margin-right: 4px;
+}
+
+.accordion-content {
+  padding: 0 16px 16px;
+}
+
 .section-header {
   display: flex;
   align-items: center;
