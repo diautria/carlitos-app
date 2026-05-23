@@ -3,6 +3,29 @@
   padding-bottom: 32px;
 }
 
+.detalle-loading-state {
+  min-height: 55vh;
+  padding: 32px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--ion-color-medium);
+  text-align: center;
+}
+
+.detalle-loading-state ion-spinner {
+  width: 38px;
+  height: 38px;
+  color: var(--ion-color-primary);
+}
+
+.detalle-loading-state p {
+  margin: 0;
+  font-weight: 700;
+}
+
 .bebe-header {
   display: flex;
   flex-direction: column;

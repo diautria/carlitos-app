@@ -7,8 +7,9 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" *ngIf="bebe">
-  <div class="detalle-container">
+<ion-content [fullscreen]="true">
+  <ng-container *ngIf="!cargandoDetalle; else cargandoDetalleTemplate">
+  <div class="detalle-container" *ngIf="bebe">
     <div class="bebe-header">
       <ion-avatar class="bebe-avatar-large">
         <img
@@ -24,7 +25,7 @@
       <h1 class="bebe-nombre">{{ bebe.nombre || 'Sin nombre' }}</h1>
 
       <p class="bebe-edad">
-        {{ calcularEdadMeses(bebe.fechaNacimiento) }} meses
+        {{ edadMeses }} meses
       </p>
     </div>
 
@@ -104,7 +105,7 @@
 
             <div
               class="medicamento-card"
-              *ngFor="let medicamento of bebe.medicamentos; let i = index"
+              *ngFor="let medicamento of bebe.medicamentos; let i = index; trackBy: trackByMedicamentoId"
               [class.medicamento-inactivo]="!medicamento.activo">
 
               <div class="medicamento-main">
@@ -204,7 +205,7 @@
 
             <ion-item
               lines="none"
-              *ngFor="let nota of bebe.notas; let i = index"
+              *ngFor="let nota of bebe.notas; let i = index; trackBy: trackByNota"
               class="nota-item">
 
               <ion-label>{{ nota }}</ion-label>
@@ -236,6 +237,14 @@
       </ion-accordion>
     </ion-accordion-group>
   </div>
+  </ng-container>
+
+  <ng-template #cargandoDetalleTemplate>
+    <div class="detalle-loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando detalle...</p>
+    </div>
+  </ng-template>
 
   <ion-modal [isOpen]="showModalMedicamento" (didDismiss)="cerrarModalMedicamento()">
     <ng-template>

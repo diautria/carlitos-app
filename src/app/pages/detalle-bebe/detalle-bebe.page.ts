@@ -20,7 +20,8 @@ import {
   IonInput,
   IonToggle,
   IonAccordion,
-  IonAccordionGroup
+  IonAccordionGroup,
+  IonSpinner
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -70,7 +71,8 @@ import { AlertController } from '@ionic/angular';
     IonInput,
     IonToggle,
     IonAccordion,
-    IonAccordionGroup
+    IonAccordionGroup,
+    IonSpinner
   ],
   templateUrl: './detalle-bebe.page.html',
   styleUrls: ['./detalle-bebe.page.scss']
@@ -83,7 +85,10 @@ private alertController = inject(AlertController);
 private activityFamiliaService = inject(ActivityFamiliaService);
 
   bebe: BebeFamilia | null = null;
+  cargandoDetalle = true;
+  edadMeses = 0;
   seccionesAbiertas: string[] = [];
+  private cargandoBebe = false;
 
   showModalNota = false;
   nuevaNota = '';
@@ -120,7 +125,6 @@ private activityFamiliaService = inject(ActivityFamiliaService);
       calendarOutline
     });
 
-    await this.cargarBebe();
   }
 
   async ionViewWillEnter() {
@@ -128,14 +132,32 @@ private activityFamiliaService = inject(ActivityFamiliaService);
   }
 
   private async cargarBebe() {
+    if (this.cargandoBebe) {
+      return;
+    }
+
+    this.cargandoBebe = true;
+    this.cargandoDetalle = true;
+
     const bebeId = this.route.snapshot.paramMap.get('id');
 
     if (!bebeId) {
       this.bebe = null;
+      this.edadMeses = 0;
+      this.cargandoDetalle = false;
+      this.cargandoBebe = false;
       return;
     }
 
-    this.bebe = await this.bebeFamiliaService.obtenerBebePorIdAsync(bebeId);
+    try {
+      this.bebe = await this.bebeFamiliaService.obtenerBebePorIdAsync(bebeId);
+      this.edadMeses = this.bebe
+        ? this.calcularEdadMeses(this.bebe.fechaNacimiento)
+        : 0;
+    } finally {
+      this.cargandoDetalle = false;
+      this.cargandoBebe = false;
+    }
   }
 
   calcularEdadMeses(fechaNacimiento: string): number {
@@ -177,6 +199,14 @@ private activityFamiliaService = inject(ActivityFamiliaService);
     this.showModalNota = false;
     this.nuevaNota = '';
     this.indiceNotaEditando = null;
+  }
+
+  trackByMedicamentoId(_index: number, medicamento: MedicamentoBebe): string {
+    return medicamento.id;
+  }
+
+  trackByNota(_index: number, nota: string): string {
+    return nota;
   }
 
   abrirModalEditarNota(index: number, nota: string) {
