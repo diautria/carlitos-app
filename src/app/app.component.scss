@@ -25,6 +25,10 @@
     font-weight: 800;
     letter-spacing: -0.02em;
   }
+
+  --background: #ffffff;
+  --color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 ion-router-outlet.with-app-shell {
