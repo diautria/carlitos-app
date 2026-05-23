@@ -1,0 +1,171 @@
+﻿<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Estadísticas de {{ nombreBebe }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="stats-container" *ngIf="!cargando; else cargandoTemplate">
+    <div class="error-state" *ngIf="mensajeError; else estadisticasTemplate">
+      <ion-text color="danger">{{ mensajeError }}</ion-text>
+    </div>
+
+    <ng-template #estadisticasTemplate>
+      <ion-segment [(ngModel)]="segmento" (ionChange)="onSegmentoChange()" class="stats-segment">
+        <ion-segment-button value="resumen" aria-label="Resumen">
+          <ion-icon name="stats-chart-outline"></ion-icon>
+        </ion-segment-button>
+        <ion-segment-button value="leche" aria-label="Leche">
+          <ion-icon name="water-outline"></ion-icon>
+        </ion-segment-button>
+        <ion-segment-button value="panales" aria-label="Pañales">
+          <ion-icon name="leaf-outline"></ion-icon>
+        </ion-segment-button>
+        <ion-segment-button value="medicamentos" aria-label="Medicamentos">
+          <ion-icon name="medical-outline"></ion-icon>
+        </ion-segment-button>
+        <ion-segment-button value="sueno" aria-label="Sueño">
+          <ion-icon name="moon-outline"></ion-icon>
+        </ion-segment-button>
+      </ion-segment>
+
+      <div *ngIf="segmento === 'resumen'" class="tab-content">
+        <ion-card class="resumen-card">
+          <ion-card-header>
+            <ion-card-title>Hoy</ion-card-title>
+          </ion-card-header>
+          <ion-card-content class="resumen-grid">
+            <div class="stat-item stat-leche">
+              <div class="stat-icon">
+                <ion-icon name="water"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ resumenDiario.lecheHoy.actual }} oz</span>
+                <span class="stat-label">de {{ resumenDiario.lecheHoy.objetivo }} oz</span>
+              </div>
+            </div>
+
+            <div class="stat-item stat-panales">
+              <div class="stat-icon">
+                <ion-icon name="leaf"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ resumenDiario.panalesHoy }}</span>
+                <span class="stat-label">pañales</span>
+              </div>
+            </div>
+
+            <div class="stat-item stat-medicamentos">
+              <div class="stat-icon">
+                <ion-icon name="medical"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ resumenDiario.medicamentosHoy }}</span>
+                <span class="stat-label">medicinas</span>
+              </div>
+            </div>
+
+            <div class="stat-item stat-sueno">
+              <div class="stat-icon">
+                <ion-icon name="moon"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ formatearSueno(resumenDiario.suenoHoy) }}</span>
+                <span class="stat-label">de sueño</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="progress-card">
+          <ion-card-header>
+            <ion-card-title>Consumo de leche hoy</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="progress-container">
+              <div class="progress-label">
+                <span>{{ resumenDiario.lecheHoy.actual }} oz</span>
+                <span class="progress-percent">{{ getPorcentajeLecheHoy() }}%</span>
+              </div>
+              <ion-progress-bar [value]="getProgresoLecheHoy()" color="primary"></ion-progress-bar>
+              <div class="progress-target">Objetivo: {{ resumenDiario.lecheHoy.objetivo }} oz</div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="stats-card chart-card">
+          <ion-card-header>
+            <ion-card-title>Distribución últimos 7 días</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="chart-container doughnut-container">
+              <canvas #distribucionChart></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div *ngIf="segmento === 'leche'" class="tab-content">
+        <ion-card class="stats-card chart-card">
+          <ion-card-header>
+            <ion-card-title>Leche últimos 7 días</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="chart-container">
+              <canvas #lecheChart></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div *ngIf="segmento === 'panales'" class="tab-content">
+        <ion-card class="stats-card chart-card">
+          <ion-card-header>
+            <ion-card-title>Pañales últimos 7 días</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="chart-container doughnut-container">
+              <canvas #panalesChart></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div *ngIf="segmento === 'medicamentos'" class="tab-content">
+        <ion-card class="stats-card chart-card">
+          <ion-card-header>
+            <ion-card-title>Medicamentos últimos 7 días</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="chart-container">
+              <canvas #medicamentosChart></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div *ngIf="segmento === 'sueno'" class="tab-content">
+        <ion-card class="stats-card chart-card">
+          <ion-card-header>
+            <ion-card-title>Sueño últimos 7 días</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="chart-container">
+              <canvas #suenoChart></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </ng-template>
+  </div>
+
+  <ng-template #cargandoTemplate>
+    <div class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando estadísticas...</p>
+    </div>
+  </ng-template>
+</ion-content>

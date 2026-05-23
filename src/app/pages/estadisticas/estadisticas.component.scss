@@ -1,0 +1,287 @@
+﻿.stats-container {
+  padding: 16px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100%;
+}
+
+.loading-state,
+.error-state {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.loading-state {
+  color: #667085;
+  font-weight: 600;
+}
+
+.stats-segment {
+  margin-bottom: 20px;
+  --background: rgba(255, 255, 255, 0.9);
+  --indicator-color: rgba(var(--ion-color-primary-rgb), 0.12);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+ion-segment-button {
+  min-width: 0;
+  --color: #667085;
+  --color-checked: var(--ion-color-primary);
+  --indicator-color: rgba(var(--ion-color-primary-rgb), 0.12);
+  font-weight: 600;
+  color: #666;
+
+  ion-icon {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  &.segment-button-checked {
+    color: var(--ion-color-primary);
+    font-weight: 800;
+  }
+}
+
+.tab-content {
+  animation: fadeIn 0.25s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.resumen-card {
+  background:
+    radial-gradient(circle at top left, rgba(var(--ion-color-primary-rgb), 0.12), transparent 34%),
+    #ffffff;
+  color: #25324b;
+  border-radius: 16px;
+  border: 1px solid rgba(37, 50, 75, 0.08);
+  margin-bottom: 20px;
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.08);
+
+  ion-card-header {
+    padding: 16px;
+    border-bottom: 1px solid rgba(37, 50, 75, 0.08);
+  }
+
+  ion-card-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #25324b;
+  }
+}
+
+.resumen-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px;
+}
+
+.stat-item {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(37, 50, 75, 0.08);
+  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.06);
+}
+
+.stat-icon {
+  min-width: 42px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  color: var(--ion-color-primary);
+  font-size: 20px;
+  text-align: center;
+}
+
+.stat-leche .stat-icon {
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  color: var(--ion-color-primary);
+}
+
+.stat-panales .stat-icon {
+  background: rgba(var(--ion-color-success-rgb), 0.16);
+  color: var(--ion-color-success-shade);
+}
+
+.stat-medicamentos .stat-icon {
+  background: rgba(var(--ion-color-medicamento-rgb), 0.13);
+  color: var(--ion-color-medicamento);
+}
+
+.stat-sueno .stat-icon {
+  background: rgba(var(--ion-color-sueno-rgb), 0.14);
+  color: var(--ion-color-sueno);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #25324b;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #667085;
+  font-weight: 500;
+}
+
+.progress-card {
+  border-radius: 16px;
+  border: none;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  ion-card-header {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  ion-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #666;
+
+  span:first-child {
+    font-size: 16px;
+    color: #333;
+  }
+}
+
+.progress-percent {
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-tint) 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+ion-progress-bar {
+  --progress-background: linear-gradient(90deg, var(--ion-color-primary) 0%, var(--ion-color-primary-tint) 100%);
+  height: 8px;
+  border-radius: 4px;
+}
+
+.progress-target {
+  font-size: 12px;
+  color: #999;
+  text-align: right;
+  font-weight: 500;
+}
+
+.stats-card {
+  border-radius: 16px;
+  border: none;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: white;
+  overflow: hidden;
+
+  ion-card-header {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+  }
+
+  ion-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    letter-spacing: 0.3px;
+  }
+
+  ion-card-content {
+    padding: 18px;
+  }
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+}
+
+.doughnut-container {
+  min-height: 300px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+  .stats-container {
+    padding: 12px;
+  }
+
+  .resumen-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stats-segment {
+    margin-bottom: 16px;
+  }
+
+  .stat-item {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .stat-icon {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    font-size: 16px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .chart-container {
+    min-height: 280px;
+  }
+}

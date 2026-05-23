@@ -21,7 +21,9 @@ import {
   IonToggle,
   IonAccordion,
   IonAccordionGroup,
-  IonSpinner
+  IonSpinner,
+  IonCard,
+  IonCardContent
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -39,7 +41,15 @@ import {
   medicalOutline,
   waterOutline,
   timeOutline,
-  checkmarkCircleOutline, fitnessOutline, resizeOutline, calendarOutline } from 'ionicons/icons';
+  checkmarkCircleOutline,
+  fitnessOutline,
+  resizeOutline,
+  calendarOutline,
+  barChart,
+  barChartOutline,
+  chevronForwardOutline,
+  statsChartOutline
+} from 'ionicons/icons';
 
 import { BebeFamiliaService } from '../../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../../models/bebe-familia.model';
@@ -72,7 +82,9 @@ import { AlertController } from '@ionic/angular';
     IonToggle,
     IonAccordion,
     IonAccordionGroup,
-    IonSpinner
+    IonSpinner,
+    IonCard,
+    IonCardContent
   ],
   templateUrl: './detalle-bebe.page.html',
   styleUrls: ['./detalle-bebe.page.scss']
@@ -122,7 +134,11 @@ private activityFamiliaService = inject(ActivityFamiliaService);
       checkmarkCircleOutline,
       fitnessOutline,
       resizeOutline,
-      calendarOutline
+      calendarOutline,
+      barChart,
+      barChartOutline,
+      chevronForwardOutline,
+      statsChartOutline
     });
 
   }

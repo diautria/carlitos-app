@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { ModalController } from '@ionic/angular/standalone';
 import { ActividadFormModalComponent } from '../components/actividad-form-modal/actividad-form-modal.component';
 import {
@@ -40,6 +41,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   addCircle,
+  barChartOutline,
   statsChartOutline,
   water,
   leaf,
@@ -129,6 +131,7 @@ interface MedicamentoDisponible extends MedicamentoBebe {
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     DatePipe,
     IonHeader,
     IonToolbar,
@@ -250,7 +253,7 @@ oldestActivityDate: Date | null = null;
     private notificacionMedicamentosService: NotificacionMedicamentosService,
     private modalController: ModalController
   ) {
-    addIcons({addCircle,statsChartOutline,filterOutline,waterOutline,leafOutline,medical,moonOutline,createOutline,trashOutline,leaf,moon,close,water,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline,medicalOutline});
+    addIcons({addCircle,barChartOutline,statsChartOutline,filterOutline,waterOutline,leafOutline,medical,moonOutline,createOutline,trashOutline,leaf,moon,close,water,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline,medicalOutline});
   }
 
   async ngOnInit() {
