@@ -53,85 +53,8 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.bebe-card {
-  min-width: 140px;
-  max-width: 140px;
-  flex: 0 0 140px;
-  margin: 0;
-  border-radius: 20px;
-  position: relative;
-  cursor: pointer;
-  scroll-snap-align: start;
-  border: 2px solid transparent;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease;
-
-  ion-card-header {
-    padding: 10px 8px 4px;
-    text-align: center;
-  }
-
-  ion-card-content {
-    padding: 4px 8px 9px;
-  }
-}
-
 .bebe-card:active {
   transform: scale(0.98);
-}
-
-.bebe-card-activo {
-  border-color: #6c63ff;
-  box-shadow: 0 8px 22px rgba(108, 99, 255, 0.22);
-  transform: translateY(-2px);
-}
-
-.bebe-activo-chip {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: #6c63ff;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.bebe-avatar-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 5px;
-}
-
-.bebe-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #f2f0ff;
-  border: 2px solid rgba(108, 99, 255, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bebe-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.bebe-avatar ion-icon {
-  font-size: 32px;
-  color: #6c63ff;
-}
-
-.bebe-nombre {
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 1.15;
-  color: var(--ion-color-dark);
 }
 
 .empty-state {
@@ -739,4 +662,74 @@ ion-progress-bar {
 
 .seccion-bebes.unico-bebe .bebe-action-button ion-icon {
   font-size: 18px;
+}
+
+/* Bebés más compactos */
+.seccion-bebes {
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+}
+
+.seccion-bebes .bebe-card {
+  min-width: 122px;
+  max-width: 122px;
+  min-height: 122px;
+  flex-basis: 122px;
+}
+
+.seccion-bebes .bebe-card ion-card-header {
+  padding: 13px 8px 8px;
+}
+
+.seccion-bebes .bebe-avatar {
+  width: 42px;
+  height: 42px;
+}
+
+.seccion-bebes .bebe-avatar ion-icon {
+  font-size: 27px;
+}
+
+.seccion-bebes .bebe-actions {
+  gap: 3px;
+  margin: 3px 0;
+}
+
+.seccion-bebes .bebe-action-button {
+  width: 24px;
+  height: 24px;
+}
+
+.seccion-bebes .bebe-action-button ion-icon {
+  font-size: 14px;
+}
+
+.seccion-bebes .bebe-edad-card {
+  margin-top: 2px;
+}
+
+.seccion-bebes .agregar-bebe-card ion-card-content {
+  min-height: 122px;
+}
+
+.seccion-bebes .agregar-bebe-solo-icono {
+  width: 42px;
+  height: 42px;
+}
+
+.seccion-bebes .agregar-bebe-solo-icono ion-icon {
+  font-size: 27px;
+}
+
+.seccion-bebes.unico-bebe .bebe-card {
+  min-height: 128px;
+}
+
+.seccion-bebes.unico-bebe .bebe-card ion-card-header {
+  padding: 14px 12px 10px;
+}
+
+.seccion-bebes.unico-bebe .bebe-avatar {
+  width: 52px;
+  height: 52px;
 }
