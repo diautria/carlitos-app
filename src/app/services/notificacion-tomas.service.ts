@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { ActivityFamilia } from '../models/activity-familia.model';
 import { BebeFamilia } from '../models/bebe-familia.model';
@@ -10,6 +10,7 @@ import { ActivityFamiliaService } from './activity-familia.service';
 })
 export class NotificacionTomasService {
   private readonly notificationBaseId = 100000;
+  private readonly minutosAntes = 15;
 
   constructor(
     private bebeFamiliaService: BebeFamiliaService,
@@ -47,14 +48,15 @@ export class NotificacionTomasService {
 
     const tomasLeche = actividades
       .filter(a => a.type === 'toma-leche')
-      .sort((a, b) => {
-        return new Date(b.time).getTime() - new Date(a.time).getTime();
-      });
+      .sort((a, b) =>
+        this.parseFechaLocal(b.time).getTime() -
+        this.parseFechaLocal(a.time).getTime()
+      );
 
     const ultimaToma = tomasLeche[0];
 
     if (!ultimaToma) {
-      console.log('No hay tomas para programar notificación:', bebe.nombre);
+      console.log('No hay tomas para programar notificacion:', bebe.nombre);
       return;
     }
 
@@ -68,18 +70,33 @@ export class NotificacionTomasService {
 
     const fechaUltimaToma = this.parseFechaLocal(ultimaToma.time);
 
+    if (Number.isNaN(fechaUltimaToma.getTime())) {
+      return;
+    }
+
     const fechaProximaToma = new Date(
       fechaUltimaToma.getTime() + horasEntreTomas * 60 * 60 * 1000
     );
 
     const fechaNotificacion = new Date(
-      fechaProximaToma.getTime() - 15 * 60 * 1000
+      fechaProximaToma.getTime() - this.minutosAntes * 60 * 1000
     );
 
     const ahora = new Date();
 
     if (fechaNotificacion <= ahora) {
-      console.log('No se programa porque la notificación ya pasó:', {
+      if (fechaProximaToma > ahora) {
+        await this.programarNotificacion(
+          notificationId,
+          bebe,
+          new Date(ahora.getTime() + 1000),
+          `Faltan menos de ${this.minutosAntes} minutos para la proxima toma de leche.`
+        );
+
+        return;
+      }
+
+      console.log('No se programa porque la notificacion ya paso:', {
         bebe: bebe.nombre,
         fechaUltimaToma,
         fechaProximaToma,
@@ -88,21 +105,14 @@ export class NotificacionTomasService {
       return;
     }
 
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: notificationId,
-          title: `Próxima toma de ${bebe.nombre || 'tu bebé'}`,
-          body: 'Faltan 15 minutos para la próxima toma de leche.',
-          schedule: {
-            at: fechaNotificacion,
-            allowWhileIdle: true
-          }
-        }
-      ]
-    });
+    await this.programarNotificacion(
+      notificationId,
+      bebe,
+      fechaNotificacion,
+      `Faltan ${this.minutosAntes} minutos para la proxima toma de leche.`
+    );
 
-    console.log('Notificación de toma programada:', {
+    console.log('Notificacion de toma programada:', {
       bebe: bebe.nombre,
       notificationId,
       ultimaToma: fechaUltimaToma,
@@ -150,6 +160,27 @@ export class NotificacionTomasService {
     });
   }
 
+  private async programarNotificacion(
+    notificationId: number,
+    bebe: BebeFamilia,
+    fechaNotificacion: Date,
+    body: string
+  ): Promise<void> {
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: notificationId,
+          title: `Proxima toma de ${bebe.nombre || 'tu bebe'}`,
+          body,
+          schedule: {
+            at: fechaNotificacion,
+            allowWhileIdle: true
+          }
+        }
+      ]
+    });
+  }
+
   private obtenerNotificationIdBebe(bebeId: string): number {
     return this.notificationBaseId + this.hashStringToNumber(bebeId, 99999);
   }
@@ -179,26 +210,35 @@ export class NotificacionTomasService {
 
   private parseFechaLocal(value: string): Date {
     if (!value) {
-      return new Date();
+      return new Date(NaN);
     }
 
-    const cleanValue = value.replace('Z', '');
-    const [fecha, hora] = cleanValue.split('T');
+    const tieneZonaHoraria = /(?:z|[+-]\d{2}:\d{2})$/i.test(value);
+
+    if (tieneZonaHoraria) {
+      return new Date(value);
+    }
+
+    const [fecha, hora = '00:00'] = value.split('T');
 
     if (!fecha || !hora) {
       return new Date(value);
     }
 
     const [year, month, day] = fecha.split('-').map(Number);
-    const [hours, minutes] = hora.split(':').map(Number);
+    const [hours = '0', minutes = '0', seconds = '0'] = hora.split(':');
+
+    if (!year || !month || !day) {
+      return new Date(value);
+    }
 
     return new Date(
       year,
       month - 1,
       day,
-      hours || 0,
-      minutes || 0,
-      0,
+      Number(hours) || 0,
+      Number(minutes) || 0,
+      Number(seconds.split('.')[0]) || 0,
       0
     );
   }
