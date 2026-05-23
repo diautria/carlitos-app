@@ -200,17 +200,18 @@
         class="actividades-list"
         *ngIf="actividadesRecientes.length > 0; else sinActividadesHoy">
 
-        <ion-item
+        <div
           *ngFor="let actividad of actividadesRecientesVista; trackBy: trackByActividadId"
           class="actividad-item">
 
-          <ion-icon
-            [name]="actividad.icono"
-            [color]="actividad.color"
-            slot="start">
-          </ion-icon>
+          <div class="actividad-icono-wrap">
+            <ion-icon
+              [name]="actividad.icono"
+              [color]="actividad.color">
+            </ion-icon>
+          </div>
 
-          <ion-label>
+          <div class="actividad-contenido">
             <h3 class="actividad-titulo">
               {{ actividad.titulo }}
             </h3>
@@ -218,12 +219,12 @@
             <p class="actividad-desc">
               {{ actividad.descripcion }}
             </p>
+          </div>
 
-            <p class="actividad-fecha">
-              {{ actividad.time | date:'HH:mm' }}
-            </p>
-          </ion-label>
-        </ion-item>
+          <time class="actividad-fecha">
+            {{ actividad.time | date:'HH:mm' }}
+          </time>
+        </div>
       </ion-list>
 
       <ng-template #sinActividadesHoy>

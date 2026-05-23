@@ -209,33 +209,70 @@ ion-progress-bar {
 }
 
 .actividades-list {
+  padding: 2px 0 0;
   background: transparent;
-  border-radius: 16px;
-  overflow: hidden;
+  display: grid;
+  gap: 9px;
+}
 
-  ion-item {
-    --background: var(--ion-color-light);
-    --padding-start: 16px;
-    --padding-end: 8px;
-    margin-bottom: 8px;
-    border-radius: 12px;
-  }
+.actividad-item {
+  min-height: 66px;
+  padding: 11px 12px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid rgba(34, 39, 69, 0.055);
+  box-shadow: 0 8px 20px rgba(28, 35, 70, 0.055);
+  display: grid;
+  grid-template-columns: 43px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.actividad-icono-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actividad-icono-wrap ion-icon {
+  font-size: 22px;
+}
+
+.actividad-contenido {
+  min-width: 0;
 }
 
 .actividad-titulo {
-  font-weight: 600;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
   color: var(--ion-color-dark);
 }
 
 .actividad-desc {
+  margin: 4px 0 0;
   color: var(--ion-color-medium);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .actividad-fecha {
-  color: var(--ion-color-secondary);
-  font-size: 0.75rem;
-  margin-top: 4px;
+  align-self: start;
+  margin-top: 2px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(40, 46, 80, 0.06);
+  color: #555f7d;
+  font-size: 0.72rem;
+  font-weight: 850;
+  white-space: nowrap;
 }
 
 .seccion-bebes::-webkit-scrollbar {
