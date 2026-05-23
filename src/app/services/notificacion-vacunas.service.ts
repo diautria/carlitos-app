@@ -155,11 +155,11 @@ export class NotificacionVacunasService {
           id: notificationId,
           title: `Próxima vacuna de ${bebe.nombre || 'tu bebé'}`,
           body,
+          smallIcon: 'ic_notification_app',
           schedule: {
             at: fechaNotificacion,
             allowWhileIdle: true
           },
-          smallIcon: 'ic_stat_icon_config_sample',
           extra: {
             bebeId: bebe.id
           }

@@ -90,6 +90,7 @@ export class NotificacionSuenosService {
           id: notificationId,
           title: `Hora de dormir para ${config.nombre || 'tu bebé'}`,
           body: 'Ya es hora de que vuelva a dormir.',
+          smallIcon: 'ic_notification_app',
           schedule: {
             at: fechaProximoSueno,
             allowWhileIdle: true

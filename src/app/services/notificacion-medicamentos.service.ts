@@ -42,11 +42,11 @@ export class NotificacionMedicamentosService {
         id: this.obtenerNotificationId(medicamento.id),
         title: 'Medicamento de ' + nombreBebe,
         body: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
+        smallIcon: 'ic_notification_app',
         schedule: {
           at: fechaNotificacion,
           allowWhileIdle: true
         },
-        smallIcon: 'ic_stat_icon_config_sample',
         extra: {
           bebeId,
           medicamentoId: medicamento.id
@@ -96,11 +96,11 @@ export class NotificacionMedicamentosService {
           id: this.obtenerNotificationId(medicamento.id),
           title: 'Medicamento de ' + nombreBebe,
           body: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
+          smallIcon: 'ic_notification_app',
           schedule: {
             at: fechaNotificacion,
             allowWhileIdle: true
           },
-          smallIcon: 'ic_stat_icon_config_sample',
           extra: {
             bebeId,
             medicamentoId: medicamento.id

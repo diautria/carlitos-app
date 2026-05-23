@@ -172,6 +172,7 @@ export class NotificacionTomasService {
           id: notificationId,
           title: `Próxima toma de ${bebe.nombre || 'tu bebé'}`,
           body,
+          smallIcon: 'ic_notification_app',
           schedule: {
             at: fechaNotificacion,
             allowWhileIdle: true

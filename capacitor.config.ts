@@ -6,6 +6,12 @@ const config: CapacitorConfig = {
   appId: 'com.diautria.carlitos',
   appName: 'Carlitos',
   webDir: 'www',
+  plugins: {
+    LocalNotifications: {
+      smallIcon: 'ic_notification_app',
+      iconColor: '#6c63ff'
+    }
+  }
 };
 
 export default config;
