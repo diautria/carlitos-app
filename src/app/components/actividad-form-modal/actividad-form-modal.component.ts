@@ -41,6 +41,7 @@ import { ActivityFamiliaService } from '../../services/activity-familia.service'
 import { BebeFamiliaService } from '../../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../../models/bebe-familia.model';
 import { NotificacionMedicamentosService } from '../../services/notificacion-medicamentos.service';
+import { NotificacionSuenosService } from '../../services/notificacion-suenos.service';
 
 interface MedicamentoDisponible extends MedicamentoBebe {
   bebeId: string;
@@ -79,6 +80,7 @@ export class ActividadFormModalComponent implements OnInit {
   private activityFamiliaService = inject(ActivityFamiliaService);
   private bebeFamiliaService = inject(BebeFamiliaService);
   private notificacionMedicamentosService = inject(NotificacionMedicamentosService);
+  private notificacionSuenosService = inject(NotificacionSuenosService);
 
   isEdit = false;
   formType: ActivityFamiliaType = 'toma-leche';
@@ -357,6 +359,10 @@ modalLista = false;
           medicamentoAdministrado,
           actividades
         );
+      }
+
+      if (this.formType === 'sueno') {
+        await this.notificacionSuenosService.programarProximoSuenoBebeActivo();
       }
 
       await this.modalController.dismiss({

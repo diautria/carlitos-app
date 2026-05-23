@@ -64,6 +64,7 @@ import {
 } from '../models/activity-familia.model';
 
 import { NotificacionTomasService } from '../services/notificacion-tomas.service';
+import { NotificacionSuenosService } from '../services/notificacion-suenos.service';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../models/bebe-familia.model';
 import { NotificacionMedicamentosService } from '../services/notificacion-medicamentos.service';
@@ -244,6 +245,7 @@ oldestActivityDate: Date | null = null;
     private activityFamiliaService: ActivityFamiliaService,
     private alertController: AlertController,
     private notificacionTomasService: NotificacionTomasService,
+    private notificacionSuenosService: NotificacionSuenosService,
     private bebeFamiliaService: BebeFamiliaService,
     private notificacionMedicamentosService: NotificacionMedicamentosService,
     private modalController: ModalController
@@ -393,6 +395,7 @@ oldestActivityDate: Date | null = null;
     await this.notificacionTomasService.programarNotificacionProximaToma(
       this.activities
     );
+    await this.notificacionSuenosService.programarProximoSuenoBebeActivo();
   } catch (error: any) {
     console.error('Error cargando actividades', error);
 

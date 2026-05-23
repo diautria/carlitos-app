@@ -18,6 +18,7 @@ import { addIcons } from 'ionicons';
 import { settingsOutline, happyOutline, peopleOutline } from 'ionicons/icons';
 
 import { BebeFamiliaService } from '../services/bebe-familia.service';
+import { NotificacionSuenosService } from '../services/notificacion-suenos.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -43,6 +44,7 @@ import { Router } from '@angular/router';
 })
 export class Tab3Page implements OnInit {
   private bebeFamiliaService = inject(BebeFamiliaService);
+  private notificacionSuenosService = inject(NotificacionSuenosService);
 
   tiempoEntreTomasHoras = 3;
   tiempoEntreSuenosHoras = 2;
@@ -140,6 +142,7 @@ export class Tab3Page implements OnInit {
         tiempoEntreSuenosHoras: Number(this.tiempoEntreSuenosHoras),
         onzasDiariasObjetivo: Number(this.onzasDiariasObjetivo)
       });
+      await this.notificacionSuenosService.programarProximoSuenoBebeActivo();
 
       this.tiempoEntreTomasOriginal = Number(this.tiempoEntreTomasHoras);
       this.tiempoEntreSuenosOriginal = Number(this.tiempoEntreSuenosHoras);

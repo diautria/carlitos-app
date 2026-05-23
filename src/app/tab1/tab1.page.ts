@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonAvatar, IonLabel, IonItem, IonList, IonIcon, IonProgressBar, IonButton,
@@ -19,6 +19,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivityFamilia } from '../models/activity-familia.model';
 import { ActivityFamiliaService } from '../services/activity-familia.service';
 import { NotificacionVacunasService } from '../services/notificacion-vacunas.service';
+import { NotificacionSuenosService } from '../services/notificacion-suenos.service';
 import { Router } from '@angular/router';
 import { FamiliaMiembrosService } from '../services/familia-miembros.service';
 import { ModalController } from '@ionic/angular/standalone';
@@ -70,6 +71,7 @@ export class Tab1Page implements OnInit, OnDestroy {
   private activityFamiliaService = inject(ActivityFamiliaService);
   private bebeFamiliaService = inject(BebeFamiliaService);
 private notificacionVacunasService = inject(NotificacionVacunasService);
+private notificacionSuenosService = inject(NotificacionSuenosService);
 private router = inject(Router);
 
 bebes: BebeFamilia[] = [];
@@ -192,7 +194,7 @@ private async cargarVistaInicialTab1() {
       await this.activityFamiliaService.getByDay(new Date())
     );
   } catch (error) {
-    console.error('Error cargando actividades recientes del bebé activo', error);
+    console.error('Error cargando actividades recientes del bebÃ© activo', error);
     this.actividadesRecientes = [];
     this.actividadesRecientesVista = [];
   }
@@ -204,7 +206,7 @@ private async cargarVistaInicialTab1() {
     }
 
     if (actividad.type === 'cambio-panal') {
-      return 'Cambio de pañal';
+      return 'Cambio de paÃ±al';
     }
 
     if (actividad.type === 'medicamento') {
@@ -212,7 +214,7 @@ private async cargarVistaInicialTab1() {
     }
 
     if (actividad.type === 'sueno') {
-    return (actividad as any).fin ? 'Sueño' : 'Sueño en curso';
+    return (actividad as any).fin ? 'SueÃ±o' : 'SueÃ±o en curso';
   }
 
     return 'Actividad';
@@ -220,12 +222,12 @@ private async cargarVistaInicialTab1() {
 
   getDescripcionActividad(actividad: ActivityFamilia): string {
     if (actividad.type === 'toma-leche') {
-      const tipoLeche = actividad.esLecheMaterna ? 'materna' : 'fórmula';
+      const tipoLeche = actividad.esLecheMaterna ? 'materna' : 'fÃ³rmula';
       return `${actividad.cantidadOnzas} oz - Leche ${tipoLeche}`;
     }
 
     if (actividad.type === 'cambio-panal') {
-      return actividad.tieneHeces ? 'Con popó' : 'Solo pipí';
+      return actividad.tieneHeces ? 'Con popÃ³' : 'Solo pipÃ­';
     }
 
     if (actividad.type === 'medicamento') {
@@ -243,7 +245,7 @@ private async cargarVistaInicialTab1() {
       })}`;
     }
 
-    return `Duró ${this.formatearDuracion(Number(sueno.duracionMinutos || 0))}`;
+    return `DurÃ³ ${this.formatearDuracion(Number(sueno.duracionMinutos || 0))}`;
   }
 
     return '';
@@ -256,7 +258,7 @@ private async cargarVistaInicialTab1() {
 
     this.onzasDiariasObjetivo = config.onzasDiariasObjetivo;
   } catch (error) {
-    console.error('Error cargando meta de onzas del bebé activo', error);
+    console.error('Error cargando meta de onzas del bebÃ© activo', error);
     this.onzasDiariasObjetivo = 24;
   }
 
@@ -268,7 +270,7 @@ private async cargarVistaInicialTab1() {
     try {
       actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
     } catch (error) {
-      console.error('Error cargando progreso de onzas del bebé activo', error);
+      console.error('Error cargando progreso de onzas del bebÃ© activo', error);
       actividadesHoy = [];
     }
   }
@@ -304,7 +306,7 @@ private async cargarActividadesYProgresoDeHoy() {
   try {
     actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
   } catch (error) {
-    console.error('Error cargando actividades del bebé activo', error);
+    console.error('Error cargando actividades del bebÃ© activo', error);
   }
 
   this.actualizarActividadesRecientes(actividadesHoy);
@@ -348,7 +350,7 @@ private async cargarActividadesYProgresoDeHoy() {
           }
         },
         error: error => {
-          console.error('Error cargando beb�s de la familia', error);
+          console.error('Error cargando bebés de la familia', error);
           this.bebes = [];
           this.bebesVista = [];
           finalizarPrimeraCarga();
@@ -356,7 +358,7 @@ private async cargarActividadesYProgresoDeHoy() {
       });
     });
   } catch (error) {
-    console.error('Error cargando datos de beb�s', error);
+    console.error('Error cargando datos de bebés', error);
     this.bebes = [];
     this.bebesVista = [];
   }
@@ -412,18 +414,18 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
 
   const lineas: string[] = [];
 
-  lineas.push(`Actividades del bebé - ${fecha}`);
+  lineas.push(`Actividades del bebÃ© - ${fecha}`);
   lineas.push('');
   lineas.push('Resumen:');
   lineas.push(`- Tomas: ${tomas.length}`);
   lineas.push(`- Total leche: ${totalOnzas} oz`);
-  lineas.push(`- Fórmula: ${totalFormula} oz`);
+  lineas.push(`- FÃ³rmula: ${totalFormula} oz`);
   lineas.push(`- Materna: ${totalMaterna} oz`);
-  lineas.push(`- Pañales: ${panales.length}`);
-  lineas.push(`- Con popó: ${totalPopo}`);
-  lineas.push(`- Solo pipí: ${totalPipi}`);
+  lineas.push(`- PaÃ±ales: ${panales.length}`);
+  lineas.push(`- Con popÃ³: ${totalPopo}`);
+  lineas.push(`- Solo pipÃ­: ${totalPipi}`);
   lineas.push(`- Medicamentos: ${medicamentos.length}`);
-  lineas.push(`- Sueños: ${suenos.length}`);
+  lineas.push(`- SueÃ±os: ${suenos.length}`);
 
   if (totalMinutosSueno > 0) {
     lineas.push(`- Tiempo dormido: ${this.formatearMinutosSueno(totalMinutosSueno)}`);
@@ -444,15 +446,15 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
 
       if (activity.type === 'toma-leche') {
         const cantidad = Number((activity as any).cantidadOnzas || 0);
-        const tipoLeche = (activity as any).esLecheMaterna ? 'materna' : 'fórmula';
+        const tipoLeche = (activity as any).esLecheMaterna ? 'materna' : 'fÃ³rmula';
 
-        lineas.push(`- ${hora} · Toma de leche · ${cantidad} oz · ${tipoLeche}`);
+        lineas.push(`- ${hora} Â· Toma de leche Â· ${cantidad} oz Â· ${tipoLeche}`);
       }
 
       if (activity.type === 'cambio-panal') {
-        const tipoPanal = (activity as any).tieneHeces ? 'con popó' : 'solo pipí';
+        const tipoPanal = (activity as any).tieneHeces ? 'con popÃ³' : 'solo pipÃ­';
 
-        lineas.push(`- ${hora} · Cambio de pañal · ${tipoPanal}`);
+        lineas.push(`- ${hora} Â· Cambio de paÃ±al Â· ${tipoPanal}`);
       }
 
       if (activity.type === 'medicamento') {
@@ -468,14 +470,14 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
 
         const observaciones = (activity as any).observaciones;
 
-        let linea = `- ${hora} · Medicamento · ${nombreMedicamento}`;
+        let linea = `- ${hora} Â· Medicamento Â· ${nombreMedicamento}`;
 
         if (dosis !== null && dosis !== undefined && dosis !== '') {
-          linea += ` · ${dosis} gotas`;
+          linea += ` Â· ${dosis} gotas`;
         }
 
         if (observaciones) {
-          linea += ` · ${observaciones}`;
+          linea += ` Â· ${observaciones}`;
         }
 
         lineas.push(linea);
@@ -486,18 +488,18 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
         const horaFin = this.obtenerHoraSuenoFin(activity);
         const duracionMinutos = this.obtenerDuracionSuenoMinutos(activity);
 
-        let linea = `- ${hora} · Sueño`;
+        let linea = `- ${hora} Â· SueÃ±o`;
 
         if (horaInicio && horaFin) {
-          linea += ` · ${horaInicio} a ${horaFin}`;
+          linea += ` Â· ${horaInicio} a ${horaFin}`;
         } else if (horaInicio) {
-          linea += ` · inició ${horaInicio}`;
+          linea += ` Â· iniciÃ³ ${horaInicio}`;
         }
 
         if (duracionMinutos > 0) {
-          linea += ` · ${this.formatearMinutosSueno(duracionMinutos)}`;
+          linea += ` Â· ${this.formatearMinutosSueno(duracionMinutos)}`;
         } else {
-          linea += ` · en curso`;
+          linea += ` Â· en curso`;
         }
 
         lineas.push(linea);
@@ -611,12 +613,12 @@ async seleccionarBebe(bebe: BebeFamilia) {
     await this.bebeFamiliaService.seleccionarBebeActivo(bebe.id);
     this.bebeActivoId = bebe.id;
 
-    // Más adelante, cuando las actividades estén en Firebase,
-    // acá recargaremos actividades del bebé seleccionado.
+    // MÃ¡s adelante, cuando las actividades estÃ©n en Firebase,
+    // acÃ¡ recargaremos actividades del bebÃ© seleccionado.
     await this.cargarActividadesYProgresoDeHoy();
     await this.cargarSuenoActivo();
   } catch (error) {
-    console.error('Error seleccionando bebé activo', error);
+    console.error('Error seleccionando bebÃ© activo', error);
   }
 }
 
@@ -683,12 +685,12 @@ async guardarBebe() {
   const nombre = this.bebeForm.nombre?.trim();
 
   if (!nombre) {
-    this.mensajeBebe = 'Ingresá el nombre del bebé.';
+    this.mensajeBebe = 'IngresÃ¡ el nombre del bebÃ©.';
     return;
   }
 
   if (!this.bebeForm.fechaNacimiento) {
-    this.mensajeBebe = 'Ingresá la fecha de nacimiento.';
+    this.mensajeBebe = 'IngresÃ¡ la fecha de nacimiento.';
     return;
   }
 
@@ -768,8 +770,8 @@ async guardarBebe() {
 
     await this.cargarDatosBebe();
   } catch (error: any) {
-    console.error('Error guardando bebé', error);
-    this.mensajeBebe = error?.message || 'No se pudo guardar el bebé.';
+    console.error('Error guardando bebÃ©', error);
+    this.mensajeBebe = error?.message || 'No se pudo guardar el bebÃ©.';
   } finally {
     this.guardandoBebe = false;
   }
@@ -784,7 +786,7 @@ onFotoSeleccionada(event: Event) {
   }
 
   if (!file.type.startsWith('image/')) {
-    this.mensajeBebe = 'Seleccioná un archivo de imagen válido.';
+    this.mensajeBebe = 'SeleccionÃ¡ un archivo de imagen vÃ¡lido.';
     input.value = '';
     return;
   }
@@ -845,7 +847,7 @@ async confirmarEliminarBebe() {
 
     await this.cargarDatosBebe();
   } catch (error) {
-    console.error('Error eliminando bebé', error);
+    console.error('Error eliminando bebÃ©', error);
     this.bebeAEliminar = null;
     this.showEliminarBebeAlert = false;
   }
@@ -908,7 +910,7 @@ private async cargarSuenoActivo() {
       }, 60000);
     }
   } catch (error) {
-    console.error('Error cargando sueño activo', error);
+    console.error('Error cargando sueÃ±o activo', error);
     this.suenoActivo = null;
     this.duracionSuenoActivoTexto = '';
     this.limpiarIntervaloSuenoActivo();
@@ -959,11 +961,12 @@ formatearDuracion(minutos: number): string {
 async iniciarSuenoRapido() {
   try {
     await this.activityFamiliaService.iniciarSueno(new Date());
+    await this.notificacionSuenosService.programarProximoSuenoBebeActivo();
 
     await this.cargarSuenoActivo();
     await this.cargarActividadesDeHoy();
   } catch (error: any) {
-    alert(error?.message || 'No se pudo iniciar el sueño.');
+    alert(error?.message || 'No se pudo iniciar el sueÃ±o.');
   }
 }
 
@@ -977,11 +980,12 @@ async finalizarSuenoActivo() {
       this.suenoActivo.id,
       new Date()
     );
+    await this.notificacionSuenosService.programarProximoSuenoBebeActivo();
 
     await this.cargarSuenoActivo();
     await this.cargarActividadesDeHoy();
   } catch (error: any) {
-    alert(error?.message || 'No se pudo finalizar el sueño.');
+    alert(error?.message || 'No se pudo finalizar el sueÃ±o.');
   }
 }
 
@@ -1003,8 +1007,8 @@ async abrirModalAgregarActividad() {
     await this.cargarActividadesYProgresoDeHoy();
     await this.cargarSuenoActivo();
 
-    // Si ya tienes este método por el card de sueño, déjalo.
-    // Si no existe, bórralo.
+    // Si ya tienes este mÃ©todo por el card de sueÃ±o, dÃ©jalo.
+    // Si no existe, bÃ³rralo.
     if ((this as any).cargarResumenSueno) {
       await (this as any).cargarResumenSueno();
     }
