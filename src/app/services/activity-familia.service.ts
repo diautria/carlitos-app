@@ -283,4 +283,49 @@ async agregarSuenoManual(
 
   await this.add(actividad);
 }
+
+/**
+ * Obtiene actividades de los últimos N meses.
+ * Útil para lazy loading de histórico.
+ */
+async getLastMonths(months: number = 3): Promise<ActivityFamilia[]> {
+  const allActivities = await this.getAll();
+  
+  const now = new Date();
+  const cutoffDate = new Date(now);
+  cutoffDate.setMonth(cutoffDate.getMonth() - months);
+  cutoffDate.setDate(1);
+  cutoffDate.setHours(0, 0, 0, 0);
+  
+  return allActivities.filter(activity => {
+    const activityDate = new Date(activity.time);
+    return activityDate >= cutoffDate;
+  });
+}
+
+/**
+ * Obtiene actividades hasta una fecha específica (hacia atrás).
+ * Usado para cargar períodos anteriores de forma progresiva.
+ */
+async getActivitiesBeforeDate(beforeDate: Date, limit: number = 500): Promise<ActivityFamilia[]> {
+  const allActivities = await this.getAll();
+  
+  return allActivities
+    .filter(activity => new Date(activity.time) < beforeDate)
+    .slice(0, limit);
+}
+
+/**
+ * Obtiene el mes más antiguo registrado en las actividades.
+ */
+async getOldestActivityDate(): Promise<Date | null> {
+  const allActivities = await this.getAll();
+  
+  if (allActivities.length === 0) {
+    return null;
+  }
+  
+  const oldest = allActivities[allActivities.length - 1];
+  return new Date(oldest.time);
+}
 }

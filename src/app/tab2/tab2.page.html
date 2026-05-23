@@ -624,6 +624,26 @@
             Limpiar filtros
           </ion-button>
         </div>
+
+        <!-- ⚡ Botón para cargar más histórico -->
+        <div class="load-more-container" *ngIf="hayMasActividades() && !loadingMoreMonths">
+          <ion-button
+            expand="block"
+            fill="outline"
+            color="secondary"
+            (click)="cargarMasHistorico()">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            Cargar período anterior
+          </ion-button>
+          <p class="load-more-info">
+            Mostrando {{ loadedMonths }} de {{ totalMonthsAvailable }} meses
+          </p>
+        </div>
+
+        <div class="loading-more-container" *ngIf="loadingMoreMonths">
+          <ion-spinner></ion-spinner>
+          <p>Cargando histórico...</p>
+        </div>
       </div>
     </ng-container>
 

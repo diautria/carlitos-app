@@ -33,7 +33,8 @@ import {
   IonDatetimeButton,
   IonTextarea,
   IonSelect,
-  IonSelectOption
+  IonSelectOption,
+  IonSpinner
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -156,7 +157,8 @@ interface MedicamentoDisponible extends MedicamentoBebe {
     IonDatetimeButton,
     IonTextarea,
     IonSelect,
-    IonSelectOption
+    IonSelectOption,
+    IonSpinner
   ]
 })
 export class Tab2Page implements OnInit {
@@ -230,6 +232,14 @@ openGroupsSuenos: string[] = [];
 openMonthGroupsSuenos: Record<string, string[]> = {};
 openDateGroupsSuenos: Record<string, string[]> = {};
 
+// Control de carga por meses (lazy loading)
+loadedMonths = 3; // Inicialmente carga 3 meses
+maxLoadedMonths = 3; // Control para evitar cargar todo a la vez
+totalMonthsAvailable = 0;
+allActivitiesLoaded = false;
+loadingMoreMonths = false;
+oldestActivityDate: Date | null = null;
+
   constructor(
     private activityFamiliaService: ActivityFamiliaService,
     private alertController: AlertController,
@@ -280,7 +290,7 @@ openDateGroupsSuenos: Record<string, string[]> = {};
     }
   }
 
-  async loadActivities() {
+  async loadActivities(forceLoadAll: boolean = false) {
   if (this.primeraCarga) {
     this.loading = true;
   }
@@ -301,7 +311,30 @@ openDateGroupsSuenos: Record<string, string[]> = {};
     const fechasMedicamentosActuales = { ...this.openDateGroupsMedicamentos };
     const fechasSuenosActuales = { ...this.openDateGroupsSuenos };
 
-    const actividades = await this.activityFamiliaService.getAll();
+    // ⚡ OPTIMIZATION: Cargar solo últimos N meses en la primera carga
+    let actividades: ActivityFamilia[];
+    
+    if (forceLoadAll || this.allActivitiesLoaded) {
+      // Cargar TODO el histórico
+      actividades = await this.activityFamiliaService.getAll();
+      this.allActivitiesLoaded = true;
+    } else if (this.primeraCarga) {
+      // Primera carga: cargar solo últimos 3 meses
+      actividades = await this.activityFamiliaService.getLastMonths(this.loadedMonths);
+      this.oldestActivityDate = await this.activityFamiliaService.getOldestActivityDate();
+      
+      // Detectar si hay más datos por cargar calculando desde los datos ya cargados
+      this.totalMonthsAvailable = this.calcularMesesDisponibles(actividades);
+      
+      // Si parece que hay histórico antiguo, hacer una llamada para confirmarlo
+      if (this.oldestActivityDate) {
+        const allActivities = await this.activityFamiliaService.getAll();
+        this.totalMonthsAvailable = this.calcularMesesDisponibles(allActivities);
+      }
+    } else {
+      // Recargas posteriores: mantener los meses ya cargados
+      actividades = await this.activityFamiliaService.getLastMonths(this.loadedMonths);
+    }
 
     this.activities = actividades.sort((a, b) =>
       b.time.localeCompare(a.time)
@@ -1086,7 +1119,7 @@ openDateGroupsSuenos: Record<string, string[]> = {};
 
   getDefaultFilters(): ActivityFilters {
   return {
-    rangoFecha: 'todos',
+    rangoFecha: 'hoy',
     fechaDesde: '',
     fechaHasta: '',
     horaDesde: '',
@@ -1768,5 +1801,66 @@ formatearDuracion(minutos: number): string {
   }
 
   return `${horas} h ${mins} min`;
+}
+
+// ⚡ MÉTODOS PARA LAZY LOADING
+
+/**
+ * Calcula la cantidad de meses disponibles basado en las actividades.
+ */
+private calcularMesesDisponibles(activities: ActivityFamilia[]): number {
+  if (activities.length === 0) return 0;
+
+  const oldest = new Date(activities[activities.length - 1].time);
+  const newest = new Date(activities[0].time);
+
+  const months = (newest.getFullYear() - oldest.getFullYear()) * 12
+    + (newest.getMonth() - oldest.getMonth()) + 1;
+
+  return Math.ceil(months);
+}
+
+/**
+ * Carga más meses al histórico.
+ * Llamado cuando el usuario desciende hacia actividades antiguas.
+ */
+async cargarMasHistorico() {
+  if (this.loadingMoreMonths || this.allActivitiesLoaded) {
+    return;
+  }
+
+  this.loadingMoreMonths = true;
+
+  try {
+    // Incrementar cantidad de meses a cargar
+    this.maxLoadedMonths += 3;
+    this.loadedMonths = this.maxLoadedMonths;
+
+    // Si hemos alcanzado todos los meses disponibles, cargar todo
+    if (this.loadedMonths >= this.totalMonthsAvailable) {
+      await this.loadActivities(true);
+    } else {
+      await this.loadActivities(false);
+    }
+  } catch (error) {
+    console.error('Error cargando más histórico', error);
+  } finally {
+    this.loadingMoreMonths = false;
+  }
+}
+
+/**
+ * Carga TODO el histórico de una sola vez.
+ */
+async cargarTodoElHistorico() {
+  await this.loadActivities(true);
+}
+
+/**
+ * Detecta si el usuario está cerca del final (para cargar más automáticamente).
+ * Se puede usar con un evento de scroll.
+ */
+hayMasActividades(): boolean {
+  return !this.allActivitiesLoaded && this.loadedMonths < this.totalMonthsAvailable;
 }
 }
