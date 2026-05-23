@@ -56,7 +56,7 @@ export class NotificacionTomasService {
     const ultimaToma = tomasLeche[0];
 
     if (!ultimaToma) {
-      console.log('No hay tomas para programar notificacion:', bebe.nombre);
+      console.log('No hay tomas para programar notificación:', bebe.nombre);
       return;
     }
 
@@ -90,13 +90,13 @@ export class NotificacionTomasService {
           notificationId,
           bebe,
           new Date(ahora.getTime() + 1000),
-          `Faltan menos de ${this.minutosAntes} minutos para la proxima toma de leche.`
+          `Faltan menos de ${this.minutosAntes} minutos para la próxima toma de leche.`
         );
 
         return;
       }
 
-      console.log('No se programa porque la notificacion ya paso:', {
+      console.log('No se programa porque la notificación ya pasó:', {
         bebe: bebe.nombre,
         fechaUltimaToma,
         fechaProximaToma,
@@ -109,10 +109,10 @@ export class NotificacionTomasService {
       notificationId,
       bebe,
       fechaNotificacion,
-      `Faltan ${this.minutosAntes} minutos para la proxima toma de leche.`
+      `Faltan ${this.minutosAntes} minutos para la próxima toma de leche.`
     );
 
-    console.log('Notificacion de toma programada:', {
+    console.log('Notificación de toma programada:', {
       bebe: bebe.nombre,
       notificationId,
       ultimaToma: fechaUltimaToma,
@@ -170,7 +170,7 @@ export class NotificacionTomasService {
       notifications: [
         {
           id: notificationId,
-          title: `Proxima toma de ${bebe.nombre || 'tu bebe'}`,
+          title: `Próxima toma de ${bebe.nombre || 'tu bebé'}`,
           body,
           schedule: {
             at: fechaNotificacion,

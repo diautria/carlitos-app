@@ -99,12 +99,12 @@ export class Tab3Page implements OnInit {
       this.tiempoEntreSuenosOriginal = config.tiempoEntreSuenosHoras;
       this.onzasDiariasObjetivoOriginal = config.onzasDiariasObjetivo;
     } catch (error: any) {
-      console.error('Error cargando configuracion del bebe activo', error);
+      console.error('Error cargando configuración del bebé activo', error);
 
       this.bebeActivoId = '';
       this.nombreBebeActivo = '';
       this.mensajeError =
-        error?.message || 'No se pudo cargar la configuracion.';
+        error?.message || 'No se pudo cargar la configuración.';
     } finally {
       this.cargando = false;
     }
@@ -115,22 +115,22 @@ export class Tab3Page implements OnInit {
     this.mensajeError = '';
 
     if (!this.bebeActivoId) {
-      this.mensajeError = 'Selecciona un bebe en el inicio antes de configurar.';
+      this.mensajeError = 'Seleccioná un bebé en el inicio antes de configurar.';
       return;
     }
 
     if (!this.tiempoEntreTomasHoras || this.tiempoEntreTomasHoras <= 0) {
-      this.mensajeError = 'Ingresa un tiempo valido entre tomas.';
+      this.mensajeError = 'Ingresá un tiempo válido entre tomas.';
       return;
     }
 
     if (!this.tiempoEntreSuenosHoras || this.tiempoEntreSuenosHoras <= 0) {
-      this.mensajeError = 'Ingresa un tiempo valido entre suenos.';
+      this.mensajeError = 'Ingresá un tiempo válido entre sueños.';
       return;
     }
 
     if (!this.onzasDiariasObjetivo || this.onzasDiariasObjetivo <= 0) {
-      this.mensajeError = 'Ingresa una cantidad valida de onzas diarias.';
+      this.mensajeError = 'Ingresá una cantidad válida de onzas diarias.';
       return;
     }
 
@@ -148,11 +148,11 @@ export class Tab3Page implements OnInit {
       this.tiempoEntreSuenosOriginal = Number(this.tiempoEntreSuenosHoras);
       this.onzasDiariasObjetivoOriginal = Number(this.onzasDiariasObjetivo);
 
-      this.mensajeGuardado = 'Configuracion guardada correctamente.';
+      this.mensajeGuardado = 'Configuración guardada correctamente.';
     } catch (error: any) {
-      console.error('Error guardando configuracion', error);
+      console.error('Error guardando configuración', error);
       this.mensajeError =
-        error?.message || 'No se pudo guardar la configuracion.';
+        error?.message || 'No se pudo guardar la configuración.';
     } finally {
       this.guardando = false;
     }

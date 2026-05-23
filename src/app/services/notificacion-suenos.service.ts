@@ -88,7 +88,7 @@ export class NotificacionSuenosService {
       notifications: [
         {
           id: notificationId,
-          title: `Hora de dormir para ${config.nombre || 'tu bebe'}`,
+          title: `Hora de dormir para ${config.nombre || 'tu bebé'}`,
           body: 'Ya es hora de que vuelva a dormir.',
           schedule: {
             at: fechaProximoSueno,
