@@ -133,7 +133,7 @@ private activityFamiliaService = inject(ActivityFamiliaService);
       return 0;
     }
 
-    const nacimiento = new Date(fechaNacimiento);
+    const nacimiento = this.crearFechaLocal(fechaNacimiento);
     const hoy = new Date();
 
     let meses =
@@ -145,6 +145,16 @@ private activityFamiliaService = inject(ActivityFamiliaService);
     }
 
     return Math.max(meses, 0);
+  }
+
+  private crearFechaLocal(fecha: string): Date {
+    const [anio, mes, dia] = fecha.split('-').map(Number);
+
+    if (!anio || !mes || !dia) {
+      return new Date(fecha);
+    }
+
+    return new Date(anio, mes - 1, dia);
   }
 
   abrirModalNota() {
