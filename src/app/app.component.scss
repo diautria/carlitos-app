@@ -1,0 +1,33 @@
+﻿:host {
+  --app-shell-height: 58px;
+}
+
+.app-shell-header {
+  box-shadow: none !important;
+
+  &::after {
+    display: block;
+    height: 1px;
+    background: rgba(34, 34, 34, 0.08);
+  }
+
+  ion-toolbar {
+    --background: #ffffff;
+    --border-width: 0;
+    --border-color: transparent;
+    --min-height: var(--app-shell-height);
+    --box-shadow: none;
+
+    box-shadow: none !important;
+  }
+
+  ion-title {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+}
+
+ion-router-outlet.with-app-shell {
+  top: calc(var(--app-shell-height) + env(safe-area-inset-top));
+  height: calc(100% - var(--app-shell-height) - env(safe-area-inset-top));
+}

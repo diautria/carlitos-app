@@ -140,6 +140,18 @@ ion-modal {
   text-transform: capitalize;
 }
 
+.quick-add-activity {
+  padding: 16px 16px 4px;
+
+  ion-button {
+    height: 40px;
+    font-weight: 800;
+
+    --border-radius: 14px;
+    --box-shadow: 0 8px 18px rgba(45, 211, 111, 0.22);
+  }
+}
+
 .estadisticas-button-container {
   padding: 12px 16px 2px;
 }

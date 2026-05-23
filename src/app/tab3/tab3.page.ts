@@ -1,8 +1,5 @@
 ﻿import { Component, OnInit, inject } from '@angular/core';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonList,
   IonItem,
@@ -29,9 +26,6 @@ import { Router } from '@angular/router';
   imports: [
     FormsModule,
     NgIf,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonList,
     IonItem,

@@ -1,3 +1,13 @@
-<ion-app>
-  <ion-router-outlet></ion-router-outlet>
+﻿<ion-app [class.app-shell-visible]="mostrarHeaderApp">
+  <ion-header *ngIf="mostrarHeaderApp" class="app-shell-header">
+    <ion-toolbar>
+      <ion-title>Carlitos</ion-title>
+
+      <ion-buttons slot="end">
+        <app-usuario-menu></app-usuario-menu>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-router-outlet [class.with-app-shell]="mostrarHeaderApp"></ion-router-outlet>
 </ion-app>

@@ -1,0 +1,52 @@
+﻿<ion-button
+  id="global-session-menu-trigger"
+  class="avatar-button"
+  fill="clear"
+  aria-label="Opciones de usuario">
+  <ion-avatar class="user-avatar">
+    <img
+      *ngIf="usuarioFotoUrl; else usuarioSinFoto"
+      [src]="usuarioFotoUrl"
+      [alt]="usuarioNombre"
+      referrerpolicy="no-referrer">
+
+    <ng-template #usuarioSinFoto>
+      <ion-icon name="person-circle-outline"></ion-icon>
+    </ng-template>
+  </ion-avatar>
+</ion-button>
+
+<ion-popover
+  trigger="global-session-menu-trigger"
+  triggerAction="click"
+  dismissOnSelect="true">
+  <ng-template>
+    <ion-content class="session-popover-content">
+      <div class="session-user">
+        <ion-avatar class="session-user-avatar">
+          <img
+            *ngIf="usuarioFotoUrl; else usuarioPopoverSinFoto"
+            [src]="usuarioFotoUrl"
+            [alt]="usuarioNombre"
+            referrerpolicy="no-referrer">
+
+          <ng-template #usuarioPopoverSinFoto>
+            <ion-icon name="person-circle-outline"></ion-icon>
+          </ng-template>
+        </ion-avatar>
+
+        <div>
+          <strong>{{ usuarioNombre }}</strong>
+          <span>Carlitos</span>
+        </div>
+      </div>
+
+      <ion-list lines="none">
+        <ion-item button detail="false" (click)="confirmarCerrarSesion()">
+          <ion-icon name="log-out-outline" slot="start"></ion-icon>
+          <ion-label>Cerrar sesión</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-popover>

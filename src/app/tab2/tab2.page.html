@@ -1,23 +1,11 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Actividades del bebé</ion-title>
-
-    <ion-buttons slot="end">
-      <ion-button (click)="openAddModal()" color="success">
-        <ion-icon name="add-circle"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Actividades</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <ng-container *ngIf="!loading; else loadingState">
+﻿<ion-content>
+  <div class="quick-add-activity">
+    <ion-button expand="block" color="success" (click)="openAddModal()">
+      <ion-icon name="add-circle" slot="start"></ion-icon>
+      Agregar actividad
+    </ion-button>
+  </div>
+<ng-container *ngIf="!loading; else loadingState">
     <ng-container *ngIf="activities.length > 0; else emptyState">
       <div class="estadisticas-button-container">
         <ion-button
