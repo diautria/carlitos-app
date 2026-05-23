@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { MedicamentoBebe } from '../models/bebe-familia.model';
-import { Activity } from '../models/activity.model';
+import { ActivityFamilia } from '../models/activity-familia.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,20 +11,20 @@ export class NotificacionMedicamentosService {
   private readonly baseNotificationId = 3000;
 
   async programarNotificacionesMedicamentos(
-  bebeId: string,
-  nombreBebe: string,
-  medicamentos: MedicamentoBebe[],
-  actividades: Activity[] = []
-): Promise<void> {
-  const tienePermiso = await this.asegurarPermiso();
+    bebeId: string,
+    nombreBebe: string,
+    medicamentos: MedicamentoBebe[],
+    actividades: ActivityFamilia[] = []
+  ): Promise<void> {
+    const tienePermiso = await this.asegurarPermiso();
 
-  if (!tienePermiso) {
-    return;
-  }
+    if (!tienePermiso) {
+      return;
+    }
 
-  await this.cancelarNotificacionesMedicamentos(medicamentos);
+    await this.cancelarNotificacionesMedicamentos(medicamentos);
 
-  const notifications: any[] = [];
+    const notifications: any[] = [];
 
     const medicamentosActivos = medicamentos.filter(m => m.activo);
 
@@ -64,51 +64,51 @@ export class NotificacionMedicamentosService {
   }
 
   async reprogramarMedicamentoDespuesDeAdministrar(
-  bebeId: string,
-  nombreBebe: string,
-  medicamento: MedicamentoBebe,
-  actividades: Activity[]
-): Promise<void> {
-  const tienePermiso = await this.asegurarPermiso();
+    bebeId: string,
+    nombreBebe: string,
+    medicamento: MedicamentoBebe,
+    actividades: ActivityFamilia[]
+  ): Promise<void> {
+    const tienePermiso = await this.asegurarPermiso();
 
-  if (!tienePermiso) {
-    return;
-  }
+    if (!tienePermiso) {
+      return;
+    }
 
-  await this.cancelarNotificacionMedicamento(medicamento.id);
+    await this.cancelarNotificacionMedicamento(medicamento.id);
 
-  if (!medicamento.activo) {
-    return;
-  }
+    if (!medicamento.activo) {
+      return;
+    }
 
-  const fechaNotificacion = this.calcularProximaNotificacion(
-    medicamento,
-    actividades
-  );
+    const fechaNotificacion = this.calcularProximaNotificacion(
+      medicamento,
+      actividades
+    );
 
-  if (!fechaNotificacion) {
-    return;
-  }
+    if (!fechaNotificacion) {
+      return;
+    }
 
-  await LocalNotifications.schedule({
-    notifications: [
-      {
-        id: this.obtenerNotificationId(medicamento.id),
-        title: 'Medicamento de ' + nombreBebe,
-        body: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
-        schedule: {
-          at: fechaNotificacion,
-          allowWhileIdle: true
-        },
-        smallIcon: 'ic_stat_icon_config_sample',
-        extra: {
-          bebeId,
-          medicamentoId: medicamento.id
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: this.obtenerNotificationId(medicamento.id),
+          title: 'Medicamento de ' + nombreBebe,
+          body: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
+          schedule: {
+            at: fechaNotificacion,
+            allowWhileIdle: true
+          },
+          smallIcon: 'ic_stat_icon_config_sample',
+          extra: {
+            bebeId,
+            medicamentoId: medicamento.id
+          }
         }
-      }
-    ]
-  });
-}
+      ]
+    });
+  }
 
   async cancelarNotificacionesMedicamentos(
     medicamentos: MedicamentoBebe[]
@@ -140,7 +140,7 @@ export class NotificacionMedicamentosService {
 
   private calcularProximaNotificacion(
     medicamento: MedicamentoBebe,
-    actividades: Activity[]
+    actividades: ActivityFamilia[]
   ): Date | null {
     if (!medicamento.activo) {
       return null;
@@ -157,7 +157,7 @@ export class NotificacionMedicamentosService {
 
     if (medicamento.frecuenciaHoras && medicamento.frecuenciaHoras > 0) {
       if (ultimaAdministracion) {
-        proximaDosis = new Date(ultimaAdministracion.time);
+        proximaDosis = this.parseFechaActividad(ultimaAdministracion.time);
         proximaDosis.setHours(
           proximaDosis.getHours() + Number(medicamento.frecuenciaHoras)
         );
@@ -171,7 +171,7 @@ export class NotificacionMedicamentosService {
       );
     }
 
-    if (!proximaDosis) {
+    if (!proximaDosis || Number.isNaN(proximaDosis.getTime())) {
       return null;
     }
 
@@ -191,6 +191,10 @@ export class NotificacionMedicamentosService {
     );
 
     if (fechaNotificacion <= ahora) {
+      if (proximaDosis > ahora) {
+        return new Date(ahora.getTime() + 1000);
+      }
+
       return null;
     }
 
@@ -199,15 +203,16 @@ export class NotificacionMedicamentosService {
 
   private obtenerUltimaAdministracion(
     medicamentoId: string,
-    actividades: Activity[]
-  ): Activity | null {
+    actividades: ActivityFamilia[]
+  ): ActivityFamilia | null {
     const actividadesMedicamento = actividades
       .filter((actividad: any) =>
         actividad.type === 'medicamento' &&
         actividad.medicamentoId === medicamentoId
       )
       .sort((a, b) =>
-        new Date(b.time).getTime() - new Date(a.time).getTime()
+        this.parseFechaActividad(b.time).getTime() -
+        this.parseFechaActividad(a.time).getTime()
       );
 
     return actividadesMedicamento[0] || null;
@@ -220,6 +225,11 @@ export class NotificacionMedicamentosService {
 
     if (medicamento.horario) {
       const [horas, minutos] = medicamento.horario.split(':').map(Number);
+
+      if (!this.esHorarioValido(horas, minutos)) {
+        return null;
+      }
+
       fecha.setHours(horas, minutos, 0, 0);
     } else {
       fecha.setHours(8, 0, 0, 0);
@@ -230,15 +240,20 @@ export class NotificacionMedicamentosService {
 
   private obtenerProximaDosisPorHorarioFijo(
     horario: string,
-    ultimaAdministracion: Activity | null
-  ): Date {
+    ultimaAdministracion: ActivityFamilia | null
+  ): Date | null {
     const [horas, minutos] = horario.split(':').map(Number);
 
     const proximaDosis = new Date();
+
+    if (!this.esHorarioValido(horas, minutos)) {
+      return null;
+    }
+
     proximaDosis.setHours(horas, minutos, 0, 0);
 
     if (ultimaAdministracion) {
-      const ultimaFecha = new Date(ultimaAdministracion.time);
+      const ultimaFecha = this.parseFechaActividad(ultimaAdministracion.time);
 
       const yaFueAdministradoHoy =
         ultimaFecha.getFullYear() === proximaDosis.getFullYear() &&
@@ -264,14 +279,53 @@ export class NotificacionMedicamentosService {
   }
 
   private async asegurarPermiso(): Promise<boolean> {
-  const permiso = await LocalNotifications.checkPermissions();
+    const permiso = await LocalNotifications.checkPermissions();
 
-  if (permiso.display === 'granted') {
-    return true;
+    if (permiso.display === 'granted') {
+      return true;
+    }
+
+    const permisoSolicitado = await LocalNotifications.requestPermissions();
+
+    return permisoSolicitado.display === 'granted';
   }
 
-  const permisoSolicitado = await LocalNotifications.requestPermissions();
+  private parseFechaActividad(fecha: string): Date {
+    if (!fecha) {
+      return new Date(NaN);
+    }
 
-  return permisoSolicitado.display === 'granted';
-}
+    const tieneZonaHoraria = /(?:z|[+-]\d{2}:\d{2})$/i.test(fecha);
+
+    if (tieneZonaHoraria) {
+      return new Date(fecha);
+    }
+
+    const [parteFecha, parteHora = '00:00'] = fecha.split('T');
+    const [anio, mes, dia] = parteFecha.split('-').map(Number);
+    const [hora = '0', minuto = '0', segundo = '0'] = parteHora.split(':');
+
+    if (!anio || !mes || !dia) {
+      return new Date(fecha);
+    }
+
+    return new Date(
+      anio,
+      mes - 1,
+      dia,
+      Number(hora) || 0,
+      Number(minuto) || 0,
+      Number(segundo.split('.')[0]) || 0,
+      0
+    );
+  }
+
+  private esHorarioValido(horas: number, minutos: number): boolean {
+    return Number.isFinite(horas) &&
+      Number.isFinite(minutos) &&
+      horas >= 0 &&
+      horas <= 23 &&
+      minutos >= 0 &&
+      minutos <= 59;
+  }
 }

@@ -495,10 +495,15 @@ private activityFamiliaService = inject(ActivityFamiliaService);
       return;
     }
 
+    const actividades = await this.activityFamiliaService.getAllByBebeId(
+      this.bebe.id
+    );
+
     await this.notificacionMedicamentosService.programarNotificacionesMedicamentos(
       this.bebe.id,
       this.bebe.nombre,
-      this.bebe.medicamentos || []
+      this.bebe.medicamentos || [],
+      actividades
     );
   }
 
