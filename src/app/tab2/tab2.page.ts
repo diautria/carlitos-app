@@ -1564,43 +1564,57 @@ private cumpleFiltroMedicamento(
   }
 
   private contarFiltrosActivos(filters: ActivityFilters): number {
+    const filtros = this.normalizarFiltros(filters);
+    const defaultFilters = this.getDefaultFilters();
     let cantidad = 0;
 
-    if (filters.rangoFecha !== 'todos') {
+    if (filtros.rangoFecha !== defaultFilters.rangoFecha) {
       cantidad++;
     }
 
-    if (filters.horaDesde || filters.horaHasta) {
+    if (filtros.horaDesde || filtros.horaHasta) {
       cantidad++;
     }
 
-    if (filters.tipoLeche !== 'todas') {
+    if (filtros.tipoLeche !== defaultFilters.tipoLeche) {
       cantidad++;
     }
 
-    if (filters.onzasMin !== null && filters.onzasMin !== undefined) {
+    if (filtros.onzasMin !== null && filtros.onzasMin !== undefined) {
       cantidad++;
     }
 
-    if (filters.onzasMax !== null && filters.onzasMax !== undefined) {
+    if (filtros.onzasMax !== null && filtros.onzasMax !== undefined) {
       cantidad++;
     }
 
-    if (filters.tipoPanal !== 'todos') {
+    if (filtros.tipoPanal !== defaultFilters.tipoPanal) {
       cantidad++;
     }
 
-    if (filters.estadoSueno !== 'todos') {
-  cantidad++;
-}
+    if (filtros.medicamentoId !== defaultFilters.medicamentoId) {
+      cantidad++;
+    }
 
-if (filters.duracionSuenoMin !== null && filters.duracionSuenoMin !== undefined) {
-  cantidad++;
-}
+    if (filtros.dosisGotasMin !== null && filtros.dosisGotasMin !== undefined) {
+      cantidad++;
+    }
 
-if (filters.duracionSuenoMax !== null && filters.duracionSuenoMax !== undefined) {
-  cantidad++;
-}
+    if (filtros.dosisGotasMax !== null && filtros.dosisGotasMax !== undefined) {
+      cantidad++;
+    }
+
+    if (filtros.estadoSueno !== defaultFilters.estadoSueno) {
+      cantidad++;
+    }
+
+    if (filtros.duracionSuenoMin !== null && filtros.duracionSuenoMin !== undefined) {
+      cantidad++;
+    }
+
+    if (filtros.duracionSuenoMax !== null && filtros.duracionSuenoMax !== undefined) {
+      cantidad++;
+    }
 
     return cantidad;
   }

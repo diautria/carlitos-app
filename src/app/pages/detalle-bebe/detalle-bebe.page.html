@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ bebe?.nombre || 'Detalle del bebÃ©' }}</ion-title>
+    <ion-title>{{ bebe?.nombre || 'Detalle del bebé' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -62,7 +62,7 @@
     </div>
 
     <div class="stat-info">
-      <span class="stat-label">PrÃ³xima vacuna</span>
+      <span class="stat-label">Próxima vacuna</span>
       <strong class="stat-value">
         {{ bebe.proximaVacuna ? (bebe.proximaVacuna | date:'dd/MM') : '-' }}
       </strong>
@@ -283,7 +283,7 @@
           </div>
 
           <h2>Medicamento tomado</h2>
-          <p>Registra el nombre, la dosis en gotas y cuÃ¡ndo debe tomarlo.</p>
+          <p>Registra el nombre, la dosis en gotas y cuándo debe tomarlo.</p>
         </div>
 
         <ion-list lines="none" class="form-list">
@@ -321,7 +321,7 @@
             <ion-input
               type="number"
               min="1"
-              label="Cada cuÃ¡ntas horas"
+              label="Cada cuántas horas"
               label-placement="stacked"
               placeholder="Ej: 8"
               [(ngModel)]="medicamentoForm.frecuenciaHoras">
@@ -345,7 +345,7 @@
             <ion-textarea
               label="Observaciones"
               label-placement="stacked"
-              placeholder="Ej: Dar despuÃ©s de la leche, por 7 dÃ­as..."
+              placeholder="Ej: Dar después de la leche, por 7 días..."
               auto-grow="true"
               rows="3"
               [(ngModel)]="medicamentoForm.observaciones">
@@ -355,7 +355,7 @@
           <ion-item lines="none" class="form-item toggle-item">
             <ion-label>
               <h3>Medicamento activo</h3>
-              <p>DesactÃ­valo si ya no debe tomarlo.</p>
+              <p>Desactívalo si ya no debe tomarlo.</p>
             </ion-label>
 
             <ion-toggle

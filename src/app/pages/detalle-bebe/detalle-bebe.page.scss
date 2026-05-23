@@ -4,7 +4,7 @@
 }
 
 .detalle-loading-state {
-  min-height: 55vh;
+  min-height: calc(100dvh - 94px);
   padding: 32px 18px;
   display: flex;
   flex-direction: column;
@@ -23,7 +23,8 @@
 
 .detalle-loading-state p {
   margin: 0;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .bebe-header {

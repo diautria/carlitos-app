@@ -8,11 +8,11 @@
   &::after {
     display: block;
     height: 1px;
-    background: rgba(34, 34, 34, 0.08);
+    background: rgba(108, 99, 255, 0.12);
   }
 
   ion-toolbar {
-    --background: #ffffff;
+    --background: linear-gradient(180deg, #ffffff 0%, #fbfaff 100%);
     --border-width: 0;
     --border-color: transparent;
     --min-height: var(--app-shell-height);
@@ -22,13 +22,14 @@
   }
 
   ion-title {
-    font-weight: 800;
-    letter-spacing: -0.02em;
+    color: #6c63ff;
+    font-weight: 750;
+    letter-spacing: 0;
   }
 
   --background: #ffffff;
-  --color: #6b7280;
-  border-bottom: 1px solid #e5e7eb;
+  --color: #4f46e5;
+  border-bottom: 1px solid rgba(108, 99, 255, 0.12);
 }
 
 ion-router-outlet.with-app-shell {

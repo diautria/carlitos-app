@@ -1,11 +1,50 @@
 ﻿<ion-content>
-  <div class="quick-add-activity">
-    <ion-button expand="block" color="success" (click)="openAddModal()">
-      <ion-icon name="add-circle" slot="start"></ion-icon>
-      Agregar actividad
-    </ion-button>
-  </div>
 <ng-container *ngIf="!loading; else loadingState">
+    <div
+      class="activity-actions-row"
+      [class.single-action]="activities.length === 0">
+      <ion-button
+        expand="block"
+        class="quick-add-button"
+        (click)="openAddModal()">
+        <ion-icon name="add-circle" slot="start"></ion-icon>
+        Agregar actividad
+      </ion-button>
+
+      <ion-button
+        *ngIf="activities.length > 0"
+        expand="block"
+        class="filters-action-button"
+        [class.filters-active]="hayFiltrosActivos()"
+        (click)="abrirModalFiltros()">
+        <ion-icon name="filter-outline" slot="start"></ion-icon>
+        Filtros
+
+        <ion-badge
+          *ngIf="getCantidadFiltrosActivos() > 0"
+          class="filters-count">
+          {{ getCantidadFiltrosActivos() }}
+        </ion-badge>
+      </ion-button>
+    </div>
+
+    <div class="filters-summary" *ngIf="hayFiltrosActivos()">
+      <span>
+        {{ resumenFiltros.tomas }} tomas ·
+{{ resumenFiltros.panales }} pañales ·
+{{ resumenFiltros.medicamentos }} medicamentos ·
+{{ resumenFiltros.suenos }} sueños
+      </span>
+
+      <ion-button
+        fill="clear"
+        size="small"
+        color="medium"
+        (click)="limpiarFiltros()">
+        Limpiar
+      </ion-button>
+    </div>
+
     <ng-container *ngIf="activities.length > 0; else emptyState">
       <div class="estadisticas-button-container">
         <div class="estadisticas-access-card">
@@ -37,41 +76,6 @@
               Gráficas
             </ion-button>
           </div>
-        </div>
-      </div>
-
-      <div class="filters-button-container">
-        <ion-button
-          expand="block"
-          [fill]="hayFiltrosActivos() ? 'solid' : 'outline'"
-          color="success"
-          (click)="abrirModalFiltros()">
-          <ion-icon name="filter-outline" slot="start"></ion-icon>
-
-          FILTROS
-
-          <ion-badge
-            *ngIf="getCantidadFiltrosActivos() > 0"
-            class="filters-count">
-            {{ getCantidadFiltrosActivos() }}
-          </ion-badge>
-        </ion-button>
-
-        <div class="filters-summary" *ngIf="hayFiltrosActivos()">
-          <span>
-            {{ resumenFiltros.tomas }} tomas ·
-{{ resumenFiltros.panales }} pañales ·
-{{ resumenFiltros.medicamentos }} medicamentos ·
-{{ resumenFiltros.suenos }} sueños
-          </span>
-
-          <ion-button
-            fill="clear"
-            size="small"
-            color="medium"
-            (click)="limpiarFiltros()">
-            Limpiar
-          </ion-button>
         </div>
       </div>
 

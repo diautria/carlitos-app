@@ -35,8 +35,12 @@ h1 {
 
 ion-spinner {
   margin-bottom: 16px;
+  width: 38px;
+  height: 38px;
+  color: var(--ion-color-primary);
 }
 
 p {
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 400;
 }
