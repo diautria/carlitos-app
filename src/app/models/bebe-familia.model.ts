@@ -19,6 +19,9 @@ export interface BebeFamilia {
   updatedAt?: any;
 
   medicamentos?: MedicamentoBebe[];
+  tiempoEntreTomasHoras?: number;
+  tiempoEntreSuenosHoras?: number;
+  onzasDiariasObjetivo?: number;
 }
 
 export interface CrearBebeFamiliaRequest {

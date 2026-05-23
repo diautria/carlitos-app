@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+﻿import { Component, OnInit, inject } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -10,8 +10,8 @@ import {
   IonButton,
   IonNote,
   IonText,
-  IonIcon,
-  IonLabel, IonModal, IonButtons } from '@ionic/angular/standalone';
+  IonIcon
+} from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { addIcons } from 'ionicons';
@@ -25,7 +25,7 @@ import { Router } from '@angular/router';
   templateUrl: 'tab3.page.html',
   styleUrls: ['tab3.page.scss'],
   standalone: true,
-  imports: [IonButtons, IonModal, 
+  imports: [
     FormsModule,
     NgIf,
     IonHeader,
@@ -38,17 +38,20 @@ import { Router } from '@angular/router';
     IonButton,
     IonNote,
     IonText,
-    IonIcon,
-    IonLabel
+    IonIcon
   ],
 })
 export class Tab3Page implements OnInit {
   private bebeFamiliaService = inject(BebeFamiliaService);
 
   tiempoEntreTomasHoras = 3;
+  tiempoEntreSuenosHoras = 2;
   onzasDiariasObjetivo = 24;
-tiempoEntreTomasOriginal = 3;
-onzasDiariasObjetivoOriginal = 24;
+
+  tiempoEntreTomasOriginal = 3;
+  tiempoEntreSuenosOriginal = 2;
+  onzasDiariasObjetivoOriginal = 24;
+
   bebeActivoId = '';
   nombreBebeActivo = '';
 
@@ -87,17 +90,19 @@ onzasDiariasObjetivoOriginal = 24;
       this.bebeActivoId = config.bebeId;
       this.nombreBebeActivo = config.nombre;
       this.tiempoEntreTomasHoras = config.tiempoEntreTomasHoras;
+      this.tiempoEntreSuenosHoras = config.tiempoEntreSuenosHoras;
       this.onzasDiariasObjetivo = config.onzasDiariasObjetivo;
 
       this.tiempoEntreTomasOriginal = config.tiempoEntreTomasHoras;
-this.onzasDiariasObjetivoOriginal = config.onzasDiariasObjetivo;
+      this.tiempoEntreSuenosOriginal = config.tiempoEntreSuenosHoras;
+      this.onzasDiariasObjetivoOriginal = config.onzasDiariasObjetivo;
     } catch (error: any) {
-      console.error('Error cargando configuración del bebé activo', error);
+      console.error('Error cargando configuracion del bebe activo', error);
 
       this.bebeActivoId = '';
       this.nombreBebeActivo = '';
       this.mensajeError =
-        error?.message || 'No se pudo cargar la configuración.';
+        error?.message || 'No se pudo cargar la configuracion.';
     } finally {
       this.cargando = false;
     }
@@ -108,17 +113,22 @@ this.onzasDiariasObjetivoOriginal = config.onzasDiariasObjetivo;
     this.mensajeError = '';
 
     if (!this.bebeActivoId) {
-      this.mensajeError = 'Seleccioná un bebé en el inicio antes de configurar.';
+      this.mensajeError = 'Selecciona un bebe en el inicio antes de configurar.';
       return;
     }
 
     if (!this.tiempoEntreTomasHoras || this.tiempoEntreTomasHoras <= 0) {
-      this.mensajeError = 'Ingresá un tiempo válido en horas.';
+      this.mensajeError = 'Ingresa un tiempo valido entre tomas.';
+      return;
+    }
+
+    if (!this.tiempoEntreSuenosHoras || this.tiempoEntreSuenosHoras <= 0) {
+      this.mensajeError = 'Ingresa un tiempo valido entre suenos.';
       return;
     }
 
     if (!this.onzasDiariasObjetivo || this.onzasDiariasObjetivo <= 0) {
-      this.mensajeError = 'Ingresá una cantidad válida de onzas diarias.';
+      this.mensajeError = 'Ingresa una cantidad valida de onzas diarias.';
       return;
     }
 
@@ -127,17 +137,19 @@ this.onzasDiariasObjetivoOriginal = config.onzasDiariasObjetivo;
     try {
       await this.bebeFamiliaService.guardarConfiguracionBebeActivo({
         tiempoEntreTomasHoras: Number(this.tiempoEntreTomasHoras),
+        tiempoEntreSuenosHoras: Number(this.tiempoEntreSuenosHoras),
         onzasDiariasObjetivo: Number(this.onzasDiariasObjetivo)
       });
 
       this.tiempoEntreTomasOriginal = Number(this.tiempoEntreTomasHoras);
-this.onzasDiariasObjetivoOriginal = Number(this.onzasDiariasObjetivo);
+      this.tiempoEntreSuenosOriginal = Number(this.tiempoEntreSuenosHoras);
+      this.onzasDiariasObjetivoOriginal = Number(this.onzasDiariasObjetivo);
 
-      this.mensajeGuardado = 'Configuración guardada correctamente.';
+      this.mensajeGuardado = 'Configuracion guardada correctamente.';
     } catch (error: any) {
-      console.error('Error guardando configuración', error);
+      console.error('Error guardando configuracion', error);
       this.mensajeError =
-        error?.message || 'No se pudo guardar la configuración.';
+        error?.message || 'No se pudo guardar la configuracion.';
     } finally {
       this.guardando = false;
     }
@@ -149,13 +161,14 @@ this.onzasDiariasObjetivoOriginal = Number(this.onzasDiariasObjetivo);
   }
 
   get hayCambiosConfiguracion(): boolean {
-  return (
-    Number(this.tiempoEntreTomasHoras) !== Number(this.tiempoEntreTomasOriginal) ||
-    Number(this.onzasDiariasObjetivo) !== Number(this.onzasDiariasObjetivoOriginal)
-  );
-}
+    return (
+      Number(this.tiempoEntreTomasHoras) !== Number(this.tiempoEntreTomasOriginal) ||
+      Number(this.tiempoEntreSuenosHoras) !== Number(this.tiempoEntreSuenosOriginal) ||
+      Number(this.onzasDiariasObjetivo) !== Number(this.onzasDiariasObjetivoOriginal)
+    );
+  }
 
-irAFamilia() {
-  this.router.navigateByUrl('/familia');
-}
+  irAFamilia() {
+    this.router.navigateByUrl('/familia');
+  }
 }

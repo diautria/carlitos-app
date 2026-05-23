@@ -117,6 +117,9 @@ export class BebeFamiliaService {
       fotoUrl: request.fotoUrl || '',
       proximaVacuna: request.proximaVacuna || '',
       notas: request.notas || [],
+      tiempoEntreTomasHoras: 3,
+      tiempoEntreSuenosHoras: 2,
+      onzasDiariasObjetivo: 24,
       activo: true,
       creadoPorUid: usuario.uid,
       createdAt: serverTimestamp(),
@@ -346,6 +349,7 @@ async obtenerConfiguracionBebeActivo(): Promise<{
   bebeId: string;
   nombre: string;
   tiempoEntreTomasHoras: number;
+  tiempoEntreSuenosHoras: number;
   onzasDiariasObjetivo: number;
 }> {
   const familiaId = await this.obtenerFamiliaActivaId();
@@ -382,12 +386,14 @@ async obtenerConfiguracionBebeActivo(): Promise<{
     bebeId: bebeActivoId,
     nombre: bebeData['nombre'] || '',
     tiempoEntreTomasHoras: Number(bebeData['tiempoEntreTomasHoras'] || 3),
+    tiempoEntreSuenosHoras: Number(bebeData['tiempoEntreSuenosHoras'] || 2),
     onzasDiariasObjetivo: Number(bebeData['onzasDiariasObjetivo'] || 24)
   };
 }
 
 async guardarConfiguracionBebeActivo(configuracion: {
   tiempoEntreTomasHoras: number;
+  tiempoEntreSuenosHoras: number;
   onzasDiariasObjetivo: number;
 }): Promise<void> {
   const familiaId = await this.obtenerFamiliaActivaId();
@@ -414,6 +420,7 @@ async guardarConfiguracionBebeActivo(configuracion: {
 
   await updateDoc(bebeRef, {
     tiempoEntreTomasHoras: configuracion.tiempoEntreTomasHoras,
+    tiempoEntreSuenosHoras: configuracion.tiempoEntreSuenosHoras,
     onzasDiariasObjetivo: configuracion.onzasDiariasObjetivo,
     updatedAt: serverTimestamp()
   });

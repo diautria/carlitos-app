@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+﻿<ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Ajustes</ion-title>
   </ion-toolbar>
@@ -18,14 +18,14 @@
       </div>
 
       <div>
-        <h2>Configuración del bebé</h2>
+        <h2>Configuracion del bebe</h2>
 
         <p *ngIf="nombreBebeActivo">
           Ajustes para {{ nombreBebeActivo }}
         </p>
 
         <p *ngIf="!nombreBebeActivo">
-          Seleccioná un bebé en el inicio para configurar sus datos.
+          Selecciona un bebe en el inicio para configurar sus datos.
         </p>
       </div>
     </div>
@@ -52,7 +52,28 @@
 
       <ion-item lines="none">
         <ion-note>
-          Indica cada cuántas horas debería tomar leche este bebé.
+          Indica cada cuantas horas deberia tomar leche este bebe.
+        </ion-note>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Tiempo entre sueños"
+          label-placement="stacked"
+          type="number"
+          min="1"
+          max="24"
+          [(ngModel)]="tiempoEntreSuenosHoras"
+          (ionInput)="limpiarMensaje()"
+          placeholder="Ej: 2">
+        </ion-input>
+
+        <ion-note slot="end">horas</ion-note>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-note>
+          Indica cada cuantas horas deberia dormir o tomar una siesta este bebe.
         </ion-note>
       </ion-item>
 
@@ -73,34 +94,32 @@
 
       <ion-item lines="none">
         <ion-note>
-          Esta meta se usará para calcular el progreso diario de onzas de este bebé.
+          Esta meta se usara para calcular el progreso diario de onzas de este bebe.
         </ion-note>
       </ion-item>
     </ion-list>
 
     <div class="loading-box" *ngIf="cargando">
-      Cargando configuración...
+      Cargando configuracion...
     </div>
 
     <div class="acciones-ajustes">
-  <ion-button
-    expand="block"
-    class="guardar-config-button"
-    [disabled]="guardando || !bebeActivoId || !hayCambiosConfiguracion"
-    (click)="guardarConfiguracion()">
+      <ion-button
+        expand="block"
+        class="guardar-config-button"
+        [disabled]="guardando || !bebeActivoId || !hayCambiosConfiguracion"
+        (click)="guardarConfiguracion()">
+        {{ guardando ? 'Guardando...' : 'Guardar configuracion' }}
+      </ion-button>
 
-    {{ guardando ? 'Guardando...' : 'Guardar configuración' }}
-  </ion-button>
-
-  <ion-button
-  expand="block"
-  class="familia-button"
-  (click)="irAFamilia()">
-
-  <ion-icon name="people-outline" slot="start"></ion-icon>
-  Gestionar familia
-</ion-button>
-</div>
+      <ion-button
+        expand="block"
+        class="familia-button"
+        (click)="irAFamilia()">
+        <ion-icon name="people-outline" slot="start"></ion-icon>
+        Gestionar familia
+      </ion-button>
+    </div>
 
     <ion-text color="success" *ngIf="mensajeGuardado">
       <p class="mensaje">{{ mensajeGuardado }}</p>
