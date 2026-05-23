@@ -102,6 +102,16 @@ modalLista = false;
   if (this.isEdit && this.actividad) {
     this.formType = this.actividad.type;
     this.form = { ...this.actividad };
+    
+    // Convertir tiempos a formato correcto para ion-datetime
+    if (this.formType === 'sueno') {
+      this.form.time = this.convertToDatetimeFormat(this.form.time);
+      if (this.form.fin) {
+        this.form.fin = this.convertToDatetimeFormat(this.form.fin);
+      }
+    } else {
+      this.form.time = this.convertToDatetimeFormat(this.form.time);
+    }
   } else {
     this.formType = this.tipoInicial || 'toma-leche';
 
@@ -283,7 +293,10 @@ modalLista = false;
       }
 
       if (this.formType === 'sueno') {
-        this.form.inicio = this.form.time;
+        // Solo actualizar inicio si es modo crear, no editar
+        if (!this.isEdit) {
+          this.form.inicio = this.form.time;
+        }
 
         if (this.form.fin) {
           const inicio = new Date(this.form.inicio);
@@ -376,6 +389,16 @@ modalLista = false;
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  private convertToDatetimeFormat(isoString: string | null | undefined): string {
+    if (!isoString) return this.getLocalDateTimeForInput();
+    try {
+      const date = new Date(isoString);
+      return this.getLocalDateTimeForInput(date);
+    } catch {
+      return this.getLocalDateTimeForInput();
+    }
   }
 
   limpiarCeroInput(campo: 'cantidadOnzas' | 'dosisGotas') {

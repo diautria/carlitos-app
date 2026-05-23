@@ -1021,9 +1021,24 @@ oldestActivityDate: Date | null = null;
     return Object.entries(groups)
       .map(([fecha, groupedActivities]) => ({
         fecha,
-        activities: [...groupedActivities].sort((a, b) =>
-          b.time.localeCompare(a.time)
-        )
+        activities: [...groupedActivities].sort((a, b) => {
+          // Sueños: primero en curso, luego por inicio (descendente - más nuevo primero)
+          if (a.type === 'sueno' && b.type === 'sueno') {
+            const aEnCurso = !(a as any).fin;
+            const bEnCurso = !(b as any).fin;
+            
+            // Si uno está en curso y el otro no, el que está en curso va primero
+            if (aEnCurso && !bEnCurso) return -1;
+            if (!aEnCurso && bEnCurso) return 1;
+            
+            // Si ambos están en curso o ambos están cerrados, ordenar por inicio (descendente)
+            const inicioA = new Date((a as any).inicio || a.time).getTime();
+            const inicioB = new Date((b as any).inicio || b.time).getTime();
+            return inicioB - inicioA;
+          }
+          // Otros: ordenar por time (descendente - más nuevo primero)
+          return b.time.localeCompare(a.time);
+        })
       }))
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
   }
