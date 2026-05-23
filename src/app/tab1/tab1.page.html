@@ -11,14 +11,14 @@
   class="seccion-bebes"
   [class.unico-bebe]="bebes.length === 1 && !esAdminFamilia">
       <ion-card
-  *ngFor="let bebe of bebes"
+  *ngFor="let bebe of bebesVista; trackBy: trackByBebeId"
   class="bebe-card"
-  [class.bebe-card-activo]="esBebeActivo(bebe)"
+  [class.bebe-card-activo]="bebeActivoId === bebe.id"
   (click)="seleccionarBebe(bebe)">
 
   <div
   class="bebe-activo-chip"
-  *ngIf="esBebeActivo(bebe)">
+  *ngIf="bebeActivoId === bebe.id">
   Activo
 </div>
 
@@ -70,7 +70,7 @@
     </ion-card-title>
 
     <p class="bebe-edad-card">
-      {{ calcularEdadMeses(bebe.fechaNacimiento) }} meses
+      {{ bebe.edadMeses }} meses
     </p>
   </ion-card-header>
 
@@ -205,22 +205,22 @@
         *ngIf="actividadesRecientes.length > 0; else sinActividadesHoy">
 
         <ion-item
-          *ngFor="let actividad of actividadesRecientes"
+          *ngFor="let actividad of actividadesRecientesVista; trackBy: trackByActividadId"
           class="actividad-item">
 
           <ion-icon
-            [name]="getIconoActividad(actividad)"
-            [color]="getColorActividad(actividad)"
+            [name]="actividad.icono"
+            [color]="actividad.color"
             slot="start">
           </ion-icon>
 
           <ion-label>
             <h3 class="actividad-titulo">
-              {{ getTituloActividad(actividad) }}
+              {{ actividad.titulo }}
             </h3>
 
             <p class="actividad-desc">
-              {{ getDescripcionActividad(actividad) }}
+              {{ actividad.descripcion }}
             </p>
 
             <p class="actividad-fecha">

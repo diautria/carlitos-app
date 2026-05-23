@@ -1,11 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonAvatar, IonLabel, IonItem, IonList, IonIcon, IonBadge, IonProgressBar, IonButton,
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonAvatar, IonLabel, IonItem, IonList, IonIcon, IonProgressBar, IonButton,
   IonModal,
   IonInput,
   IonButtons,
-  IonNote,
   IonText,
   IonSpinner,
   IonAlert
@@ -24,6 +23,18 @@ import { Router } from '@angular/router';
 import { FamiliaMiembrosService } from '../services/familia-miembros.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { ActividadFormModalComponent } from '../components/actividad-form-modal/actividad-form-modal.component';
+import { Subscription } from 'rxjs';
+
+type BebeVista = BebeFamilia & {
+  edadMeses: number;
+};
+
+type ActividadVista = ActivityFamilia & {
+  icono: string;
+  color: string;
+  titulo: string;
+  descripcion: string;
+};
 
 @Component({
   selector: 'app-tab1',
@@ -49,22 +60,23 @@ import { ActividadFormModalComponent } from '../components/actividad-form-modal/
 IonModal,
 IonInput,
 IonButtons,
-IonNote,
 IonText,
 IonSpinner,
   ],
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss']
 })
-export class Tab1Page implements OnInit {
+export class Tab1Page implements OnInit, OnDestroy {
   private activityFamiliaService = inject(ActivityFamiliaService);
   private bebeFamiliaService = inject(BebeFamiliaService);
 private notificacionVacunasService = inject(NotificacionVacunasService);
 private router = inject(Router);
 
 bebes: BebeFamilia[] = [];
+bebesVista: BebeVista[] = [];
 bebeActivoId = '';  
 actividadesRecientes: ActivityFamilia[] = [];
+actividadesRecientesVista: ActividadVista[] = [];
 showModalBebe = false;
 guardandoBebe = false;
 mensajeBebe = '';
@@ -82,7 +94,8 @@ bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
   progresoOnzas = 0;
 suenoActivo: ActivityFamilia | null = null;
 duracionSuenoActivoTexto = '';
-private intervaloSuenoActivo: any;
+private intervaloSuenoActivo?: ReturnType<typeof setInterval>;
+private bebesSubscription?: Subscription;
 private modalController = inject(ModalController);
 
   async ngOnInit() {
@@ -90,8 +103,7 @@ private modalController = inject(ModalController);
 
     await this.cargarDatosBebe();
 
-    await this.cargarActividadesDeHoy();
-    await this.cargarProgresoOnzas();
+    await this.cargarActividadesYProgresoDeHoy();
 
     await this.cargarSuenoActivo();
   }
@@ -150,20 +162,24 @@ getIconoActividad(actividad: any): string {
   async ionViewWillEnter() {
       await this.cargarPermisosFamilia();
     await this.cargarDatosBebe();
-    await this.cargarActividadesDeHoy();
-    await this.cargarProgresoOnzas();
+    await this.cargarActividadesYProgresoDeHoy();
     await this.cargarSuenoActivo();
+  }
+
+  ngOnDestroy() {
+    this.bebesSubscription?.unsubscribe();
+    this.limpiarIntervaloSuenoActivo();
   }
 
   private async cargarActividadesDeHoy() {
   try {
-    this.actividadesRecientes = (await this.activityFamiliaService.getByDay(new Date()))
-      .sort((a, b) => {
-        return new Date(b.time).getTime() - new Date(a.time).getTime();
-      });
+    this.actualizarActividadesRecientes(
+      await this.activityFamiliaService.getByDay(new Date())
+    );
   } catch (error) {
     console.error('Error cargando actividades recientes del bebé activo', error);
     this.actividadesRecientes = [];
+    this.actividadesRecientesVista = [];
   }
 }
 
@@ -218,7 +234,7 @@ getIconoActividad(actividad: any): string {
     return '';
   }
 
-  private async cargarProgresoOnzas() {
+  private async cargarProgresoOnzas(actividadesDelDia?: ActivityFamilia[]) {
   try {
     const config =
       await this.bebeFamiliaService.obtenerConfiguracionBebeActivo();
@@ -231,11 +247,15 @@ getIconoActividad(actividad: any): string {
 
   let actividadesHoy: ActivityFamilia[] = [];
 
-  try {
-    actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
-  } catch (error) {
-    console.error('Error cargando progreso de onzas del bebé activo', error);
-    actividadesHoy = [];
+  if (actividadesDelDia) {
+    actividadesHoy = actividadesDelDia;
+  } else {
+    try {
+      actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
+    } catch (error) {
+      console.error('Error cargando progreso de onzas del bebé activo', error);
+      actividadesHoy = [];
+    }
   }
 
   this.actividadesHoy = actividadesHoy;
@@ -263,6 +283,19 @@ getIconoActividad(actividad: any): string {
   );
 }
 
+private async cargarActividadesYProgresoDeHoy() {
+  let actividadesHoy: ActivityFamilia[] = [];
+
+  try {
+    actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
+  } catch (error) {
+    console.error('Error cargando actividades del bebé activo', error);
+  }
+
+  this.actualizarActividadesRecientes(actividadesHoy);
+  await this.cargarProgresoOnzas(actividadesHoy);
+}
+
   get onzasRestantes(): number {
   const restantes = this.onzasDiariasObjetivo - this.onzasTomadasHoy;
 
@@ -274,9 +307,11 @@ getIconoActividad(actividad: any): string {
     this.bebeActivoId =
       (await this.bebeFamiliaService.obtenerBebeActivoId()) || '';
 
-    this.bebeFamiliaService.obtenerBebes().subscribe({
+    this.bebesSubscription?.unsubscribe();
+    this.bebesSubscription = this.bebeFamiliaService.obtenerBebes().subscribe({
       next: async bebes => {
         this.bebes = bebes || [];
+        this.actualizarBebesVista();
 
         if (!this.bebeActivoId && this.bebes.length > 0) {
           await this.seleccionarBebe(this.bebes[0]);
@@ -285,11 +320,13 @@ getIconoActividad(actividad: any): string {
       error: error => {
         console.error('Error cargando bebés de la familia', error);
         this.bebes = [];
+        this.bebesVista = [];
       }
     });
   } catch (error) {
     console.error('Error cargando datos de bebés', error);
     this.bebes = [];
+    this.bebesVista = [];
   }
 }
 
@@ -545,8 +582,7 @@ async seleccionarBebe(bebe: BebeFamilia) {
 
     // Más adelante, cuando las actividades estén en Firebase,
     // acá recargaremos actividades del bebé seleccionado.
-    await this.cargarActividadesDeHoy();
-    await this.cargarProgresoOnzas();
+    await this.cargarActividadesYProgresoDeHoy();
     await this.cargarSuenoActivo();
   } catch (error) {
     console.error('Error seleccionando bebé activo', error);
@@ -824,9 +860,7 @@ private async cargarSuenoActivo() {
     this.suenoActivo = await this.activityFamiliaService.obtenerSuenoActivo();
     this.actualizarDuracionSuenoActivo();
 
-    if (this.intervaloSuenoActivo) {
-      clearInterval(this.intervaloSuenoActivo);
-    }
+    this.limpiarIntervaloSuenoActivo();
 
     if (this.suenoActivo) {
       this.intervaloSuenoActivo = setInterval(() => {
@@ -837,7 +871,17 @@ private async cargarSuenoActivo() {
     console.error('Error cargando sueño activo', error);
     this.suenoActivo = null;
     this.duracionSuenoActivoTexto = '';
+    this.limpiarIntervaloSuenoActivo();
   }
+}
+
+private limpiarIntervaloSuenoActivo() {
+  if (!this.intervaloSuenoActivo) {
+    return;
+  }
+
+  clearInterval(this.intervaloSuenoActivo);
+  this.intervaloSuenoActivo = undefined;
 }
 
 private actualizarDuracionSuenoActivo() {
@@ -916,8 +960,7 @@ async abrirModalAgregarActividad() {
   const { data } = await modal.onDidDismiss();
 
   if (data?.actividadGuardada) {
-    await this.cargarActividadesDeHoy();
-    await this.cargarProgresoOnzas();
+    await this.cargarActividadesYProgresoDeHoy();
     await this.cargarSuenoActivo();
 
     // Si ya tienes este método por el card de sueño, déjalo.
@@ -926,5 +969,36 @@ async abrirModalAgregarActividad() {
       await (this as any).cargarResumenSueno();
     }
   }
+}
+
+trackByBebeId(_index: number, bebe: BebeFamilia): string {
+  return bebe.id;
+}
+
+trackByActividadId(_index: number, actividad: ActivityFamilia): string {
+  return actividad.id;
+}
+
+private actualizarBebesVista() {
+  this.bebesVista = this.bebes.map(bebe => ({
+    ...bebe,
+    edadMeses: this.calcularEdadMeses(bebe.fechaNacimiento)
+  }));
+}
+
+private actualizarActividadesRecientes(actividades: ActivityFamilia[]) {
+  this.actividadesRecientes = (actividades || [])
+    .slice()
+    .sort((a, b) => {
+      return new Date(b.time).getTime() - new Date(a.time).getTime();
+    });
+
+  this.actividadesRecientesVista = this.actividadesRecientes.map(actividad => ({
+    ...actividad,
+    icono: this.getIconoActividad(actividad),
+    color: this.getColorActividad(actividad),
+    titulo: this.getTituloActividad(actividad),
+    descripcion: this.getDescripcionActividad(actividad)
+  }));
 }
 }
