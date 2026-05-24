@@ -27,6 +27,29 @@
     letter-spacing: 0;
   }
 
+  .app-add-activity-button {
+    --border-radius: 12px;
+    --border-color: rgba(var(--ion-color-success-rgb), 0.35);
+    --background: rgba(var(--ion-color-success-rgb), 0.08);
+    --background-hover: rgba(var(--ion-color-success-rgb), 0.12);
+    --background-activated: rgba(var(--ion-color-success-rgb), 0.16);
+    --box-shadow: none;
+    --padding-start: 8px;
+    --padding-end: 10px;
+
+    min-height: 32px;
+    margin-right: 4px;
+    font-size: 0.78rem;
+    font-weight: 550;
+    letter-spacing: 0;
+    text-transform: none;
+
+    ion-icon {
+      margin-right: 3px;
+      font-size: 1rem;
+    }
+  }
+
   --background: #ffffff;
   --color: #4f46e5;
   border-bottom: 1px solid rgba(108, 99, 255, 0.12);

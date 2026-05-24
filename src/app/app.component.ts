@@ -18,7 +18,7 @@ import { Subscription, filter } from 'rxjs';
 import { AuthService } from './services/auth.service';
 import { UsuarioMenuComponent } from './components/usuario-menu/usuario-menu.component';
 import { ActividadFormModalComponent } from './components/actividad-form-modal/actividad-form-modal.component';
-import { add } from 'ionicons/icons';
+import { addCircle } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { NotificacionFamiliaService } from './services/notificacion-familia.service';
 import { ActividadEventosService } from './services/actividad-eventos.service';
@@ -58,7 +58,7 @@ export class AppComponent implements OnDestroy {
   mostrarHeaderApp = false;
 
   constructor() {
-    addIcons({add});
+    addIcons({addCircle});
     this.initializeApp();
     this.observarSesion();
     this.observarRuta();
