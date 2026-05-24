@@ -7,13 +7,19 @@ import {
   IonRouterOutlet,
   IonTitle,
   IonToolbar,
-  Platform
+  Platform,
+  IonButton,
+  IonIcon,
+  ModalController
 } from '@ionic/angular/standalone';
 import { App } from '@capacitor/app';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AuthService } from './services/auth.service';
 import { UsuarioMenuComponent } from './components/usuario-menu/usuario-menu.component';
+import { ActividadFormModalComponent } from './components/actividad-form-modal/actividad-form-modal.component';
+import { add } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
 
 @Component({
   selector: 'app-root',
@@ -24,6 +30,8 @@ import { UsuarioMenuComponent } from './components/usuario-menu/usuario-menu.com
     NgIf,
     IonApp,
     IonButtons,
+    IonButton,
+    IonIcon,
     IonHeader,
     IonRouterOutlet,
     IonTitle,
@@ -38,6 +46,7 @@ export class AppComponent implements OnDestroy {
   private platform = inject(Platform);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private modalController = inject(ModalController);
   private usuarioSubscription?: Subscription;
   private routerSubscription?: Subscription;
   private hayUsuario = false;
@@ -45,6 +54,7 @@ export class AppComponent implements OnDestroy {
   mostrarHeaderApp = false;
 
   constructor() {
+    addIcons({add});
     this.initializeApp();
     this.observarSesion();
     this.observarRuta();
@@ -94,5 +104,18 @@ export class AppComponent implements OnDestroy {
 
     const estaEnRutaPublica = rutasSinHeader.some(ruta => url.startsWith(ruta));
     this.mostrarHeaderApp = this.hayUsuario && !estaEnRutaPublica;
+  }
+
+  async abrirModalAgregarActividad() {
+    const modal = await this.modalController.create({
+      component: ActividadFormModalComponent,
+      cssClass: 'custom-modal',
+      componentProps: {
+        modo: 'crear',
+        tipoInicial: 'toma-leche'
+      }
+    });
+
+    await modal.present();
   }
 }
