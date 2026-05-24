@@ -178,6 +178,13 @@ ion-progress-bar {
   line-height: 1.22;
 }
 
+.actividad-desc-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .actividad-desc {
   margin: 4px 0 0;
   color: #78809a;
@@ -186,6 +193,22 @@ ion-progress-bar {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.actividad-fin-sueno {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(var(--ion-color-tertiary-rgb), 0.12);
+  color: var(--ion-color-tertiary-shade);
+  border: 1px solid rgba(var(--ion-color-tertiary-rgb), 0.2);
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .actividad-fecha {

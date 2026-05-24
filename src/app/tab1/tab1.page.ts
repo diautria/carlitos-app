@@ -36,6 +36,7 @@ type ActividadVista = ActivityFamilia & {
   color: string;
   titulo: string;
   descripcion: string;
+  horaFinSueno?: string;
 };
 
 @Component({
@@ -249,14 +250,14 @@ private async cargarVistaInicialTab1() {
     const sueno = actividad as any;
 
     if (!sueno.fin) {
-      return `Durmiendo desde ${new Date(sueno.inicio || sueno.time).toLocaleTimeString('es-UY', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      })}`;
+      return `Durmiendo desde ${this.obtenerHoraSuenoInicio(actividad)}`;
     }
 
-    return `Duró ${this.formatearDuracion(Number(sueno.duracionMinutos || 0))}`;
+    const horaFin = this.obtenerHoraSuenoFin(actividad);
+    const duracionMinutos = this.obtenerDuracionSuenoMinutos(actividad);
+    const duracionTexto = this.formatearDuracion(duracionMinutos);
+
+    return `Duró ${duracionTexto}`;
   }
 
     return '';
@@ -1068,7 +1069,10 @@ private actualizarActividadesRecientes(actividades: ActivityFamilia[]) {
     icono: this.getIconoActividad(actividad),
     color: this.getColorActividad(actividad),
     titulo: this.getTituloActividad(actividad),
-    descripcion: this.getDescripcionActividad(actividad)
+    descripcion: this.getDescripcionActividad(actividad),
+    horaFinSueno: actividad.type === 'sueno' && (actividad as any).fin
+      ? this.obtenerHoraSuenoFin(actividad)
+      : undefined
   }));
 }
 

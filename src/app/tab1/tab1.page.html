@@ -145,7 +145,7 @@
 
         <ion-button
           *ngIf="!suenoActivo"
-          color="primary"
+          color="tertiary"
           shape="round"
           size="small"
           class="sueno-action-button"
@@ -208,9 +208,17 @@
               {{ actividad.titulo }}
             </h3>
 
-            <p class="actividad-desc">
-              {{ actividad.descripcion }}
-            </p>
+            <div class="actividad-desc-row">
+              <p class="actividad-desc">
+                {{ actividad.descripcion }}
+              </p>
+
+              <span
+                *ngIf="actividad.horaFinSueno"
+                class="actividad-fin-sueno">
+                Fin {{ actividad.horaFinSueno }}
+              </span>
+            </div>
           </div>
 
           <time class="actividad-fecha">

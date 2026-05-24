@@ -143,16 +143,9 @@ ion-modal {
 
 .activity-actions-row {
   padding: 14px 16px 8px;
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(112px, 0.85fr);
-  gap: 10px;
+  display: block;
 }
 
-.activity-actions-row.single-action {
-  grid-template-columns: 1fr;
-}
-
-.quick-add-button,
 .filters-action-button {
   height: 42px;
   margin: 0;
@@ -165,19 +158,6 @@ ion-modal {
   --box-shadow: 0 8px 18px rgba(108, 99, 255, 0.1);
   --border-style: solid;
   --border-width: 1px;
-}
-
-.quick-add-button {
-  --background: #f2f0ff;
-  --background-hover: #ece9ff;
-  --background-activated: #e7e3ff;
-  --color: #5b54df;
-  --border-color: rgba(108, 99, 255, 0.22);
-}
-
-.quick-add-button ion-icon {
-  color: #6c63ff;
-  font-size: 18px;
 }
 
 .filters-action-button {

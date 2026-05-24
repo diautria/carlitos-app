@@ -28,12 +28,15 @@
   }
 
   .app-add-activity-button {
-    --border-radius: 12px;
-    --border-color: rgba(var(--ion-color-success-rgb), 0.35);
-    --background: rgba(var(--ion-color-success-rgb), 0.08);
-    --background-hover: rgba(var(--ion-color-success-rgb), 0.12);
-    --background-activated: rgba(var(--ion-color-success-rgb), 0.16);
-    --box-shadow: none;
+    --border-radius: 14px;
+    --border-style: solid;
+    --border-width: 1px;
+    --border-color: rgba(var(--ion-color-primary-rgb), 0.34);
+    --background: var(--ion-color-primary);
+    --background-hover: var(--ion-color-primary-shade);
+    --background-activated: var(--ion-color-primary-shade);
+    --color: #ffffff;
+    --box-shadow: 0 8px 18px rgba(var(--ion-color-primary-rgb), 0.18);
     --padding-start: 8px;
     --padding-end: 10px;
 
@@ -45,6 +48,7 @@
     text-transform: none;
 
     ion-icon {
+      color: #ffffff;
       margin-right: 3px;
       font-size: 1rem;
     }

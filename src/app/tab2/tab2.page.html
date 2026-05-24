@@ -1,18 +1,9 @@
 ﻿<ion-content>
 <ng-container *ngIf="!loading; else loadingState">
     <div
-      class="activity-actions-row"
-      [class.single-action]="activities.length === 0">
+      *ngIf="activities.length > 0"
+      class="activity-actions-row">
       <ion-button
-        expand="block"
-        class="quick-add-button"
-        (click)="openAddModal()">
-        <ion-icon name="add-circle" slot="start"></ion-icon>
-        Agregar actividad
-      </ion-button>
-
-      <ion-button
-        *ngIf="activities.length > 0"
         expand="block"
         class="filters-action-button"
         [class.filters-active]="hayFiltrosActivos()"
