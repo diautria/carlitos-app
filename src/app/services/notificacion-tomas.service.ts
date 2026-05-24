@@ -96,9 +96,23 @@ export class NotificacionTomasService {
   }
 
   async programarNotificacionProximaToma(
-    activities: ActivityFamilia[]
+    activities?: ActivityFamilia[]
   ): Promise<void> {
-    await this.programarNotificacionesProximasTomasTodos();
+    if (!activities) {
+      await this.programarNotificacionesProximasTomasTodos();
+      return;
+    }
+
+    const config = await this.bebeFamiliaService.obtenerConfiguracionBebeActivo();
+
+    await this.programarNotificacionProximaTomaConActividades(
+      {
+        id: config.bebeId,
+        nombre: config.nombre,
+        tiempoEntreTomasHoras: config.tiempoEntreTomasHoras
+      } as BebeFamilia,
+      activities
+    );
   }
 
   async cancelarNotificacionProximaToma(): Promise<void> {
@@ -116,6 +130,72 @@ export class NotificacionTomasService {
   private async cancelarNotificacionPorBebe(bebeId: string): Promise<void> {
     await this.notificacionFamiliaService.cancelarRecordatorioFamilia(
       this.obtenerRecordatorioIdBebe(bebeId)
+    );
+  }
+
+  private async programarNotificacionProximaTomaConActividades(
+    bebe: BebeFamilia,
+    actividades: ActivityFamilia[]
+  ): Promise<void> {
+    const notificationId = this.obtenerNotificationIdBebe(bebe.id);
+
+    await this.cancelarNotificacionPorBebe(bebe.id);
+
+    const tomasLeche = actividades
+      .filter(a => a.type === 'toma-leche')
+      .sort((a, b) =>
+        this.parseFechaLocal(b.time).getTime() -
+        this.parseFechaLocal(a.time).getTime()
+      );
+
+    const ultimaToma = tomasLeche[0];
+
+    if (!ultimaToma) {
+      return;
+    }
+
+    const horasEntreTomas = Number(
+      (bebe as any).tiempoEntreTomasHoras || 3
+    );
+
+    if (!horasEntreTomas || horasEntreTomas <= 0) {
+      return;
+    }
+
+    const fechaUltimaToma = this.parseFechaLocal(ultimaToma.time);
+
+    if (Number.isNaN(fechaUltimaToma.getTime())) {
+      return;
+    }
+
+    const fechaProximaToma = new Date(
+      fechaUltimaToma.getTime() + horasEntreTomas * 60 * 60 * 1000
+    );
+
+    const fechaNotificacion = new Date(
+      fechaProximaToma.getTime() - this.minutosAntes * 60 * 1000
+    );
+
+    const ahora = new Date();
+
+    if (fechaNotificacion <= ahora) {
+      if (fechaProximaToma > ahora) {
+        await this.programarNotificacion(
+          notificationId,
+          bebe,
+          new Date(ahora.getTime() + 1000),
+          `Faltan menos de ${this.minutosAntes} minutos para la proxima toma de leche.`
+        );
+      }
+
+      return;
+    }
+
+    await this.programarNotificacion(
+      notificationId,
+      bebe,
+      fechaNotificacion,
+      `Faltan ${this.minutosAntes} minutos para la proxima toma de leche.`
     );
   }
 

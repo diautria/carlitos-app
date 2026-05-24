@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -70,6 +70,8 @@ import { NotificacionSuenosService } from '../services/notificacion-suenos.servi
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../models/bebe-familia.model';
 import { NotificacionMedicamentosService } from '../services/notificacion-medicamentos.service';
+import { ActividadEventosService } from '../services/actividad-eventos.service';
+import { Subscription } from 'rxjs';
 
 interface ActivityDateGroup {
   fecha: string;
@@ -165,9 +167,11 @@ interface MedicamentoDisponible extends MedicamentoBebe {
     IonSpinner
   ]
 })
-export class Tab2Page implements OnInit {
+export class Tab2Page implements OnInit, OnDestroy {
   activities: ActivityFamilia[] = [];
   filteredActivities: ActivityFamilia[] = [];
+  private actividadesRecientes: ActivityFamilia[] = [];
+  private actividadesEliminadasRecientes = new Set<string>();
 
   bebes: BebeFamilia[] = [];
   medicamentosDisponibles: MedicamentoDisponible[] = [];
@@ -242,7 +246,8 @@ maxLoadedMonths = 3; // Control para evitar cargar todo a la vez
 totalMonthsAvailable = 0;
 allActivitiesLoaded = false;
 loadingMoreMonths = false;
-oldestActivityDate: Date | null = null;
+  oldestActivityDate: Date | null = null;
+private actividadGuardadaSubscription?: Subscription;
 
   constructor(
     private activityFamiliaService: ActivityFamiliaService,
@@ -251,19 +256,37 @@ oldestActivityDate: Date | null = null;
     private notificacionSuenosService: NotificacionSuenosService,
     private bebeFamiliaService: BebeFamiliaService,
     private notificacionMedicamentosService: NotificacionMedicamentosService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private cdr: ChangeDetectorRef,
+    private actividadEventosService: ActividadEventosService,
+    private ngZone: NgZone
   ) {
     addIcons({addCircle,barChartOutline,statsChartOutline,filterOutline,waterOutline,leafOutline,medical,moonOutline,createOutline,trashOutline,leaf,moon,close,water,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline,medicalOutline});
   }
 
   async ngOnInit() {
-    await this.cargarMedicamentosRegistrados();
-    await this.loadActivities();
+    this.actividadGuardadaSubscription =
+      this.actividadEventosService.actividadGuardada$.subscribe(activity => {
+        if (!activity) {
+          void this.loadActivities();
+          return;
+        }
+
+        this.ngZone.run(() => {
+          this.actualizarActividadEnMemoria(activity);
+        });
+      });
+  }
+
+  ngOnDestroy() {
+    this.actividadGuardadaSubscription?.unsubscribe();
   }
 
   async ionViewWillEnter() {
-    await this.cargarMedicamentosRegistrados();
-    await this.loadActivities();
+    await Promise.all([
+      this.cargarMedicamentosRegistrados(),
+      this.loadActivities()
+    ]);
   }
 
   private async cargarMedicamentosRegistrados() {
@@ -317,31 +340,40 @@ oldestActivityDate: Date | null = null;
     const fechasSuenosActuales = { ...this.openDateGroupsSuenos };
 
     // ⚡ OPTIMIZATION: Cargar solo últimos N meses en la primera carga
-    let actividades: ActivityFamilia[];
+    const actividades = forceLoadAll
+      ? await this.activityFamiliaService.getAll()
+      : await this.obtenerActividadesParaFiltros(this.filters);
     
     if (forceLoadAll || this.allActivitiesLoaded) {
       // Cargar TODO el histórico
-      actividades = await this.activityFamiliaService.getAll();
-      this.allActivitiesLoaded = true;
+      this.loadedMonths = 1;
+    this.allActivitiesLoaded = this.filters.rangoFecha === 'todos' || forceLoadAll;
     } else if (this.primeraCarga) {
       // Primera carga: cargar solo últimos 3 meses
-      actividades = await this.activityFamiliaService.getLastMonths(this.loadedMonths);
-      this.oldestActivityDate = await this.activityFamiliaService.getOldestActivityDate();
+      this.loadedMonths = 1;
+      this.oldestActivityDate = null;
       
       // Detectar si hay más datos por cargar calculando desde los datos ya cargados
-      this.totalMonthsAvailable = this.calcularMesesDisponibles(actividades);
+      this.totalMonthsAvailable = this.oldestActivityDate
+        ? this.calcularMesesDesdeFecha(this.oldestActivityDate)
+        : this.calcularMesesDisponibles(actividades);
       
       // Si parece que hay histórico antiguo, hacer una llamada para confirmarlo
-      if (this.oldestActivityDate) {
-        const allActivities = await this.activityFamiliaService.getAll();
-        this.totalMonthsAvailable = this.calcularMesesDisponibles(allActivities);
-      }
     } else {
       // Recargas posteriores: mantener los meses ya cargados
-      actividades = await this.activityFamiliaService.getLastMonths(this.loadedMonths);
+      this.loadedMonths = 1;
     }
 
-    this.activities = actividades.sort((a, b) =>
+    this.maxLoadedMonths = 1;
+    this.totalMonthsAvailable = 1;
+    this.allActivitiesLoaded = this.filters.rangoFecha === 'todos' || forceLoadAll;
+    this.oldestActivityDate = null;
+
+    this.activities = this.mergeActividadesRecientes(
+      actividades.filter(activity =>
+        !this.actividadesEliminadasRecientes.has(activity.id)
+      )
+    ).sort((a, b) =>
       b.time.localeCompare(a.time)
     );
 
@@ -395,10 +427,7 @@ oldestActivityDate: Date | null = null;
       ? fechasSuenosActuales
       : this.getDefaultOpenDateGroupsByMonth('sueno');
 
-    await this.notificacionTomasService.programarNotificacionProximaToma(
-      this.activities
-    );
-    await this.notificacionSuenosService.programarProximoSuenoBebeActivo();
+    void this.programarRecordatoriosConActividades(this.activities);
   } catch (error: any) {
     console.error('Error cargando actividades', error);
 
@@ -423,6 +452,74 @@ oldestActivityDate: Date | null = null;
     this.primeraCarga = false;
   }
 }
+
+  private async obtenerActividadesParaFiltros(
+    filters: ActivityFilters
+  ): Promise<ActivityFamilia[]> {
+    const filtros = this.normalizarFiltros(filters);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    if (filtros.rangoFecha === 'todos') {
+      return this.activityFamiliaService.getAll();
+    }
+
+    if (filtros.rangoFecha === 'hoy') {
+      return this.activityFamiliaService.getByDay(new Date());
+    }
+
+    if (filtros.rangoFecha === 'ayer') {
+      const ayer = new Date(hoy);
+      ayer.setDate(ayer.getDate() - 1);
+
+      return this.activityFamiliaService.getByDay(ayer);
+    }
+
+    if (filtros.rangoFecha === '7dias' || filtros.rangoFecha === '30dias') {
+      const dias = filtros.rangoFecha === '7dias' ? 7 : 30;
+      const desde = new Date(hoy);
+      desde.setDate(desde.getDate() - (dias - 1));
+
+      const hasta = new Date(hoy);
+      hasta.setDate(hasta.getDate() + 1);
+
+      return this.activityFamiliaService.getByDateRange(desde, hasta);
+    }
+
+    if (filtros.rangoFecha === 'personalizado') {
+      const desde = filtros.fechaDesde
+        ? this.getDateFromInput(filtros.fechaDesde)
+        : new Date(0);
+
+      const hasta = filtros.fechaHasta
+        ? this.getDateFromInput(filtros.fechaHasta)
+        : new Date();
+
+      const hastaExclusivo = new Date(hasta);
+      hastaExclusivo.setDate(hastaExclusivo.getDate() + 1);
+
+      return this.activityFamiliaService.getByDateRange(desde, hastaExclusivo);
+    }
+
+    return this.activityFamiliaService.getByDay(new Date());
+  }
+
+  private async programarRecordatoriosConActividades(
+    activities: ActivityFamilia[]
+  ): Promise<void> {
+    try {
+      await Promise.all([
+        this.notificacionTomasService.programarNotificacionProximaToma(
+          activities
+        ),
+        this.notificacionSuenosService.programarProximoSuenoBebeActivo(
+          activities
+        )
+      ]);
+    } catch (error) {
+      console.error('Error programando recordatorios de actividades', error);
+    }
+  }
 
   getEmptyForm(type: ActivityFamiliaType) {
     const base = {
@@ -491,8 +588,11 @@ oldestActivityDate: Date | null = null;
   const { data } = await modal.onDidDismiss();
 
   if (data?.actividadGuardada) {
-    await this.cargarMedicamentosRegistrados();
-    await this.loadActivities();
+    if (data.actividad) {
+      this.actualizarActividadEnMemoria(data.actividad);
+    }
+
+    void this.refrescarActividadesEnSegundoPlano();
   }
 }
 
@@ -511,10 +611,88 @@ oldestActivityDate: Date | null = null;
   const { data } = await modal.onDidDismiss();
 
   if (data?.actividadGuardada) {
-    await this.cargarMedicamentosRegistrados();
-    await this.loadActivities();
+    if (data.actividad) {
+      this.actualizarActividadEnMemoria(data.actividad);
+    }
+
+    void this.refrescarActividadesEnSegundoPlano();
   }
 }
+
+  private async refrescarActividadesEnSegundoPlano(): Promise<void> {
+    try {
+      await this.cargarMedicamentosRegistrados();
+      await this.loadActivities();
+    } catch (error) {
+      console.error('Error refrescando actividades', error);
+    }
+  }
+
+  private actualizarActividadEnMemoria(activity: ActivityFamilia): void {
+    if (!activity?.id) {
+      return;
+    }
+
+    this.selectedTab = activity.type;
+
+    this.actividadesRecientes = [
+      activity,
+      ...this.actividadesRecientes.filter(item => item.id !== activity.id)
+    ].slice(0, 10);
+
+    const index = this.activities.findIndex(item => item.id === activity.id);
+
+    if (index >= 0) {
+      this.activities = [
+        ...this.activities.slice(0, index),
+        activity,
+        ...this.activities.slice(index + 1)
+      ];
+    } else {
+      this.activities = [
+        activity,
+        ...this.activities
+      ];
+    }
+
+    this.activities = this.activities.sort((a, b) =>
+      b.time.localeCompare(a.time)
+    );
+
+    this.aplicarFiltros(true);
+    this.cdr.detectChanges();
+  }
+
+  private mergeActividadesRecientes(
+    activities: ActivityFamilia[]
+  ): ActivityFamilia[] {
+    const activitiesMap = new Map<string, ActivityFamilia>();
+
+    activities.forEach(activity => {
+      activitiesMap.set(activity.id, activity);
+    });
+
+    this.actividadesRecientes.forEach(activity => {
+      activitiesMap.set(activity.id, activity);
+    });
+
+    return Array.from(activitiesMap.values());
+  }
+
+  private eliminarActividadEnMemoria(id: string): void {
+    this.activities = this.activities.filter(activity => activity.id !== id);
+    this.actividadesRecientes = this.actividadesRecientes.filter(
+      activity => activity.id !== id
+    );
+    this.actividadesEliminadasRecientes.add(id);
+
+    this.aplicarFiltros(true);
+    this.cdr.detectChanges();
+
+    window.setTimeout(() => {
+      this.actividadesEliminadasRecientes.delete(id);
+    }, 10000);
+  }
 
   closeModal() {
     this.showModal = false;
@@ -700,7 +878,8 @@ oldestActivityDate: Date | null = null;
         role: 'destructive',
         handler: async () => {
           await this.activityFamiliaService.delete(id);
-          await this.loadActivities();
+          this.eliminarActividadEnMemoria(id);
+          void this.loadActivities();
 
           if (
             actividadAEliminar?.type === 'medicamento' &&
@@ -711,7 +890,7 @@ oldestActivityDate: Date | null = null;
             );
 
             if (medicamento) {
-              await this.notificacionMedicamentosService
+              void this.notificacionMedicamentosService
                 .reprogramarMedicamentoDespuesDeAdministrar(
                   medicamento.bebeId,
                   (medicamento as any).nombreBebe || '',
@@ -1122,8 +1301,9 @@ oldestActivityDate: Date | null = null;
     this.showModalFiltros = false;
   }
 
-  aplicarFiltrosDesdeModal() {
+  async aplicarFiltrosDesdeModal() {
     this.filters = this.normalizarFiltros(this.filtersDraft);
+    await this.loadActivities();
     this.aplicarFiltros(true);
     this.cerrarModalFiltros();
   }
@@ -1132,9 +1312,10 @@ oldestActivityDate: Date | null = null;
     this.filtersDraft = this.getDefaultFilters();
   }
 
-  limpiarFiltros() {
+  async limpiarFiltros() {
     this.filters = this.getDefaultFilters();
     this.filtersDraft = this.getDefaultFilters();
+    await this.loadActivities();
     this.aplicarFiltros(true);
   }
 
@@ -1619,27 +1800,43 @@ private cumpleFiltroMedicamento(
     return cantidad;
   }
 
-  abrirModalEstadisticas() {
-    this.calcularEstadisticas();
-    this.showModalEstadisticas = true;
+  async abrirModalEstadisticas() {
+    try {
+      const fechaFin = new Date();
+      fechaFin.setHours(0, 0, 0, 0);
+
+      const fechaInicio = new Date(fechaFin);
+      fechaInicio.setDate(fechaInicio.getDate() - 30);
+
+      const actividadesUltimos30Dias =
+        await this.activityFamiliaService.getByDateRange(fechaInicio, fechaFin);
+
+      const actividadesParaEstadisticas = this.mergeActividadesRecientes(
+        actividadesUltimos30Dias.filter(activity =>
+          !this.actividadesEliminadasRecientes.has(activity.id)
+        )
+      );
+
+      this.calcularEstadisticas(actividadesParaEstadisticas);
+      this.showModalEstadisticas = true;
+    } catch (error: any) {
+      console.error('Error cargando estadisticas', error);
+
+      const alert = await this.alertController.create({
+        header: 'Estadisticas',
+        message: error?.message || 'No se pudieron cargar las estadisticas.',
+        buttons: ['Aceptar']
+      });
+
+      await alert.present();
+    }
   }
 
   cerrarModalEstadisticas() {
     this.showModalEstadisticas = false;
   }
 
-  private calcularEstadisticas() {
-    const fechaFin = new Date();
-    fechaFin.setHours(0, 0, 0, 0);
-
-    const fechaInicio = new Date(fechaFin);
-    fechaInicio.setDate(fechaInicio.getDate() - 30);
-
-    const actividadesUltimoMes = this.activities.filter(activity => {
-      const fechaActividad = new Date(activity.time);
-      return fechaActividad >= fechaInicio && fechaActividad < fechaFin;
-    });
-
+  private calcularEstadisticas(actividadesUltimoMes: ActivityFamilia[]) {
     const tomas = actividadesUltimoMes.filter(a => a.type === 'toma-leche');
     const panales = actividadesUltimoMes.filter(a => a.type === 'cambio-panal');
     const medicamentos = actividadesUltimoMes.filter(a => a.type === 'medicamento');
@@ -1853,6 +2050,15 @@ private calcularMesesDisponibles(activities: ActivityFamilia[]): number {
     + (newest.getMonth() - oldest.getMonth()) + 1;
 
   return Math.ceil(months);
+}
+
+private calcularMesesDesdeFecha(oldest: Date): number {
+  const newest = new Date();
+
+  const months = (newest.getFullYear() - oldest.getFullYear()) * 12
+    + (newest.getMonth() - oldest.getMonth()) + 1;
+
+  return Math.max(0, Math.ceil(months));
 }
 
 /**

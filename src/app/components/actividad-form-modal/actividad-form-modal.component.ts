@@ -44,6 +44,7 @@ import { BebeFamiliaService } from '../../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../../models/bebe-familia.model';
 import { NotificacionMedicamentosService } from '../../services/notificacion-medicamentos.service';
 import { NotificacionSuenosService } from '../../services/notificacion-suenos.service';
+import { ActividadEventosService } from '../../services/actividad-eventos.service';
 
 interface MedicamentoDisponible extends MedicamentoBebe {
   bebeId: string;
@@ -82,6 +83,7 @@ export class ActividadFormModalComponent implements OnInit {
   private bebeFamiliaService = inject(BebeFamiliaService);
   private notificacionMedicamentosService = inject(NotificacionMedicamentosService);
   private notificacionSuenosService = inject(NotificacionSuenosService);
+  private actividadEventosService = inject(ActividadEventosService);
 
   isEdit = false;
   formType: ActivityFamiliaType = 'toma-leche';
@@ -254,6 +256,7 @@ export class ActividadFormModalComponent implements OnInit {
   async saveActivity() {
     try {
       this.form.type = this.formType;
+      this.form.time = this.normalizarFechaHoraLocal(this.form.time);
 
       let medicamentoAdministrado: any = null;
 
@@ -316,9 +319,19 @@ export class ActividadFormModalComponent implements OnInit {
         // Solo actualizar inicio si es modo crear, no editar
         if (!this.isEdit) {
           this.form.inicio = this.form.time;
+        } else {
+          this.form.inicio = this.normalizarFechaHoraLocal(
+            this.form.inicio || this.form.time,
+            this.form.time
+          );
         }
 
         if (this.form.fin) {
+          this.form.fin = this.normalizarFechaHoraLocal(
+            this.form.fin,
+            this.form.inicio || this.form.time
+          );
+
           const inicio = new Date(this.form.inicio);
           const fin = new Date(this.form.fin);
 
@@ -357,35 +370,55 @@ export class ActividadFormModalComponent implements OnInit {
         this.form.observaciones = this.form.observaciones?.trim() || '';
       }
 
+      let actividadGuardada: ActivityFamilia = this.form;
+
       if (!this.form.id) {
         this.form.id = '';
         this.form.createdAt = new Date().toISOString();
 
-        await this.activityFamiliaService.add(this.form);
+        actividadGuardada = await this.activityFamiliaService.add(this.form);
+        this.form = {
+          ...this.form,
+          ...actividadGuardada
+        };
       } else {
         this.form.updatedAt = new Date().toISOString();
 
         await this.activityFamiliaService.update(this.form);
+        actividadGuardada = this.form;
       }
 
-      const actividades = await this.activityFamiliaService.getAll();
+      const actividadesHoyPromise = this.activityFamiliaService.getByDay(new Date())
+        .catch(error => {
+          console.error('Error obteniendo actividades para recordatorios', error);
+          return [] as ActivityFamilia[];
+        });
+
+      await this.modalController.dismiss({
+        actividadGuardada: true,
+        actividad: actividadGuardada
+      });
+
+      this.actividadEventosService.notificarActividadGuardada(actividadGuardada);
 
       if (this.formType === 'medicamento' && medicamentoAdministrado) {
-        await this.notificacionMedicamentosService.reprogramarMedicamentoDespuesDeAdministrar(
-          medicamentoAdministrado.bebeId,
-          medicamentoAdministrado.nombreBebe || '',
-          medicamentoAdministrado,
-          actividades
+        void actividadesHoyPromise.then(actividades =>
+          this.notificacionMedicamentosService.reprogramarMedicamentoDespuesDeAdministrar(
+            medicamentoAdministrado.bebeId,
+            medicamentoAdministrado.nombreBebe || '',
+            medicamentoAdministrado,
+            actividades
+          )
         );
       }
 
       if (this.formType === 'sueno') {
-        await this.notificacionSuenosService.programarProximoSuenoBebeActivo();
+        void actividadesHoyPromise.then(actividades =>
+          this.notificacionSuenosService.programarProximoSuenoBebeActivo(
+            actividades
+          )
+        );
       }
-
-      await this.modalController.dismiss({
-        actividadGuardada: true
-      });
     } catch (error: any) {
       console.error('Error guardando actividad', error);
 
@@ -413,6 +446,32 @@ export class ActividadFormModalComponent implements OnInit {
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  private normalizarFechaHoraLocal(value: string, baseValue?: string): string {
+    if (!value) {
+      return this.getLocalDateTimeForInput();
+    }
+
+    const horaSola = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+
+    if (horaSola) {
+      const base = baseValue && baseValue.includes('T')
+        ? new Date(baseValue)
+        : new Date();
+
+      base.setHours(Number(horaSola[1]), Number(horaSola[2]), 0, 0);
+
+      return this.getLocalDateTimeForInput(base);
+    }
+
+    const fecha = new Date(value);
+
+    if (!Number.isNaN(fecha.getTime())) {
+      return this.getLocalDateTimeForInput(fecha);
+    }
+
+    return this.getLocalDateTimeForInput();
   }
 
   private convertToDatetimeFormat(isoString: string | null | undefined): string {

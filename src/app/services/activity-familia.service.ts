@@ -9,7 +9,11 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  where,
+  orderBy,
+  limit
 } from '@angular/fire/firestore';
 import { firstValueFrom } from 'rxjs';
 import { ActivityFamilia } from '../models/activity-familia.model';
@@ -79,17 +83,13 @@ export class ActivityFamiliaService {
       `familias/${familiaId}/bebes/${bebeId}/actividades`
     );
 
-    const snapshot = await getDocs(actividadesRef);
+    const q = query(actividadesRef, orderBy('time', 'desc'));
+    const snapshot = await getDocs(q);
 
-    return snapshot.docs
-      .map(docSnap => ({
-        ...(docSnap.data() as ActivityFamilia),
-        id: docSnap.id
-      }))
-      .sort((a, b) => b.time.localeCompare(a.time));
+    return this.mapActivities(snapshot.docs);
   }
 
-  async add(activity: ActivityFamilia): Promise<void> {
+  async add(activity: ActivityFamilia): Promise<ActivityFamilia> {
     const { uid, familiaId, bebeId } = await this.obtenerContextoActivo();
 
     const actividadRef = doc(
@@ -110,6 +110,12 @@ export class ActivityFamiliaService {
     } as ActivityFamilia;
 
     await setDoc(actividadRef, actividadAGuardar);
+
+    return {
+      ...actividadAGuardar,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    } as ActivityFamilia;
   }
 
   async update(activity: ActivityFamilia): Promise<void> {
@@ -142,14 +148,36 @@ export class ActivityFamiliaService {
   }
 
   async getByDay(date: Date): Promise<ActivityFamilia[]> {
-    const activities = await this.getAll();
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
 
-    const dayKey = this.getLocalDateKey(date);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
 
-    return activities.filter(activity => {
-      const activityDayKey = this.getActivityDateKey(activity.time);
-      return activityDayKey === dayKey;
-    });
+    return this.getByDateRange(start, end);
+  }
+
+  async getByDateRange(
+    start: Date,
+    end: Date
+  ): Promise<ActivityFamilia[]> {
+    const { familiaId, bebeId } = await this.obtenerContextoActivo();
+
+    const actividadesRef = collection(
+      this.firestore,
+      `familias/${familiaId}/bebes/${bebeId}/actividades`
+    );
+
+    const q = query(
+      actividadesRef,
+      where('time', '>=', this.getLocalDateTimeKey(start)),
+      where('time', '<', this.getLocalDateTimeKey(end)),
+      orderBy('time', 'desc')
+    );
+
+    const snapshot = await getDocs(q);
+
+    return this.mapActivities(snapshot.docs);
   }
 
   async getByCategory(type: string, date: Date): Promise<ActivityFamilia[]> {
@@ -194,13 +222,32 @@ export class ActivityFamiliaService {
 }
 
 async obtenerSuenoActivo(): Promise<ActivityFamilia | null> {
-  const actividades = await this.getAll();
+  const { familiaId, bebeId } = await this.obtenerContextoActivo();
 
-  const suenoActivo = actividades.find(activity => {
-    return activity.type === 'sueno' && !(activity as any).fin;
-  });
+  const actividadesRef = collection(
+    this.firestore,
+    `familias/${familiaId}/bebes/${bebeId}/actividades`
+  );
 
-  return suenoActivo || null;
+  const q = query(
+    actividadesRef,
+    where('type', '==', 'sueno'),
+    where('fin', '==', null),
+    limit(1)
+  );
+
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const docSnap = snapshot.docs[0];
+
+  return {
+    ...(docSnap.data() as ActivityFamilia),
+    id: docSnap.id
+  };
 }
 
 async iniciarSueno(fechaInicio: Date = new Date()): Promise<void> {
@@ -226,12 +273,26 @@ async iniciarSueno(fechaInicio: Date = new Date()): Promise<void> {
 }
 
 async finalizarSueno(suenoId: string, fechaFin: Date = new Date()): Promise<void> {
-  const actividades = await this.getAll();
+  const { familiaId, bebeId } = await this.obtenerContextoActivo();
 
-  const sueno = actividades.find(activity => activity.id === suenoId);
+  const suenoRef = doc(
+    this.firestore,
+    `familias/${familiaId}/bebes/${bebeId}/actividades/${suenoId}`
+  );
 
-  if (!sueno || sueno.type !== 'sueno') {
+  const suenoSnap = await getDoc(suenoRef);
+
+  if (!suenoSnap.exists()) {
     throw new Error('No se encontró el sueño activo.');
+  }
+
+  const sueno = {
+    ...(suenoSnap.data() as ActivityFamilia),
+    id: suenoSnap.id
+  };
+
+  if (sueno.type !== 'sueno') {
+    throw new Error('No se encontrÃ³ el sueÃ±o activo.');
   }
 
   const inicio = new Date((sueno as any).inicio || sueno.time);
@@ -289,43 +350,91 @@ async agregarSuenoManual(
  * Útil para lazy loading de histórico.
  */
 async getLastMonths(months: number = 3): Promise<ActivityFamilia[]> {
-  const allActivities = await this.getAll();
-  
+  const { familiaId, bebeId } = await this.obtenerContextoActivo();
   const now = new Date();
   const cutoffDate = new Date(now);
   cutoffDate.setMonth(cutoffDate.getMonth() - months);
   cutoffDate.setDate(1);
   cutoffDate.setHours(0, 0, 0, 0);
-  
-  return allActivities.filter(activity => {
-    const activityDate = new Date(activity.time);
-    return activityDate >= cutoffDate;
-  });
+
+  const actividadesRef = collection(
+    this.firestore,
+    `familias/${familiaId}/bebes/${bebeId}/actividades`
+  );
+
+  const q = query(
+    actividadesRef,
+    where('time', '>=', this.getLocalDateTimeKey(cutoffDate)),
+    orderBy('time', 'desc')
+  );
+
+  const snapshot = await getDocs(q);
+
+  return this.mapActivities(snapshot.docs);
 }
 
 /**
  * Obtiene actividades hasta una fecha específica (hacia atrás).
  * Usado para cargar períodos anteriores de forma progresiva.
  */
-async getActivitiesBeforeDate(beforeDate: Date, limit: number = 500): Promise<ActivityFamilia[]> {
-  const allActivities = await this.getAll();
-  
-  return allActivities
-    .filter(activity => new Date(activity.time) < beforeDate)
-    .slice(0, limit);
+async getActivitiesBeforeDate(beforeDate: Date, maxResults: number = 500): Promise<ActivityFamilia[]> {
+  const { familiaId, bebeId } = await this.obtenerContextoActivo();
+
+  const actividadesRef = collection(
+    this.firestore,
+    `familias/${familiaId}/bebes/${bebeId}/actividades`
+  );
+
+  const q = query(
+    actividadesRef,
+    where('time', '<', this.getLocalDateTimeKey(beforeDate)),
+    orderBy('time', 'desc'),
+    limit(maxResults)
+  );
+
+  const snapshot = await getDocs(q);
+
+  return this.mapActivities(snapshot.docs);
 }
 
 /**
  * Obtiene el mes más antiguo registrado en las actividades.
  */
 async getOldestActivityDate(): Promise<Date | null> {
-  const allActivities = await this.getAll();
-  
-  if (allActivities.length === 0) {
+  const { familiaId, bebeId } = await this.obtenerContextoActivo();
+
+  const actividadesRef = collection(
+    this.firestore,
+    `familias/${familiaId}/bebes/${bebeId}/actividades`
+  );
+
+  const q = query(actividadesRef, orderBy('time', 'asc'), limit(1));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
     return null;
   }
-  
-  const oldest = allActivities[allActivities.length - 1];
+
+  const oldest = snapshot.docs[0].data() as ActivityFamilia;
   return new Date(oldest.time);
+}
+
+private getLocalDateTimeKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+private mapActivities(
+  docs: Array<{ id: string; data: () => unknown }>
+): ActivityFamilia[] {
+  return docs.map(docSnap => ({
+    ...(docSnap.data() as ActivityFamilia),
+    id: docSnap.id
+  }));
 }
 }

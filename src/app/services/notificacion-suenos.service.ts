@@ -18,7 +18,9 @@ export class NotificacionSuenosService {
     private notificacionFamiliaService: NotificacionFamiliaService
   ) {}
 
-  async programarProximoSuenoBebeActivo(): Promise<void> {
+  async programarProximoSuenoBebeActivo(
+    actividadesBebeActivo?: ActivityFamilia[]
+  ): Promise<void> {
     const config = await this.bebeFamiliaService.obtenerConfiguracionBebeActivo();
     const notificationId = this.obtenerNotificationIdBebe(config.bebeId);
 
@@ -30,7 +32,7 @@ export class NotificacionSuenosService {
       return;
     }
 
-    const actividades = await this.activityFamiliaService.getAllByBebeId(
+    const actividades = actividadesBebeActivo || await this.activityFamiliaService.getAllByBebeId(
       config.bebeId
     );
 
