@@ -234,6 +234,7 @@ export class NotificacionFamiliaService {
             title: notificacion.titulo,
             body: notificacion.mensaje,
             smallIcon: 'ic_notification_app',
+            largeIcon: 'ic_notification_large',
             schedule: {
               at: new Date(Date.now() + 500),
               allowWhileIdle: true
@@ -277,6 +278,7 @@ export class NotificacionFamiliaService {
             title: recordatorio.titulo,
             body: recordatorio.mensaje,
             smallIcon: 'ic_notification_app',
+            largeIcon: 'ic_notification_large',
             schedule: {
               at: fechaNotificacion,
               allowWhileIdle: true
