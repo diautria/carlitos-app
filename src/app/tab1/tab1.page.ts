@@ -109,8 +109,8 @@ private actividadEventosService = inject(ActividadEventosService);
   async ngOnInit() {
    addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline   });
    this.actividadGuardadaSubscription =
-     this.actividadEventosService.actividadGuardada$.subscribe(async () => {
-       await this.refrescarActividadGuardada();
+     this.actividadEventosService.actividadGuardada$.subscribe(async activity => {
+       await this.refrescarActividadGuardada(activity || undefined);
      });
   }
 
@@ -184,10 +184,13 @@ private async cargarVistaInicialTab1() {
   this.cargandoTab1 = !this.vistaInicialCargada;
 
   try {
-    await this.cargarPermisosFamilia();
     await this.cargarDatosBebe();
-    await this.cargarActividadesYProgresoDeHoy();
-    await this.cargarSuenoActivo();
+
+    await Promise.all([
+      this.cargarPermisosFamilia(),
+      this.cargarActividadesYProgresoDeHoy(),
+      this.cargarSuenoActivo()
+    ]);
 
     this.vistaInicialCargada = true;
   } finally {
@@ -969,10 +972,14 @@ formatearDuracion(minutos: number): string {
 async iniciarSuenoRapido() {
   try {
     await this.activityFamiliaService.iniciarSueno(new Date());
-    await this.notificacionSuenosService.programarProximoSuenoBebeActivo();
 
+    const actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
+    this.actualizarActividadesRecientes(actividadesHoy);
+    await this.cargarProgresoOnzas(actividadesHoy);
     await this.cargarSuenoActivo();
-    await this.cargarActividadesDeHoy();
+    void this.notificacionSuenosService.programarProximoSuenoBebeActivo(
+      actividadesHoy
+    );
   } catch (error: any) {
     alert(error?.message || 'No se pudo iniciar el sueño.');
   }
@@ -988,10 +995,14 @@ async finalizarSuenoActivo() {
       this.suenoActivo.id,
       new Date()
     );
-    await this.notificacionSuenosService.programarProximoSuenoBebeActivo();
 
+    const actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
+    this.actualizarActividadesRecientes(actividadesHoy);
+    await this.cargarProgresoOnzas(actividadesHoy);
     await this.cargarSuenoActivo();
-    await this.cargarActividadesDeHoy();
+    void this.notificacionSuenosService.programarProximoSuenoBebeActivo(
+      actividadesHoy
+    );
   } catch (error: any) {
     alert(error?.message || 'No se pudo finalizar el sueño.');
   }
@@ -1009,16 +1020,21 @@ async abrirModalAgregarActividad() {
 
   await modal.present();
 
-  const { data } = await modal.onDidDismiss();
-
-  if (data?.actividadGuardada) {
-    await this.refrescarActividadGuardada();
-  }
+  await modal.onDidDismiss();
 }
 
-private async refrescarActividadGuardada(): Promise<void> {
-  await this.cargarActividadesYProgresoDeHoy();
-  await this.cargarSuenoActivo();
+private async refrescarActividadGuardada(
+  activity?: ActivityFamilia
+): Promise<void> {
+  if (activity) {
+    this.actualizarActividadEnMemoria(activity);
+    this.actualizarProgresoOnzasDesdeActividades();
+  }
+
+  await Promise.all([
+    this.cargarActividadesYProgresoDeHoy(),
+    this.cargarSuenoActivo()
+  ]);
 
   if ((this as any).cargarResumenSueno) {
     await (this as any).cargarResumenSueno();
@@ -1054,5 +1070,61 @@ private actualizarActividadesRecientes(actividades: ActivityFamilia[]) {
     titulo: this.getTituloActividad(actividad),
     descripcion: this.getDescripcionActividad(actividad)
   }));
+}
+
+private actualizarActividadEnMemoria(activity: ActivityFamilia): void {
+  if (!activity?.id) {
+    return;
+  }
+
+  const index = this.actividadesRecientes.findIndex(
+    item => item.id === activity.id
+  );
+
+  if (index >= 0) {
+    this.actividadesRecientes = [
+      ...this.actividadesRecientes.slice(0, index),
+      activity,
+      ...this.actividadesRecientes.slice(index + 1)
+    ];
+  } else {
+    this.actividadesRecientes = [
+      activity,
+      ...this.actividadesRecientes
+    ];
+  }
+
+  this.actualizarActividadesRecientes(this.actividadesRecientes);
+
+  if (activity.type === 'sueno' && !(activity as any).fin) {
+    this.suenoActivo = activity;
+    this.actualizarDuracionSuenoActivo();
+  }
+}
+
+private actualizarProgresoOnzasDesdeActividades(): void {
+  this.actividadesHoy = this.actividadesRecientes;
+
+  this.onzasTomadasHoy = this.actividadesHoy
+    .filter(a => a.type === 'toma-leche')
+    .reduce((total, actividad) => {
+      return total + Number((actividad as any).cantidadOnzas || 0);
+    }, 0);
+
+  if (!this.onzasDiariasObjetivo || this.onzasDiariasObjetivo <= 0) {
+    this.porcentajeOnzas = 0;
+    this.progresoOnzas = 0;
+    return;
+  }
+
+  this.porcentajeOnzas = Math.min(
+    100,
+    Math.round((this.onzasTomadasHoy / this.onzasDiariasObjetivo) * 100)
+  );
+
+  this.progresoOnzas = Math.min(
+    1,
+    this.onzasTomadasHoy / this.onzasDiariasObjetivo
+  );
 }
 }
