@@ -1,14 +1,18 @@
 import { Injectable } from '@angular/core';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { MedicamentoBebe } from '../models/bebe-familia.model';
 import { ActivityFamilia } from '../models/activity-familia.model';
+import { NotificacionFamiliaService } from './notificacion-familia.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificacionMedicamentosService {
   private readonly minutosAntes = 5;
-  private readonly baseNotificationId = 3000;
+  private readonly baseNotificationId = 300000;
+
+  constructor(
+    private notificacionFamiliaService: NotificacionFamiliaService
+  ) {}
 
   async programarNotificacionesMedicamentos(
     bebeId: string,
@@ -16,12 +20,6 @@ export class NotificacionMedicamentosService {
     medicamentos: MedicamentoBebe[],
     actividades: ActivityFamilia[] = []
   ): Promise<void> {
-    const tienePermiso = await this.asegurarPermiso();
-
-    if (!tienePermiso) {
-      return;
-    }
-
     await this.cancelarNotificacionesMedicamentos(medicamentos);
 
     const notifications: any[] = [];
@@ -39,18 +37,14 @@ export class NotificacionMedicamentosService {
       }
 
       notifications.push({
-        id: this.obtenerNotificationId(medicamento.id),
-        title: 'Medicamento de ' + nombreBebe,
-        body: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
-        smallIcon: 'ic_notification_app',
-        schedule: {
-          at: fechaNotificacion,
-          allowWhileIdle: true
-        },
-        extra: {
-          bebeId,
-          medicamentoId: medicamento.id
-        }
+        recordatorioId: this.obtenerRecordatorioId(medicamento.id),
+        notificationId: this.obtenerNotificationId(medicamento.id),
+        tipo: 'medicamento',
+        titulo: 'Medicamento de ' + nombreBebe,
+        mensaje: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
+        fechaNotificacion,
+        bebeId,
+        medicamentoId: medicamento.id
       });
     }
 
@@ -58,9 +52,9 @@ export class NotificacionMedicamentosService {
       return;
     }
 
-    await LocalNotifications.schedule({
-      notifications
-    });
+    await Promise.all(notifications.map(notification =>
+      this.notificacionFamiliaService.programarRecordatorioFamilia(notification)
+    ));
   }
 
   async reprogramarMedicamentoDespuesDeAdministrar(
@@ -69,12 +63,6 @@ export class NotificacionMedicamentosService {
     medicamento: MedicamentoBebe,
     actividades: ActivityFamilia[]
   ): Promise<void> {
-    const tienePermiso = await this.asegurarPermiso();
-
-    if (!tienePermiso) {
-      return;
-    }
-
     await this.cancelarNotificacionMedicamento(medicamento.id);
 
     if (!medicamento.activo) {
@@ -90,23 +78,15 @@ export class NotificacionMedicamentosService {
       return;
     }
 
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: this.obtenerNotificationId(medicamento.id),
-          title: 'Medicamento de ' + nombreBebe,
-          body: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
-          smallIcon: 'ic_notification_app',
-          schedule: {
-            at: fechaNotificacion,
-            allowWhileIdle: true
-          },
-          extra: {
-            bebeId,
-            medicamentoId: medicamento.id
-          }
-        }
-      ]
+    await this.notificacionFamiliaService.programarRecordatorioFamilia({
+      recordatorioId: this.obtenerRecordatorioId(medicamento.id),
+      notificationId: this.obtenerNotificationId(medicamento.id),
+      tipo: 'medicamento',
+      titulo: 'Medicamento de ' + nombreBebe,
+      mensaje: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
+      fechaNotificacion,
+      bebeId,
+      medicamentoId: medicamento.id
     });
   }
 
@@ -117,25 +97,17 @@ export class NotificacionMedicamentosService {
       return;
     }
 
-    const notifications = medicamentos.map(medicamento => ({
-      id: this.obtenerNotificationId(medicamento.id)
-    }));
-
-    await LocalNotifications.cancel({
-      notifications
-    });
+    await Promise.all(medicamentos.map(medicamento =>
+      this.cancelarNotificacionMedicamento(medicamento.id)
+    ));
   }
 
   async cancelarNotificacionMedicamento(
     medicamentoId: string
   ): Promise<void> {
-    await LocalNotifications.cancel({
-      notifications: [
-        {
-          id: this.obtenerNotificationId(medicamentoId)
-        }
-      ]
-    });
+    await this.notificacionFamiliaService.cancelarRecordatorioFamilia(
+      this.obtenerRecordatorioId(medicamentoId)
+    );
   }
 
   private calcularProximaNotificacion(
@@ -278,16 +250,8 @@ export class NotificacionMedicamentosService {
     return this.baseNotificationId + Math.abs(hash % 100000);
   }
 
-  private async asegurarPermiso(): Promise<boolean> {
-    const permiso = await LocalNotifications.checkPermissions();
-
-    if (permiso.display === 'granted') {
-      return true;
-    }
-
-    const permisoSolicitado = await LocalNotifications.requestPermissions();
-
-    return permisoSolicitado.display === 'granted';
+  private obtenerRecordatorioId(medicamentoId: string): string {
+    return `medicamento-${medicamentoId}`;
   }
 
   private parseFechaActividad(fecha: string): Date {

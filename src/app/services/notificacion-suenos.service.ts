@@ -1,33 +1,28 @@
-﻿import { Injectable } from '@angular/core';
-import { LocalNotifications } from '@capacitor/local-notifications';
+import { Injectable } from '@angular/core';
 import { ActivityFamilia } from '../models/activity-familia.model';
 import { BebeFamiliaService } from './bebe-familia.service';
 import { ActivityFamiliaService } from './activity-familia.service';
+import { NotificacionFamiliaService } from './notificacion-familia.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificacionSuenosService {
-  private readonly notificationBaseId = 200000;
+  private readonly notificationBaseId = 400000;
   private readonly horaInicioPermitida = 8;
   private readonly horaFinPermitida = 22;
 
   constructor(
     private bebeFamiliaService: BebeFamiliaService,
-    private activityFamiliaService: ActivityFamiliaService
+    private activityFamiliaService: ActivityFamiliaService,
+    private notificacionFamiliaService: NotificacionFamiliaService
   ) {}
 
   async programarProximoSuenoBebeActivo(): Promise<void> {
     const config = await this.bebeFamiliaService.obtenerConfiguracionBebeActivo();
     const notificationId = this.obtenerNotificationIdBebe(config.bebeId);
 
-    await this.cancelarNotificacionPorId(notificationId);
-
-    const permisoOk = await this.asegurarPermiso();
-
-    if (!permisoOk) {
-      return;
-    }
+    await this.cancelarNotificacionPorBebe(config.bebeId);
 
     const tiempoEntreSuenosHoras = Number(config.tiempoEntreSuenosHoras || 0);
 
@@ -74,9 +69,7 @@ export class NotificacionSuenosService {
       fechaFinUltimoSueno.getTime() + tiempoEntreSuenosHoras * 60 * 60 * 1000
     );
 
-    const ahora = new Date();
-
-    if (fechaProximoSueno <= ahora) {
+    if (fechaProximoSueno <= new Date()) {
       return;
     }
 
@@ -84,31 +77,21 @@ export class NotificacionSuenosService {
       return;
     }
 
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: notificationId,
-          title: `Hora de dormir para ${config.nombre || 'tu bebé'}`,
-          body: 'Ya es hora de que vuelva a dormir.',
-          smallIcon: 'ic_notification_app',
-          schedule: {
-            at: fechaProximoSueno,
-            allowWhileIdle: true
-          },
-          extra: {
-            bebeId: config.bebeId,
-            tipo: 'sueno'
-          }
-        }
-      ]
+    await this.notificacionFamiliaService.programarRecordatorioFamilia({
+      recordatorioId: this.obtenerRecordatorioIdBebe(config.bebeId),
+      notificationId,
+      tipo: 'sueno',
+      titulo: `Hora de dormir para ${config.nombre || 'tu bebe'}`,
+      mensaje: 'Ya es hora de que vuelva a dormir.',
+      fechaNotificacion: fechaProximoSueno,
+      bebeId: config.bebeId
     });
   }
 
   async cancelarProximoSuenoBebeActivo(): Promise<void> {
     const config = await this.bebeFamiliaService.obtenerConfiguracionBebeActivo();
-    await this.cancelarNotificacionPorId(
-      this.obtenerNotificationIdBebe(config.bebeId)
-    );
+
+    await this.cancelarNotificacionPorBebe(config.bebeId);
   }
 
   private estaDentroDelHorarioPermitido(fecha: Date): boolean {
@@ -119,12 +102,14 @@ export class NotificacionSuenosService {
     return minutosDelDia >= inicio && minutosDelDia <= fin;
   }
 
-  private async cancelarNotificacionPorId(id: number): Promise<void> {
-    await LocalNotifications.cancel({
-      notifications: [
-        { id }
-      ]
-    });
+  private async cancelarNotificacionPorBebe(bebeId: string): Promise<void> {
+    await this.notificacionFamiliaService.cancelarRecordatorioFamilia(
+      this.obtenerRecordatorioIdBebe(bebeId)
+    );
+  }
+
+  private obtenerRecordatorioIdBebe(bebeId: string): string {
+    return `sueno-${bebeId}`;
   }
 
   private obtenerNotificationIdBebe(bebeId: string): number {
@@ -140,18 +125,6 @@ export class NotificacionSuenosService {
     }
 
     return Math.abs(hash) % max;
-  }
-
-  private async asegurarPermiso(): Promise<boolean> {
-    const permiso = await LocalNotifications.checkPermissions();
-
-    if (permiso.display === 'granted') {
-      return true;
-    }
-
-    const permisoSolicitado = await LocalNotifications.requestPermissions();
-
-    return permisoSolicitado.display === 'granted';
   }
 
   private parseFechaLocal(value: string): Date {

@@ -20,6 +20,7 @@ import { UsuarioMenuComponent } from './components/usuario-menu/usuario-menu.com
 import { ActividadFormModalComponent } from './components/actividad-form-modal/actividad-form-modal.component';
 import { add } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
+import { NotificacionFamiliaService } from './services/notificacion-familia.service';
 
 @Component({
   selector: 'app-root',
@@ -47,6 +48,7 @@ export class AppComponent implements OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private modalController = inject(ModalController);
+  private notificacionFamiliaService = inject(NotificacionFamiliaService);
   private usuarioSubscription?: Subscription;
   private routerSubscription?: Subscription;
   private hayUsuario = false;
@@ -63,6 +65,7 @@ export class AppComponent implements OnDestroy {
   ngOnDestroy() {
     this.usuarioSubscription?.unsubscribe();
     this.routerSubscription?.unsubscribe();
+    this.notificacionFamiliaService.detenerEscuchaNotificaciones();
   }
 
   private initializeApp() {
@@ -83,9 +86,21 @@ export class AppComponent implements OnDestroy {
   }
 
   private observarSesion() {
-    this.usuarioSubscription = this.authService.usuario$.subscribe(usuario => {
+    this.usuarioSubscription = this.authService.usuario$.subscribe(async usuario => {
       this.hayUsuario = !!usuario;
       this.actualizarVisibilidadHeader();
+
+      if (usuario) {
+        // Iniciar escucha de notificaciones cuando el usuario se autentica
+        try {
+          await this.notificacionFamiliaService.iniciarEscuchaNotificaciones();
+        } catch (error) {
+          console.error('Error iniciando escucha de notificaciones:', error);
+        }
+      } else {
+        // Detener escucha cuando se cierra sesión
+        this.notificacionFamiliaService.detenerEscuchaNotificaciones();
+      }
     });
   }
 
