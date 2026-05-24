@@ -10,7 +10,6 @@ import {
   IonHeader,
   IonIcon,
   IonInput,
-  IonLabel,
   IonModal,
   IonNote,
   IonTextarea,
@@ -21,6 +20,7 @@ import {
 
 import { addIcons } from 'ionicons';
 import {
+  add,
   alertCircle,
   checkmark,
   checkmarkCircle,
@@ -30,7 +30,9 @@ import {
   leaf,
   medical,
   moon,
-  water, medicalOutline } from 'ionicons/icons';
+  medicalOutline,
+  water
+} from 'ionicons/icons';
 
 import {
   ActivityFamilia,
@@ -66,7 +68,6 @@ interface MedicamentoDisponible extends MedicamentoBebe {
     IonInput,
     IonDatetime,
     IonTextarea,
-    IonLabel,
     IonNote
   ]
 })
@@ -85,50 +86,57 @@ export class ActividadFormModalComponent implements OnInit {
   isEdit = false;
   formType: ActivityFamiliaType = 'toma-leche';
   form: any = null;
+  cantidadOnzasOptions = Array.from({ length: 9 }, (_, i) => i + 1);
+  otraCantidadActiva = false;
 
   bebes: BebeFamilia[] = [];
   medicamentosDisponibles: MedicamentoDisponible[] = [];
-modalLista = false;
+  modalLista = false;
 
   constructor() {
-    addIcons({close,water,leaf,medical,moon,heart,flask,checkmarkCircle,alertCircle,medicalOutline,checkmark});
+    addIcons({close,water,leaf,medical,moon,add,heart,flask,checkmarkCircle,alertCircle,medicalOutline,checkmark});
   }
 
   async ngOnInit() {
-  this.modalLista = false;
+    this.modalLista = false;
 
-  this.isEdit = this.modo === 'editar';
+    this.isEdit = this.modo === 'editar';
 
-  await this.cargarMedicamentosRegistrados();
+    await this.cargarMedicamentosRegistrados();
 
-  if (this.isEdit && this.actividad) {
-    this.formType = this.actividad.type;
-    this.form = { ...this.actividad };
-    
-    // Convertir tiempos a formato correcto para ion-datetime
-    if (this.formType === 'sueno') {
-      this.form.time = this.convertToDatetimeFormat(this.form.time);
-      if (this.form.fin) {
-        this.form.fin = this.convertToDatetimeFormat(this.form.fin);
+    if (this.isEdit && this.actividad) {
+      this.formType = this.actividad.type;
+      this.form = { ...this.actividad };
+
+      // Convertir tiempos a formato correcto para ion-datetime
+      if (this.formType === 'sueno') {
+        this.form.time = this.convertToDatetimeFormat(this.form.time);
+        if (this.form.fin) {
+          this.form.fin = this.convertToDatetimeFormat(this.form.fin);
+        }
+      } else {
+        this.form.time = this.convertToDatetimeFormat(this.form.time);
       }
     } else {
-      this.form.time = this.convertToDatetimeFormat(this.form.time);
-    }
-  } else {
-    this.formType = this.tipoInicial || 'toma-leche';
+      this.formType = this.tipoInicial || 'toma-leche';
 
-    if (
-      this.formType === 'medicamento' &&
-      !this.tieneMedicamentosRegistrados()
-    ) {
-      this.formType = 'toma-leche';
+      if (
+        this.formType === 'medicamento' &&
+        !this.tieneMedicamentosRegistrados()
+      ) {
+        this.formType = 'toma-leche';
+      }
+
+      this.form = this.getEmptyForm(this.formType);
     }
 
-    this.form = this.getEmptyForm(this.formType);
+    if (this.formType === 'toma-leche') {
+      this.otraCantidadActiva =
+        !!this.form.cantidadOnzas && this.form.cantidadOnzas > 9;
+    }
+
+    this.modalLista = true;
   }
-
-  this.modalLista = true;
-}
 
   private async cargarMedicamentosRegistrados() {
     try {
@@ -175,7 +183,7 @@ modalLista = false;
     if (type === 'toma-leche') {
       return {
         ...base,
-        cantidadOnzas: 0,
+        cantidadOnzas: 3,
         esLecheMaterna: false
       };
     }
@@ -231,6 +239,16 @@ modalLista = false;
     this.form.nombreMedicamento = medicamento.nombre;
     this.form.dosisGotas = medicamento.dosisGotas;
     this.form.bebeId = medicamento.bebeId;
+  }
+
+  selectCantidadOnzas(value: number) {
+    this.otraCantidadActiva = false;
+    this.form.cantidadOnzas = value;
+  }
+
+  activarOtraCantidad() {
+    this.otraCantidadActiva = true;
+    this.form.cantidadOnzas = null;
   }
 
   async saveActivity() {

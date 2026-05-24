@@ -86,15 +86,41 @@
         <div class="form-section">
           <label class="section-label">Cantidad (oz)</label>
 
-          <ion-input
-  type="number"
-  [(ngModel)]="form.cantidadOnzas"
-  name="cantidadOnzas"
-  placeholder="0"
-  class="custom-input"
-  (ionFocus)="limpiarCeroInput('cantidadOnzas')"
-  (ionBlur)="restaurarCeroInput('cantidadOnzas')">
-</ion-input>
+          <div class="quick-amounts">
+            <ion-button
+              *ngFor="let amount of cantidadOnzasOptions"
+              class="quick-amount-button"
+              type="button"
+              size="small"
+              [color]="form.cantidadOnzas === amount && !otraCantidadActiva ? 'primary' : 'medium'"
+              (click)="selectCantidadOnzas(amount)">
+              <span>{{ amount }}</span>
+            </ion-button>
+
+            <ion-button
+              class="quick-amount-button otra-button"
+              type="button"
+              size="small"
+              aria-label="Otra cantidad"
+              title="Otra cantidad"
+              [color]="otraCantidadActiva ? 'primary' : 'medium'"
+              (click)="activarOtraCantidad()">
+              <ion-icon name="add"></ion-icon>
+            </ion-button>
+          </div>
+
+          <div class="custom-amount-input" *ngIf="otraCantidadActiva">
+            <label class="section-label">Otra cantidad</label>
+            <ion-input
+              type="number"
+              [(ngModel)]="form.cantidadOnzas"
+              name="cantidadOnzas"
+              placeholder="Ingresa un número"
+              class="custom-input"
+              (ionFocus)="limpiarCeroInput('cantidadOnzas')"
+              (ionBlur)="restaurarCeroInput('cantidadOnzas')">
+            </ion-input>
+          </div>
         </div>
 
         <div class="form-section">

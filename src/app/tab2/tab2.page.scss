@@ -182,23 +182,23 @@ ion-modal {
 
 .filters-action-button {
   --background: #ffffff;
-  --background-hover: rgba(var(--ion-color-success-rgb), 0.05);
-  --background-activated: rgba(var(--ion-color-success-rgb), 0.1);
-  --color: var(--ion-color-success);
-  --border-color: rgba(var(--ion-color-success-rgb), 0.22);
+  --background-hover: rgba(var(--ion-color-primary-rgb), 0.05);
+  --background-activated: rgba(var(--ion-color-primary-rgb), 0.1);
+  --color: var(--ion-color-primary);
+  --border-color: rgba(var(--ion-color-primary-rgb), 0.22);
 }
 
 .filters-action-button.filters-active {
-  --background: var(--ion-color-success);
-  --background-hover: var(--ion-color-success-shade);
-  --background-activated: var(--ion-color-success-shade);
+  --background: var(--ion-color-primary);
+  --background-hover: var(--ion-color-primary-shade);
+  --background-activated: var(--ion-color-primary-shade);
   --color: #ffffff;
-  --border-color: var(--ion-color-success);
-  --box-shadow: 0 8px 18px rgba(var(--ion-color-success-rgb), 0.22);
+  --border-color: var(--ion-color-primary);
+  --box-shadow: 0 8px 18px rgba(var(--ion-color-primary-rgb), 0.22);
 }
 
 .filters-action-button ion-icon {
-  color: var(--ion-color-success);
+  color: var(--ion-color-primary);
   font-size: 17px;
 }
 
@@ -482,8 +482,8 @@ ion-modal {
   margin: 0 16px 8px;
   padding: 7px 10px 7px 12px;
   border-radius: 16px;
-  background: rgba(var(--ion-color-success-rgb), 0.08);
-  color: var(--ion-color-success-shade);
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  color: var(--ion-color-primary-shade);
   display: flex;
   align-items: center;
   justify-content: space-between;
