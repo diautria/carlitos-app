@@ -402,14 +402,16 @@ export class ActividadFormModalComponent implements OnInit {
       this.actividadEventosService.notificarActividadGuardada(actividadGuardada);
 
       if (this.formType === 'medicamento' && medicamentoAdministrado) {
-        void actividadesHoyPromise.then(actividades =>
-          this.notificacionMedicamentosService.reprogramarMedicamentoDespuesDeAdministrar(
+        void this.activityFamiliaService
+          .getAllByBebeId(medicamentoAdministrado.bebeId)
+          .then(actividades =>
+            this.notificacionMedicamentosService.reprogramarMedicamentoDespuesDeAdministrar(
             medicamentoAdministrado.bebeId,
             medicamentoAdministrado.nombreBebe || '',
             medicamentoAdministrado,
             actividades
-          )
-        );
+            )
+          );
       }
 
       if (this.formType === 'sueno') {

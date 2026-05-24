@@ -127,7 +127,17 @@ export class NotificacionMedicamentosService {
 
     let proximaDosis: Date | null = null;
 
-    if (medicamento.frecuenciaHoras && medicamento.frecuenciaHoras > 0) {
+    if (
+      medicamento.frecuenciaHoras &&
+      medicamento.frecuenciaHoras > 0 &&
+      medicamento.horario
+    ) {
+      proximaDosis = this.obtenerProximaDosisPorFrecuenciaDesdeHorario(
+        medicamento,
+        ultimaAdministracion,
+        ahora
+      );
+    } else if (medicamento.frecuenciaHoras && medicamento.frecuenciaHoras > 0) {
       if (ultimaAdministracion) {
         proximaDosis = this.parseFechaActividad(ultimaAdministracion.time);
         proximaDosis.setHours(
@@ -148,7 +158,16 @@ export class NotificacionMedicamentosService {
     }
 
     while (proximaDosis <= ahora) {
-      if (medicamento.frecuenciaHoras && medicamento.frecuenciaHoras > 0) {
+      if (
+        medicamento.frecuenciaHoras &&
+        medicamento.frecuenciaHoras > 0 &&
+        medicamento.horario
+      ) {
+        proximaDosis = this.obtenerSiguienteDosisAnclada(
+          proximaDosis,
+          Number(medicamento.frecuenciaHoras)
+        );
+      } else if (medicamento.frecuenciaHoras && medicamento.frecuenciaHoras > 0) {
         proximaDosis.setHours(
           proximaDosis.getHours() + Number(medicamento.frecuenciaHoras)
         );
@@ -171,6 +190,69 @@ export class NotificacionMedicamentosService {
     }
 
     return fechaNotificacion;
+  }
+
+  private obtenerProximaDosisPorFrecuenciaDesdeHorario(
+    medicamento: MedicamentoBebe,
+    ultimaAdministracion: ActivityFamilia | null,
+    ahora: Date
+  ): Date | null {
+    const frecuenciaHoras = Number(medicamento.frecuenciaHoras || 0);
+    const horario = medicamento.horario || '';
+    const [horas, minutos] = horario.split(':').map(Number);
+
+    if (
+      !frecuenciaHoras ||
+      frecuenciaHoras <= 0 ||
+      !this.esHorarioValido(horas, minutos)
+    ) {
+      return null;
+    }
+
+    const referencia = ultimaAdministracion
+      ? this.parseFechaActividad(ultimaAdministracion.time)
+      : ahora;
+
+    if (Number.isNaN(referencia.getTime())) {
+      return null;
+    }
+
+    let proximaDosis = this.obtenerPrimeraDosisAnclada(
+      referencia,
+      horario
+    );
+
+    while (proximaDosis <= referencia || proximaDosis <= ahora) {
+      proximaDosis = this.obtenerSiguienteDosisAnclada(
+        proximaDosis,
+        frecuenciaHoras
+      );
+    }
+
+    return proximaDosis;
+  }
+
+  private obtenerPrimeraDosisAnclada(
+    referencia: Date,
+    horario: string
+  ): Date {
+    const [horas, minutos] = horario.split(':').map(Number);
+    const fecha = new Date(referencia);
+
+    fecha.setHours(horas, minutos, 0, 0);
+
+    return fecha;
+  }
+
+  private obtenerSiguienteDosisAnclada(
+    dosisActual: Date,
+    frecuenciaHoras: number
+  ): Date {
+    const siguiente = new Date(dosisActual);
+
+    siguiente.setHours(siguiente.getHours() + frecuenciaHoras);
+
+    return siguiente;
   }
 
   private obtenerUltimaAdministracion(

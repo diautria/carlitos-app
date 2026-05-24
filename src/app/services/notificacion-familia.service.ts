@@ -30,6 +30,9 @@ export interface RecordatorioFamilia {
   medicamentoId?: string;
 }
 
+const NOTIFICATION_SMALL_ICON = 'ic_notification_c';
+const NOTIFICATION_LARGE_ICON = 'ic_notification_large';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -233,8 +236,8 @@ export class NotificacionFamiliaService {
             id: notificationId,
             title: notificacion.titulo,
             body: notificacion.mensaje,
-            smallIcon: 'ic_notification_app',
-            largeIcon: 'ic_notification_large',
+            smallIcon: NOTIFICATION_SMALL_ICON,
+            largeIcon: NOTIFICATION_LARGE_ICON,
             schedule: {
               at: new Date(Date.now() + 500),
               allowWhileIdle: true
@@ -277,8 +280,8 @@ export class NotificacionFamiliaService {
             id: recordatorio.notificationId,
             title: recordatorio.titulo,
             body: recordatorio.mensaje,
-            smallIcon: 'ic_notification_app',
-            largeIcon: 'ic_notification_large',
+            smallIcon: NOTIFICATION_SMALL_ICON,
+            largeIcon: NOTIFICATION_LARGE_ICON,
             schedule: {
               at: fechaNotificacion,
               allowWhileIdle: true

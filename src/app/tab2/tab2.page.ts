@@ -837,12 +837,17 @@ private actividadGuardadaSubscription?: Subscription;
     await this.loadActivities();
 
     if (this.formType === 'medicamento' && medicamentoAdministrado) {
+      const actividadesMedicamento =
+        await this.activityFamiliaService.getAllByBebeId(
+          medicamentoAdministrado.bebeId
+        );
+
       await this.
         notificacionMedicamentosService.reprogramarMedicamentoDespuesDeAdministrar(
           medicamentoAdministrado.bebeId,
           medicamentoAdministrado.nombreBebe || '',
           medicamentoAdministrado,
-          this.activities
+          actividadesMedicamento
         );
     }
 
@@ -890,12 +895,16 @@ private actividadGuardadaSubscription?: Subscription;
             );
 
             if (medicamento) {
-              void this.notificacionMedicamentosService
-                .reprogramarMedicamentoDespuesDeAdministrar(
+              void this.activityFamiliaService
+                .getAllByBebeId(medicamento.bebeId)
+                .then(actividades =>
+                  this.notificacionMedicamentosService
+                    .reprogramarMedicamentoDespuesDeAdministrar(
                   medicamento.bebeId,
                   (medicamento as any).nombreBebe || '',
                   medicamento,
-                  this.activities
+                      actividades
+                    )
                 );
             }
           }
