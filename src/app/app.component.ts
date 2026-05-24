@@ -21,6 +21,7 @@ import { ActividadFormModalComponent } from './components/actividad-form-modal/a
 import { add } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { NotificacionFamiliaService } from './services/notificacion-familia.service';
+import { ActividadEventosService } from './services/actividad-eventos.service';
 
 @Component({
   selector: 'app-root',
@@ -49,6 +50,7 @@ export class AppComponent implements OnDestroy {
   private authService = inject(AuthService);
   private modalController = inject(ModalController);
   private notificacionFamiliaService = inject(NotificacionFamiliaService);
+  private actividadEventosService = inject(ActividadEventosService);
   private usuarioSubscription?: Subscription;
   private routerSubscription?: Subscription;
   private hayUsuario = false;
@@ -132,5 +134,11 @@ export class AppComponent implements OnDestroy {
     });
 
     await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+
+    if (data?.actividadGuardada) {
+      this.actividadEventosService.notificarActividadGuardada();
+    }
   }
 }

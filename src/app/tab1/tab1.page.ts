@@ -25,6 +25,7 @@ import { FamiliaMiembrosService } from '../services/familia-miembros.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { ActividadFormModalComponent } from '../components/actividad-form-modal/actividad-form-modal.component';
 import { Subscription } from 'rxjs';
+import { ActividadEventosService } from '../services/actividad-eventos.service';
 
 type BebeVista = BebeFamilia & {
   edadMeses: number;
@@ -99,12 +100,18 @@ suenoActivo: ActivityFamilia | null = null;
 duracionSuenoActivoTexto = '';
 private intervaloSuenoActivo?: ReturnType<typeof setInterval>;
 private bebesSubscription?: Subscription;
+private actividadGuardadaSubscription?: Subscription;
 private cargandoVistaInicial = false;
 private vistaInicialCargada = false;
 private modalController = inject(ModalController);
+private actividadEventosService = inject(ActividadEventosService);
 
   async ngOnInit() {
    addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline   });
+   this.actividadGuardadaSubscription =
+     this.actividadEventosService.actividadGuardada$.subscribe(async () => {
+       await this.refrescarActividadGuardada();
+     });
   }
 
 getIconoActividad(actividad: any): string {
@@ -164,6 +171,7 @@ getIconoActividad(actividad: any): string {
 
   ngOnDestroy() {
     this.bebesSubscription?.unsubscribe();
+    this.actividadGuardadaSubscription?.unsubscribe();
     this.limpiarIntervaloSuenoActivo();
   }
 
@@ -1004,14 +1012,16 @@ async abrirModalAgregarActividad() {
   const { data } = await modal.onDidDismiss();
 
   if (data?.actividadGuardada) {
-    await this.cargarActividadesYProgresoDeHoy();
-    await this.cargarSuenoActivo();
+    await this.refrescarActividadGuardada();
+  }
+}
 
-    // Si ya tienes este método por el card de sueño, déjalo.
-    // Si no existe, bórralo.
-    if ((this as any).cargarResumenSueno) {
-      await (this as any).cargarResumenSueno();
-    }
+private async refrescarActividadGuardada(): Promise<void> {
+  await this.cargarActividadesYProgresoDeHoy();
+  await this.cargarSuenoActivo();
+
+  if ((this as any).cargarResumenSueno) {
+    await (this as any).cargarResumenSueno();
   }
 }
 
