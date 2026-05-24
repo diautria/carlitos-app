@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
+  AlertController,
   IonHeader,
   IonToolbar,
   IonTitle,
@@ -63,6 +64,7 @@ import { FamiliaMiembro } from '../../models/familia-miembro.model';
   styleUrls: ['./familia.page.scss']
 })
 export class FamiliaPage implements OnInit {
+  private alertController = inject(AlertController);
   private familiaMiembrosService = inject(FamiliaMiembrosService);
 
   miembros: FamiliaMiembro[] = [];
@@ -145,7 +147,8 @@ export class FamiliaPage implements OnInit {
       return;
     }
 
-    const confirmar = confirm(
+    const confirmar = await this.confirmarAccion(
+      'Regenerar código',
       '¿Regenerar el código? El código anterior dejará de funcionar.'
     );
 
@@ -207,7 +210,10 @@ export class FamiliaPage implements OnInit {
       return;
     }
 
-    const confirmar = confirm(`¿Quitar a ${miembro.nombre || miembro.email}?`);
+    const confirmar = await this.confirmarAccion(
+      'Quitar miembro',
+      `¿Quitar a ${miembro.nombre || miembro.email}?`
+    );
 
     if (!confirmar) {
       return;
@@ -274,6 +280,28 @@ export class FamiliaPage implements OnInit {
     this.error = error?.message || 'No se pudo cambiar el rol.';
   }
 }
+
+  async confirmarAccion(header: string, message: string): Promise<boolean> {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Confirmar',
+          role: 'confirm'
+        }
+      ],
+      backdropDismiss: false
+    });
+
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    return role === 'confirm';
+  }
 
   limpiarMensajes() {
     this.mensaje = '';

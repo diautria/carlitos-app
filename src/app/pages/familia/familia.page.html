@@ -110,62 +110,47 @@
             <p>{{ miembro.email }}</p>
           </ion-label>
 
-          <ion-badge
-            slot="end"
-            [color]="miembro.rol === 'admin' ? 'primary' : 'medium'">
-            {{ miembro.rol === 'admin' ? 'Admin' : 'Miembro' }}
-          </ion-badge>
+          <div class="miembro-item-actions" slot="end">
+            <ion-badge
+              [color]="miembro.rol === 'admin' ? 'primary' : 'medium'">
+              {{ miembro.rol === 'admin' ? 'Admin' : 'Miembro' }}
+            </ion-badge>
+
+            <ion-button
+              size="small"
+              fill="clear"
+              color="primary"
+              *ngIf="esAdmin && miembro.rol !== 'admin'"
+              (click)="hacerAdmin(miembro)">
+              <ion-icon name="shield-checkmark-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+
+            <ion-button
+              size="small"
+              fill="clear"
+              color="medium"
+              *ngIf="esAdmin && puedeQuitarAdmin(miembro)"
+              (click)="quitarAdmin(miembro)">
+              Quitar admin
+            </ion-button>
+
+            <ion-note
+              color="medium"
+              *ngIf="esAdmin && miembro.rol === 'admin' && cantidadAdmins <= 1">
+              Único admin
+            </ion-note>
+
+            <ion-button
+              size="small"
+              fill="clear"
+              color="danger"
+              *ngIf="esAdmin && puedeQuitarMiembro(miembro)"
+              (click)="quitarMiembro(miembro)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
         </ion-item>
       </ion-list>
-
-      <div
-        class="miembro-admin-actions"
-        *ngIf="esAdmin && miembros.length">
-
-        <div
-          class="miembro-admin-row"
-          *ngFor="let miembro of miembros">
-
-          <div>
-            <strong>{{ miembro.nombre || miembro.email }}</strong>
-            <span>{{ miembro.rol === 'admin' ? 'Administrador' : 'Miembro' }}</span>
-          </div>
-<div class="admin-buttons">
-  <ion-button
-    size="small"
-    fill="clear"
-    color="primary"
-    *ngIf="miembro.rol !== 'admin'"
-    (click)="hacerAdmin(miembro)">
-    <ion-icon name="shield-checkmark-outline" slot="icon-only"></ion-icon>
-  </ion-button>
-
-  <ion-button
-    size="small"
-    fill="clear"
-    color="medium"
-    *ngIf="puedeQuitarAdmin(miembro)"
-    (click)="quitarAdmin(miembro)">
-    Quitar admin
-  </ion-button>
-
-  <ion-note
-    color="medium"
-    *ngIf="miembro.rol === 'admin' && cantidadAdmins <= 1">
-    Único admin
-  </ion-note>
-
-  <ion-button
-    size="small"
-    fill="clear"
-    color="danger"
-    *ngIf="puedeQuitarMiembro(miembro)"
-    (click)="quitarMiembro(miembro)">
-    <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-  </ion-button>
-</div>
-        </div>
-      </div>
 
       <div class="empty-state" *ngIf="!cargando && !miembros.length">
         No hay miembros registrados.
