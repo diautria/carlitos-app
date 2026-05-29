@@ -110,6 +110,14 @@ interface ActivityFilters {
   estadoSueno: 'todos' | 'en-curso' | 'finalizados';
   duracionSuenoMin: number | null;
   duracionSuenoMax: number | null;
+
+  momentoComida: 'todos' | 'desayuno' | 'almuerzo' | 'merienda' | 'cena' | 'snack' | 'otro';
+  tipoComida: 'todos' | 'pure' | 'papilla' | 'solido-blando' | 'blw' | 'mixto' | 'liquido-caldo';
+  aceptacionComida: 'todas' | 'muy-bien' | 'bien' | 'regular' | 'rechazo' | 'solo-probo';
+  estadoComida: 'todas' | 'primera-vez' | 'con-reaccion' | 'sin-reaccion';
+  alimentoComida: string;
+  cantidadComidaMin: number | null;
+  cantidadComidaMax: number | null;
 }
 
 interface ResumenFiltros {
@@ -1419,7 +1427,15 @@ private actividadGuardadaSubscription?: Subscription;
 
     estadoSueno: 'todos',
     duracionSuenoMin: null,
-    duracionSuenoMax: null
+    duracionSuenoMax: null,
+
+    momentoComida: 'todos',
+    tipoComida: 'todos',
+    aceptacionComida: 'todas',
+    estadoComida: 'todas',
+    alimentoComida: '',
+    cantidadComidaMin: null,
+    cantidadComidaMax: null
   };
 }
 
@@ -1499,7 +1515,8 @@ private actividadGuardadaSubscription?: Subscription;
     .filter(activity => this.cumpleFiltroOnzas(activity, filtros))
     .filter(activity => this.cumpleFiltroTipoPanal(activity, filtros))
     .filter(activity => this.cumpleFiltroMedicamento(activity, filtros))
-    .filter(activity => this.cumpleFiltroSueno(activity, filtros));
+    .filter(activity => this.cumpleFiltroSueno(activity, filtros))
+    .filter(activity => this.cumpleFiltroComida(activity, filtros));
 }
 
 private cumpleFiltroMedicamento(
@@ -1572,6 +1589,74 @@ private cumpleFiltroMedicamento(
     filters.duracionSuenoMax !== null &&
     filters.duracionSuenoMax !== undefined &&
     duracion > filters.duracionSuenoMax
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+private cumpleFiltroComida(
+  activity: ActivityFamilia,
+  filters: ActivityFilters
+): boolean {
+  if (activity.type !== 'comida') {
+    return true;
+  }
+
+  const comida = activity as any;
+
+  if (filters.momentoComida !== 'todos' && comida.momento !== filters.momentoComida) {
+    return false;
+  }
+
+  if (filters.tipoComida !== 'todos' && comida.tipoComida !== filters.tipoComida) {
+    return false;
+  }
+
+  if (filters.aceptacionComida !== 'todas' && comida.aceptacion !== filters.aceptacionComida) {
+    return false;
+  }
+
+  if (filters.estadoComida === 'primera-vez' && !comida.esPrimeraVez) {
+    return false;
+  }
+
+  if (filters.estadoComida === 'con-reaccion' && !comida.huboReaccion) {
+    return false;
+  }
+
+  if (filters.estadoComida === 'sin-reaccion' && comida.huboReaccion) {
+    return false;
+  }
+
+  const alimentoBuscado = filters.alimentoComida.trim().toLowerCase();
+
+  if (alimentoBuscado) {
+    const alimentos = Array.isArray(comida.alimentos) ? comida.alimentos : [];
+    const coincideAlimento = alimentos.some((item: any) =>
+      String(item?.nombre || '').toLowerCase().includes(alimentoBuscado)
+    );
+
+    if (!coincideAlimento) {
+      return false;
+    }
+  }
+
+  const cantidad = Number(comida.cantidadAproximada || 0);
+
+  if (
+    filters.cantidadComidaMin !== null &&
+    filters.cantidadComidaMin !== undefined &&
+    cantidad < Number(filters.cantidadComidaMin)
+  ) {
+    return false;
+  }
+
+  if (
+    filters.cantidadComidaMax !== null &&
+    filters.cantidadComidaMax !== undefined &&
+    cantidad > Number(filters.cantidadComidaMax)
   ) {
     return false;
   }
@@ -1819,6 +1904,23 @@ private cumpleFiltroMedicamento(
       ? Number(filtrosNormalizados.duracionSuenoMax)
       : null;
 
+  filtrosNormalizados.alimentoComida =
+    (filtrosNormalizados.alimentoComida || '').trim();
+
+  filtrosNormalizados.cantidadComidaMin =
+    filtrosNormalizados.cantidadComidaMin !== null &&
+    filtrosNormalizados.cantidadComidaMin !== undefined &&
+    filtrosNormalizados.cantidadComidaMin !== ('' as any)
+      ? Number(filtrosNormalizados.cantidadComidaMin)
+      : null;
+
+  filtrosNormalizados.cantidadComidaMax =
+    filtrosNormalizados.cantidadComidaMax !== null &&
+    filtrosNormalizados.cantidadComidaMax !== undefined &&
+    filtrosNormalizados.cantidadComidaMax !== ('' as any)
+      ? Number(filtrosNormalizados.cantidadComidaMax)
+      : null;
+
     return filtrosNormalizados;
   }
 
@@ -1883,6 +1985,34 @@ private cumpleFiltroMedicamento(
     }
 
     if (filtros.duracionSuenoMax !== null && filtros.duracionSuenoMax !== undefined) {
+      cantidad++;
+    }
+
+    if (filtros.momentoComida !== defaultFilters.momentoComida) {
+      cantidad++;
+    }
+
+    if (filtros.tipoComida !== defaultFilters.tipoComida) {
+      cantidad++;
+    }
+
+    if (filtros.aceptacionComida !== defaultFilters.aceptacionComida) {
+      cantidad++;
+    }
+
+    if (filtros.estadoComida !== defaultFilters.estadoComida) {
+      cantidad++;
+    }
+
+    if (filtros.alimentoComida) {
+      cantidad++;
+    }
+
+    if (filtros.cantidadComidaMin !== null && filtros.cantidadComidaMin !== undefined) {
+      cantidad++;
+    }
+
+    if (filtros.cantidadComidaMax !== null && filtros.cantidadComidaMax !== undefined) {
       cantidad++;
     }
 

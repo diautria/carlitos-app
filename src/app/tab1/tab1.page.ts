@@ -1091,7 +1091,7 @@ formatearMomentoComida(value: string): string {
 
 formatearTipoComida(value: string): string {
   const labels: Record<string, string> = {
-    pure: 'Pure',
+    pure: 'Puré',
     papilla: 'Papilla',
     'solido-blando': 'Solido blando',
     blw: 'BLW',

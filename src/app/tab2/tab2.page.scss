@@ -696,6 +696,19 @@ ion-modal {
   border-left: 4px solid rgba(var(--ion-color-success-rgb), 0.22);
 }
 
+.food-filter-card {
+  border-left: 4px solid rgba(var(--ion-color-success-rgb), 0.28);
+}
+
+.food-filter-card ion-input {
+  --background: #f6f7fb;
+  --border-radius: 14px;
+  --padding-start: 11px;
+  --padding-end: 11px;
+  min-height: 50px;
+  font-size: 0.86rem;
+}
+
 /* Footer más limpio */
 .filters-footer-actions {
   display: grid;

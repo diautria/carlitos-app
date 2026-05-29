@@ -1484,6 +1484,263 @@
     </ion-input>
   </div>
 </div>
+
+<div class="filter-card food-filter-card">
+  <div class="filter-card-title">
+    <ion-icon name="restaurant-outline" color="success"></ion-icon>
+
+    <div>
+      <h3>Comida</h3>
+    </div>
+  </div>
+
+  <label class="filter-subtitle">Alimento</label>
+
+  <ion-input
+    type="text"
+    label="Buscar alimento"
+    labelPlacement="stacked"
+    [(ngModel)]="filtersDraft.alimentoComida"
+    name="alimentoComida"
+    placeholder="Ej: boniato, pollo, manzana">
+  </ion-input>
+
+  <label class="filter-subtitle">Momento</label>
+
+  <div class="filter-chip-grid">
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.momentoComida === 'todos' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.momentoComida = 'todos'">
+      Todos
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.momentoComida === 'desayuno' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.momentoComida = 'desayuno'">
+      Desayuno
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.momentoComida === 'almuerzo' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.momentoComida = 'almuerzo'">
+      Almuerzo
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.momentoComida === 'merienda' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.momentoComida = 'merienda'">
+      Merienda
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.momentoComida === 'cena' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.momentoComida = 'cena'">
+      Cena
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.momentoComida === 'snack' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.momentoComida = 'snack'">
+      Snack
+    </ion-button>
+  </div>
+
+  <label class="filter-subtitle">Tipo</label>
+
+  <div class="filter-chip-grid">
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.tipoComida === 'todos' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.tipoComida = 'todos'">
+      Todos
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.tipoComida === 'pure' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.tipoComida = 'pure'">
+      Puré
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.tipoComida === 'papilla' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.tipoComida = 'papilla'">
+      Papilla
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.tipoComida === 'solido-blando' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.tipoComida = 'solido-blando'">
+      Sólido
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.tipoComida === 'blw' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.tipoComida = 'blw'">
+      BLW
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.tipoComida === 'mixto' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.tipoComida = 'mixto'">
+      Mixto
+    </ion-button>
+  </div>
+
+  <label class="filter-subtitle">Aceptación</label>
+
+  <div class="filter-chip-grid">
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.aceptacionComida === 'todas' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.aceptacionComida = 'todas'">
+      Todas
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.aceptacionComida === 'muy-bien' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.aceptacionComida = 'muy-bien'">
+      Muy bien
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.aceptacionComida === 'bien' ? 'solid' : 'outline'"
+      color="medium"
+      (click)="filtersDraft.aceptacionComida = 'bien'">
+      Bien
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.aceptacionComida === 'regular' ? 'solid' : 'outline'"
+      color="warning"
+      (click)="filtersDraft.aceptacionComida = 'regular'">
+      Regular
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.aceptacionComida === 'rechazo' ? 'solid' : 'outline'"
+      color="warning"
+      (click)="filtersDraft.aceptacionComida = 'rechazo'">
+      Rechazó
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.aceptacionComida === 'solo-probo' ? 'solid' : 'outline'"
+      color="warning"
+      (click)="filtersDraft.aceptacionComida = 'solo-probo'">
+      Solo probó
+    </ion-button>
+  </div>
+
+  <label class="filter-subtitle">Estado</label>
+
+  <div class="filter-chip-grid">
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.estadoComida === 'todas' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.estadoComida = 'todas'">
+      Todas
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.estadoComida === 'primera-vez' ? 'solid' : 'outline'"
+      color="primary"
+      (click)="filtersDraft.estadoComida = 'primera-vez'">
+      Primera vez
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.estadoComida === 'con-reaccion' ? 'solid' : 'outline'"
+      color="danger"
+      (click)="filtersDraft.estadoComida = 'con-reaccion'">
+      Reacción
+    </ion-button>
+
+    <ion-button
+      type="button"
+      size="small"
+      [fill]="filtersDraft.estadoComida === 'sin-reaccion' ? 'solid' : 'outline'"
+      color="success"
+      (click)="filtersDraft.estadoComida = 'sin-reaccion'">
+      Sin reacción
+    </ion-button>
+  </div>
+
+  <label class="filter-subtitle">Cantidad aproximada</label>
+
+  <div class="filter-grid">
+    <ion-input
+      type="number"
+      label="Mínimo"
+      labelPlacement="stacked"
+      [(ngModel)]="filtersDraft.cantidadComidaMin"
+      name="cantidadComidaMin"
+      placeholder="Ej: 2">
+    </ion-input>
+
+    <ion-input
+      type="number"
+      label="Máximo"
+      labelPlacement="stacked"
+      [(ngModel)]="filtersDraft.cantidadComidaMax"
+      name="cantidadComidaMax"
+      placeholder="Ej: 6">
+    </ion-input>
+  </div>
+</div>
       </ion-content>
 
       <ion-footer>
