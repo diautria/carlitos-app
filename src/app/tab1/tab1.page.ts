@@ -10,7 +10,7 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, Io
   IonAlert
  } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { people, time, medical, chevronForward, water, logoWhatsapp,documentText, addCircleOutline } from 'ionicons/icons';
+import { people, time, medical, chevronForward, water, logoWhatsapp,documentText, addCircleOutline, restaurant } from 'ionicons/icons';
 import { personOutline, trashOutline, close  } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
@@ -37,6 +37,10 @@ type ActividadVista = ActivityFamilia & {
   titulo: string;
   descripcion: string;
   horaFinSueno?: string;
+  comidaAlerta?: string;
+  comidaAlertaColor?: string;
+  comidaDetalle?: string;
+  comidaObservaciones?: string;
 };
 
 @Component({
@@ -108,7 +112,7 @@ private modalController = inject(ModalController);
 private actividadEventosService = inject(ActividadEventosService);
 
   async ngOnInit() {
-   addIcons({ people, time, medical, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline   });
+   addIcons({ people, time, medical, restaurant, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline   });
    this.actividadGuardadaSubscription =
      this.actividadEventosService.actividadGuardada$.subscribe(async activity => {
        await this.refrescarActividadGuardada(activity || undefined);
@@ -132,6 +136,10 @@ getIconoActividad(actividad: any): string {
     return 'moon-outline';
   }
 
+  if (actividad.type === 'comida') {
+    return 'restaurant';
+  }
+
   return 'ellipse';
 }
 
@@ -150,6 +158,10 @@ getIconoActividad(actividad: any): string {
 
   if (actividad.type === 'sueno') {
     return actividad.fin ? 'sueno' : 'warning';
+  }
+
+  if (actividad.type === 'comida') {
+    return 'success';
   }
 
   return 'medium';
@@ -229,6 +241,10 @@ private async cargarVistaInicialTab1() {
     return (actividad as any).fin ? 'Sueño' : 'Sueño en curso';
   }
 
+    if (actividad.type === 'comida') {
+      return `Comida - ${this.formatearMomentoComida((actividad as any).momento)}`;
+    }
+
     return 'Actividad';
   }
 
@@ -259,6 +275,16 @@ private async cargarVistaInicialTab1() {
 
     return `Duró ${duracionTexto}`;
   }
+
+    if (actividad.type === 'comida') {
+      const alimentos = this.obtenerNombresAlimentosComida(actividad);
+      const tipo = this.formatearTipoComida((actividad as any).tipoComida);
+      const cantidad = (actividad as any).cantidadAproximada
+        ? ` - ${(actividad as any).cantidadAproximada} ${this.formatearUnidadComida((actividad as any).unidadCantidad)}`
+        : '';
+
+      return `${alimentos} - ${tipo}${cantidad}`;
+    }
 
     return '';
   }
@@ -1050,6 +1076,145 @@ trackByActividadId(_index: number, actividad: ActivityFamilia): string {
   return actividad.id;
 }
 
+formatearMomentoComida(value: string): string {
+  const labels: Record<string, string> = {
+    desayuno: 'Desayuno',
+    almuerzo: 'Almuerzo',
+    merienda: 'Merienda',
+    cena: 'Cena',
+    snack: 'Snack',
+    otro: 'Otro'
+  };
+
+  return labels[value] || 'Comida';
+}
+
+formatearTipoComida(value: string): string {
+  const labels: Record<string, string> = {
+    pure: 'Pure',
+    papilla: 'Papilla',
+    'solido-blando': 'Solido blando',
+    blw: 'BLW',
+    mixto: 'Mixto',
+    'liquido-caldo': 'Caldo'
+  };
+
+  return labels[value] || 'Comida';
+}
+
+formatearUnidadComida(value: string): string {
+  const labels: Record<string, string> = {
+    cucharaditas: 'cdtas',
+    cucharadas: 'cdas',
+    gramos: 'g',
+    porciones: 'porciones',
+    trozos: 'trozos',
+    otro: ''
+  };
+
+  return labels[value] || '';
+}
+
+formatearAceptacionComida(value: string): string {
+  const labels: Record<string, string> = {
+    'muy-bien': 'Muy bien',
+    bien: 'Bien',
+    regular: 'Regular',
+    rechazo: 'Rechazó',
+    'solo-probo': 'Solo probó'
+  };
+
+  return labels[value] || '';
+}
+
+formatearReaccionesComida(value: string[] | undefined): string {
+  if (!Array.isArray(value) || value.length === 0) {
+    return 'Reacción';
+  }
+
+  const labels: Record<string, string> = {
+    ronchas: 'Ronchas',
+    vomito: 'Vómito',
+    diarrea: 'Diarrea',
+    estrenimiento: 'Estreñimiento',
+    gases: 'Gases',
+    irritacion: 'Irritación',
+    otra: 'Otra reacción'
+  };
+
+  return value.map(item => labels[item] || item).join(', ');
+}
+
+obtenerNombresAlimentosComida(activity: ActivityFamilia): string {
+  const alimentos = (activity as any).alimentos;
+
+  if (!Array.isArray(alimentos) || alimentos.length === 0) {
+    return 'Comida';
+  }
+
+  return alimentos
+    .map((item: any) => item.nombre)
+    .filter(Boolean)
+    .join(', ');
+}
+
+getDetalleComidaTexto(activity: ActivityFamilia): string {
+  if (activity.type !== 'comida') {
+    return '';
+  }
+
+  const aceptacionValue = (activity as any).aceptacion;
+  const esAceptacionDestacada = ['muy-bien', 'regular', 'rechazo', 'solo-probo'].includes(aceptacionValue);
+  const aceptacion = esAceptacionDestacada
+    ? ''
+    : this.formatearAceptacionComida(aceptacionValue);
+  const primeraVez = (activity as any).esPrimeraVez ? 'Primera vez' : '';
+
+  return [aceptacion, primeraVez].filter(Boolean).join(' - ');
+}
+
+getAlertaComidaTexto(activity: ActivityFamilia): string {
+  if (activity.type !== 'comida') {
+    return '';
+  }
+
+  const comida = activity as any;
+
+  if (comida.huboReaccion) {
+    return `Reacción: ${this.formatearReaccionesComida(comida.reaccion)}`;
+  }
+
+  if (comida.aceptacion === 'muy-bien') {
+    return 'Muy bien';
+  }
+
+  if (comida.aceptacion === 'regular') {
+    return 'Aceptación regular';
+  }
+
+  if (comida.aceptacion === 'rechazo') {
+    return 'Rechazó la comida';
+  }
+
+  if (comida.aceptacion === 'solo-probo') {
+    return 'Solo probó';
+  }
+
+  return '';
+}
+
+getAlertaComidaColor(activity: ActivityFamilia): string {
+  if (activity.type !== 'comida') {
+    return '';
+  }
+
+  if ((activity as any).huboReaccion) {
+    return 'danger';
+  }
+
+  return (activity as any).aceptacion === 'muy-bien' ? 'success' : 'warning';
+}
+
 private actualizarBebesVista() {
   this.bebesVista = this.bebes.map(bebe => ({
     ...bebe,
@@ -1070,6 +1235,12 @@ private actualizarActividadesRecientes(actividades: ActivityFamilia[]) {
     color: this.getColorActividad(actividad),
     titulo: this.getTituloActividad(actividad),
     descripcion: this.getDescripcionActividad(actividad),
+    comidaAlerta: this.getAlertaComidaTexto(actividad),
+    comidaAlertaColor: this.getAlertaComidaColor(actividad),
+    comidaDetalle: this.getDetalleComidaTexto(actividad),
+    comidaObservaciones: actividad.type === 'comida'
+      ? ((actividad as any).observaciones || '')
+      : '',
     horaFinSueno: actividad.type === 'sueno' && (actividad as any).fin
       ? this.obtenerHoraSuenoFin(actividad)
       : undefined

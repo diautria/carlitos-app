@@ -225,6 +225,31 @@
                 Fin {{ actividad.horaFinSueno }}
               </span>
             </div>
+
+            <div
+              *ngIf="actividad.type === 'comida' && (actividad.comidaDetalle || actividad.comidaAlerta)"
+              class="actividad-comida-meta">
+              <span
+                *ngIf="actividad.comidaDetalle"
+                class="actividad-comida-detalle">
+                {{ actividad.comidaDetalle }}
+              </span>
+
+              <span
+                *ngIf="actividad.comidaAlerta"
+                class="actividad-comida-alerta"
+                [class.success]="actividad.comidaAlertaColor === 'success'"
+                [class.warning]="actividad.comidaAlertaColor === 'warning'"
+                [class.danger]="actividad.comidaAlertaColor === 'danger'">
+                {{ actividad.comidaAlerta }}
+              </span>
+            </div>
+
+            <p
+              *ngIf="actividad.type === 'comida' && actividad.comidaObservaciones"
+              class="actividad-comida-observaciones">
+              {{ actividad.comidaObservaciones }}
+            </p>
           </div>
 
           <time class="actividad-fecha">

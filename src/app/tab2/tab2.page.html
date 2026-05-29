@@ -621,21 +621,27 @@
                             {{ obtenerNombresAlimentosComida(act) }}
                           </p>
 
-                          <ion-note>
+                          <ion-note class="comida-detalle-line">
                             {{ formatearTipoComida($any(act).tipoComida) }}
                             <ng-container *ngIf="$any(act).cantidadAproximada">
                               · {{ $any(act).cantidadAproximada }} {{ formatearUnidadComida($any(act).unidadCantidad) }}
                             </ng-container>
-                            · {{ formatearAceptacionComida($any(act).aceptacion) }}
+                            <ng-container
+                              *ngIf="!['muy-bien', 'regular', 'rechazo', 'solo-probo'].includes($any(act).aceptacion)">
+                              · {{ formatearAceptacionComida($any(act).aceptacion) }}
+                            </ng-container>
                             <ng-container *ngIf="$any(act).esPrimeraVez">
                               · Primera vez
-                            </ng-container>
-                            <ng-container *ngIf="$any(act).huboReaccion">
-                              · {{ formatearReaccionesComida($any(act).reaccion) }}
                             </ng-container>
                           </ion-note>
 
                           <div class="comida-alertas">
+                            <ion-badge
+                              color="success"
+                              *ngIf="$any(act).aceptacion === 'muy-bien' && !$any(act).huboReaccion">
+                              Muy bien
+                            </ion-badge>
+
                             <ion-badge
                               color="danger"
                               *ngIf="$any(act).huboReaccion">
@@ -661,7 +667,9 @@
                             </ion-badge>
                           </div>
 
-                          <ion-note *ngIf="$any(act).observaciones">
+                          <ion-note
+                            *ngIf="$any(act).observaciones"
+                            class="comida-detalle-line">
                             {{ $any(act).observaciones }}
                           </ion-note>
                         </ion-label>

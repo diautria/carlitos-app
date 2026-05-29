@@ -250,6 +250,58 @@ ion-progress-bar {
   white-space: nowrap;
 }
 
+.actividad-comida-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.actividad-comida-detalle,
+.actividad-comida-alerta {
+  max-width: 100%;
+  padding: 3px 7px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.actividad-comida-detalle {
+  background: rgba(40, 46, 80, 0.055);
+  color: #6d7590;
+}
+
+.actividad-comida-alerta.warning {
+  background: rgba(var(--ion-color-warning-rgb), 0.15);
+  color: var(--ion-color-warning-shade);
+}
+
+.actividad-comida-alerta.success {
+  background: rgba(var(--ion-color-success-rgb), 0.13);
+  color: var(--ion-color-success-shade);
+}
+
+.actividad-comida-alerta.danger {
+  background: rgba(var(--ion-color-danger-rgb), 0.12);
+  color: var(--ion-color-danger-shade);
+}
+
+.actividad-comida-observaciones {
+  margin: 5px 0 0;
+  color: #78809a;
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .actividad-fecha {
   align-self: start;
   margin-top: 2px;
