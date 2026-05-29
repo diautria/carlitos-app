@@ -155,13 +155,17 @@ ion-list {
 }
 
 .miembro-item {
-  --background: #f7f7fb;
-  --border-radius: 18px;
-  --padding-start: 12px;
-  --padding-end: 12px;
-
+  padding: 12px;
   border-radius: 18px;
+  background: #f7f7fb;
   margin-bottom: 10px;
+}
+
+.miembro-main {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
 }
 
 .miembro-avatar {
@@ -179,25 +183,60 @@ ion-list {
   color: #6c63ff;
 }
 
-.miembro-item h2 {
-  font-size: 14px;
-  font-weight: 800;
+.miembro-info {
+  min-width: 0;
 }
 
-.miembro-item p {
+.miembro-info h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ion-color-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.miembro-info p {
+  margin: 3px 0 0;
   font-size: 12px;
   color: var(--ion-color-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.miembro-rol {
+  justify-self: end;
 }
 
 .miembro-item-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
 }
 
-.miembro-item-actions ion-badge {
-  margin-right: 4px;
+.miembro-item-actions ion-button {
+  min-height: 30px;
+  margin: 0;
+  --padding-start: 7px;
+  --padding-end: 7px;
+  --border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.miembro-item-actions ion-note {
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(var(--ion-color-medium-rgb), 0.1);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .miembro-admin-actions {

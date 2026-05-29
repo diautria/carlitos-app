@@ -89,33 +89,36 @@
       </div>
 
       <ion-list lines="none" *ngIf="!cargando && miembros.length">
-        <ion-item
+        <div
           class="miembro-item"
           *ngFor="let miembro of miembros">
 
-          <ion-avatar slot="start" class="miembro-avatar">
-            <img
-              *ngIf="miembro.photoURL"
-              [src]="miembro.photoURL"
-              [alt]="miembro.nombre">
+          <div class="miembro-main">
+            <ion-avatar class="miembro-avatar">
+              <img
+                *ngIf="miembro.photoURL"
+                [src]="miembro.photoURL"
+                [alt]="miembro.nombre">
 
-            <ion-icon
-              *ngIf="!miembro.photoURL"
-              name="person-outline">
-            </ion-icon>
-          </ion-avatar>
+              <ion-icon
+                *ngIf="!miembro.photoURL"
+                name="person-outline">
+              </ion-icon>
+            </ion-avatar>
 
-          <ion-label>
-            <h2>{{ miembro.nombre || miembro.email || 'Miembro' }}</h2>
-            <p>{{ miembro.email }}</p>
-          </ion-label>
+            <div class="miembro-info">
+              <h2>{{ miembro.nombre || miembro.email || 'Miembro' }}</h2>
+              <p>{{ miembro.email }}</p>
+            </div>
 
-          <div class="miembro-item-actions" slot="end">
             <ion-badge
+              class="miembro-rol"
               [color]="miembro.rol === 'admin' ? 'primary' : 'medium'">
               {{ miembro.rol === 'admin' ? 'Admin' : 'Miembro' }}
             </ion-badge>
+          </div>
 
+          <div class="miembro-item-actions">
             <ion-button
               size="small"
               fill="clear"
@@ -149,7 +152,7 @@
               <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
             </ion-button>
           </div>
-        </ion-item>
+        </div>
       </ion-list>
 
       <div class="empty-state" *ngIf="!cargando && !miembros.length">
