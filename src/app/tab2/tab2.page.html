@@ -1,7 +1,7 @@
 ﻿<ion-content>
 <ng-container *ngIf="!loading; else loadingState">
     <div
-      *ngIf="activities.length > 0"
+      *ngIf="activities.length > 0 || hayFiltrosActivos()"
       class="activity-actions-row">
       <ion-button
         expand="block"
@@ -36,7 +36,7 @@
       </ion-button>
     </div>
 
-    <ng-container *ngIf="activities.length > 0; else emptyState">
+    <ng-container *ngIf="activities.length > 0 || hayFiltrosActivos(); else emptyState">
       <div class="estadisticas-button-container">
         <div class="estadisticas-access-card">
           <div class="estadisticas-access-info">
@@ -570,24 +570,24 @@
   <h3>
     {{
       selectedTab === 'toma-leche'
-        ? 'No hay tomas registradas'
+        ? 'Todavía no hay tomas'
         : selectedTab === 'cambio-panal'
-          ? 'No hay cambios de pañal registrados'
+          ? 'Todavía no hay cambios de pañal'
           : selectedTab === 'medicamento'
-            ? 'No hay medicamentos registrados'
-            : 'No hay sueños registrados'
+            ? 'Todavía no hay medicamentos'
+            : 'Todavía no hay sueños'
     }}
   </h3>
 
   <p>
     {{
       selectedTab === 'toma-leche'
-        ? 'Cuando agregues una toma de leche, aparecerá en este tab.'
+        ? 'Agrega una toma de leche y la verás acá.'
         : selectedTab === 'cambio-panal'
-          ? 'Cuando registres un cambio de pañal, aparecerá en este tab.'
+          ? 'Registra un cambio y quedará guardado acá.'
           : selectedTab === 'medicamento'
-            ? 'Cuando registres una administración de medicamento, aparecerá en este tab.'
-            : 'Cuando registres un horario de sueño, aparecerá en este tab.'
+            ? 'Registra una administración y aparecerá en esta lista.'
+            : 'Registra un horario de sueño y lo verás acá.'
     }}
   </p>
 </div>
@@ -654,6 +654,11 @@
 
     <ng-template #emptyState>
       <div class="empty-state">
+        <div class="empty-state-icon">
+          <ion-icon name="calendar-clear-outline"></ion-icon>
+        </div>
+
+        <h3>Sin actividades todavía</h3>
         <p>No hay actividades registradas.</p>
       </div>
     </ng-template>

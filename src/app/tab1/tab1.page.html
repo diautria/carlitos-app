@@ -92,7 +92,13 @@
 </ion-card>
 
       <div class="empty-state" *ngIf="bebes.length === 0">
-        <p>No hay bebés registrados todavía.</p>
+        <div class="empty-state-icon">
+          <ion-icon name="person-add-outline"></ion-icon>
+        </div>
+
+        <h3>Aún no hay bebés</h3>
+
+        <p>Agrega un bebé para empezar a registrar su día.</p>
       </div>
     </section>
 
@@ -229,7 +235,13 @@
 
       <ng-template #sinActividadesHoy>
         <div class="empty-state">
-          <p>No hay actividades registradas hoy.</p>
+          <div class="empty-state-icon">
+            <ion-icon name="today-outline"></ion-icon>
+          </div>
+
+          <h3>Sin actividad hoy</h3>
+
+          <p>Cuando registres una actividad, aparecerá en esta lista.</p>
         </div>
       </ng-template>
     </section>
