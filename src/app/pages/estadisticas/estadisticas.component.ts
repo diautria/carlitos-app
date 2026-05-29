@@ -27,10 +27,11 @@ import {
   medicalOutline,
   moon,
   moonOutline,
+  restaurant,
+  restaurantOutline,
   statsChartOutline,
   water,
-  waterOutline
-} from 'ionicons/icons';
+  waterOutline, warning } from 'ionicons/icons';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 import {
@@ -65,6 +66,14 @@ interface SuenoDia {
 interface MedicamentoDia {
   label: string;
   medicamentos: Record<string, number>;
+}
+
+interface ComidaDia {
+  label: string;
+  muyBien: number;
+  bien: number;
+  alerta: number;
+  total: number;
 }
 
 interface DistribucionActividad {
@@ -107,6 +116,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('panalesChart') panalesCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('suenoChart') suenoCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('medicamentosChart') medicamentosCanvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('comidaChart') comidaCanvas?: ElementRef<HTMLCanvasElement>;
 
   private activityFamiliaService = inject(ActivityFamiliaService);
   private bebeFamiliaService = inject(BebeFamiliaService);
@@ -123,12 +133,21 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     lecheHoy: { actual: 0, objetivo: 24 },
     panalesHoy: 0,
     medicamentosHoy: 0,
-    suenoHoy: 0
+    suenoHoy: 0,
+    comidasHoy: 0
   };
 
   lecheUltimos7: LecheDia[] = [];
   suenoUltimos7: SuenoDia[] = [];
   medicamentosUltimos7: MedicamentoDia[] = [];
+  comidaUltimos7: ComidaDia[] = [];
+  alimentosMasUsados: { nombre: string; total: number }[] = [];
+  resumenComida = {
+    total: 0,
+    alimentosDiferentes: 0,
+    alimentosNuevos: 0,
+    conReaccion: 0
+  };
   panalesUltimos7 = { limpios: 0, conHeces: 0, total: 0, dias: [] as PanalDia[] };
   distribucionActividades: DistribucionActividad[] = [];
 
@@ -142,6 +161,8 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       medicalOutline,
       moon,
       moonOutline,
+      restaurant,
+      restaurantOutline,
       statsChartOutline
     });
     void this.cargarDatos();
@@ -232,6 +253,10 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (this.segmento === 'medicamentos' && this.medicamentosCanvas) {
         this.crearChart(this.medicamentosCanvas, this.getMedicamentosConfig());
+      }
+
+      if (this.segmento === 'comida' && this.comidaCanvas) {
+        this.crearChart(this.comidaCanvas, this.getComidaConfig());
       }
     });
   }
@@ -443,6 +468,60 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
 
+  private getComidaConfig(): ChartConfiguration<'bar'> {
+    return {
+      type: 'bar',
+      data: {
+        labels: this.comidaUltimos7.map(dia => dia.label),
+        datasets: [
+          {
+            label: 'Muy bien',
+            data: this.comidaUltimos7.map(dia => dia.muyBien),
+            backgroundColor: '#46c37b',
+            borderRadius: 4,
+            borderSkipped: false,
+            stack: 'comida'
+          },
+          {
+            label: 'Bien',
+            data: this.comidaUltimos7.map(dia => dia.bien),
+            backgroundColor: '#8dd7a7',
+            borderRadius: 4,
+            borderSkipped: false,
+            stack: 'comida'
+          },
+          {
+            label: 'Alertas',
+            data: this.comidaUltimos7.map(dia => dia.alerta),
+            backgroundColor: '#f5b84b',
+            borderRadius: 4,
+            borderSkipped: false,
+            stack: 'comida'
+          }
+        ]
+      },
+      options: {
+        ...this.getBaseOptions(),
+        scales: {
+          x: {
+            stacked: true,
+            grid: { display: false },
+            ticks: { color: '#667085', font: { weight: 700 } }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            grid: { color: 'rgba(102, 112, 133, 0.14)' },
+            ticks: {
+              color: '#667085',
+              precision: 0
+            }
+          }
+        }
+      }
+    };
+  }
+
   private getDistribucionConfig(): ChartConfiguration<'doughnut'> {
     return {
       type: 'doughnut',
@@ -484,12 +563,19 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.resumenDiario.suenoHoy = actividadesHoy
       .filter((activity): activity is SuenoFamiliaActivity => activity.type === 'sueno')
       .reduce((sum, activity) => sum + Number(activity.duracionMinutos || 0), 0);
+
+    this.resumenDiario.comidasHoy = actividadesHoy.filter(
+      activity => activity.type === 'comida'
+    ).length;
   }
 
   private prepararGraficas() {
     this.lecheUltimos7 = this.obtenerLecheLast7Days();
     this.suenoUltimos7 = this.obtenerSuenoLast7Days();
     this.medicamentosUltimos7 = this.obtenerMedicamentosLast7Days();
+    this.comidaUltimos7 = this.obtenerComidaLast7Days();
+    this.alimentosMasUsados = this.obtenerAlimentosMasUsados();
+    this.resumenComida = this.obtenerResumenComida();
     this.panalesUltimos7 = this.obtenerPanalesLast7Days();
     this.distribucionActividades = this.obtenerDistribucionActividades();
   }
@@ -683,6 +769,98 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     return Array.from(nombres);
   }
 
+  private obtenerComidaLast7Days(): ComidaDia[] {
+    const dias: ComidaDia[] = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const fecha = this.obtenerFechaDiasAtras(i);
+      const comidasDelDia = this.activities.filter(activity => {
+        return activity.type === 'comida' && this.esMismoDia(activity.time, fecha);
+      });
+
+      const muyBien = comidasDelDia.filter(comida => (comida as any).aceptacion === 'muy-bien').length;
+      const bien = comidasDelDia.filter(comida => (comida as any).aceptacion === 'bien').length;
+      const alerta = comidasDelDia.filter(comida => {
+        const aceptacion = (comida as any).aceptacion;
+        return !!(comida as any).huboReaccion ||
+          aceptacion === 'regular' ||
+          aceptacion === 'rechazo' ||
+          aceptacion === 'solo-probo';
+      }).length;
+
+      dias.push({
+        label: this.formatearDiaSemana(fecha),
+        muyBien,
+        bien,
+        alerta,
+        total: comidasDelDia.length
+      });
+    }
+
+    return dias;
+  }
+
+  private obtenerAlimentosMasUsados(): { nombre: string; total: number }[] {
+    const conteos: Record<string, number> = {};
+    const hace7Dias = this.obtenerFechaDiasAtras(7);
+
+    this.activities
+      .filter(activity => activity.type === 'comida' && this.parseFecha(activity.time) >= hace7Dias)
+      .forEach(comida => {
+        const alimentos = (comida as any).alimentos;
+
+        if (!Array.isArray(alimentos)) {
+          return;
+        }
+
+        alimentos.forEach((item: any) => {
+          const nombre = String(item?.nombre || '').trim();
+
+          if (!nombre) {
+            return;
+          }
+
+          conteos[nombre] = (conteos[nombre] || 0) + 1;
+        });
+      });
+
+    return Object.entries(conteos)
+      .map(([nombre, total]) => ({ nombre, total }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+  }
+
+  private obtenerResumenComida() {
+    const hace7Dias = this.obtenerFechaDiasAtras(7);
+    const comidas = this.activities.filter(
+      activity => activity.type === 'comida' && this.parseFecha(activity.time) >= hace7Dias
+    );
+    const alimentos = new Set<string>();
+
+    comidas.forEach(comida => {
+      const items = (comida as any).alimentos;
+
+      if (!Array.isArray(items)) {
+        return;
+      }
+
+      items.forEach((item: any) => {
+        const nombre = String(item?.nombre || '').trim();
+
+        if (nombre) {
+          alimentos.add(nombre);
+        }
+      });
+    });
+
+    return {
+      total: comidas.length,
+      alimentosDiferentes: alimentos.size,
+      alimentosNuevos: comidas.filter(comida => !!(comida as any).esPrimeraVez).length,
+      conReaccion: comidas.filter(comida => !!(comida as any).huboReaccion).length
+    };
+  }
+
   private obtenerColorMedicamento(index: number): string {
     const colores = [
       '#81769b',
@@ -704,7 +882,8 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       leche: 0,
       panales: 0,
       sueno: 0,
-      medicamentos: 0
+      medicamentos: 0,
+      comida: 0
     };
 
     actividades.forEach(activity => {
@@ -721,6 +900,9 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
         case 'medicamento':
           conteos.medicamentos++;
           break;
+        case 'comida':
+          conteos.comida++;
+          break;
       }
     });
 
@@ -728,7 +910,8 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       { label: 'Leche', value: conteos.leche, color: '#ff8fa3' },
       { label: 'Pañales', value: conteos.panales, color: '#7ed6a5' },
       { label: 'Sueño', value: conteos.sueno, color: '#1048c2' },
-      { label: 'Medicamentos', value: conteos.medicamentos, color: '#81769b' }
+      { label: 'Medicamentos', value: conteos.medicamentos, color: '#81769b' },
+      { label: 'Comida', value: conteos.comida, color: '#46c37b' }
     ];
   }
 

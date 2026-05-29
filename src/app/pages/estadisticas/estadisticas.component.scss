@@ -147,6 +147,11 @@ ion-segment-button {
   color: var(--ion-color-sueno);
 }
 
+.stat-comida .stat-icon {
+  background: rgba(var(--ion-color-success-rgb), 0.14);
+  color: var(--ion-color-success);
+}
+
 .stat-info {
   display: flex;
   flex-direction: column;
@@ -261,6 +266,37 @@ ion-progress-bar {
   min-height: 300px;
   max-width: 420px;
   margin: 0 auto;
+}
+
+.food-rank-row {
+  min-height: 42px;
+  padding: 9px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(37, 50, 75, 0.08);
+}
+
+.food-rank-row:last-child {
+  border-bottom: 0;
+}
+
+.food-rank-row span {
+  color: #25324b;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.food-rank-row strong {
+  min-width: 30px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(var(--ion-color-success-rgb), 0.12);
+  color: var(--ion-color-success-shade);
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 @media (max-width: 600px) {

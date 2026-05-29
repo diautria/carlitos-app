@@ -1868,6 +1868,70 @@
             </div>
           </ion-card-header>
         </ion-card>
+
+        <ion-card class="estadisticas-card comida-card">
+          <ion-card-header>
+            <div class="estadisticas-card-header">
+              <div class="estadisticas-icon comida">
+                <ion-icon name="restaurant-outline" color="success"></ion-icon>
+              </div>
+
+              <div>
+                <ion-card-title>Comida</ion-card-title>
+                <p>{{ estadisticas.totalComidas }} comidas registradas</p>
+              </div>
+            </div>
+          </ion-card-header>
+
+          <ion-card-content>
+            <div class="estadistica-principal">
+              <span>{{ estadisticas.promedioComidasPorDia }}</span>
+              <small>comidas promedio por día</small>
+            </div>
+
+            <div class="estadisticas-grid">
+              <div class="estadistica-box">
+                <strong>{{ estadisticas.alimentosDiferentes }}</strong>
+                <span>Alimentos diferentes</span>
+              </div>
+
+              <div class="estadistica-box">
+                <strong>{{ estadisticas.alimentosNuevos }}</strong>
+                <span>Primeras veces</span>
+              </div>
+
+              <div class="estadistica-box">
+                <strong>{{ estadisticas.comidasConReaccion }}</strong>
+                <span>Con reacción</span>
+              </div>
+
+              <div class="estadistica-box">
+                <strong>{{ estadisticas.alimentoMasUsado }}</strong>
+                <span>Más usado · {{ estadisticas.alimentoMasUsadoVeces }}</span>
+              </div>
+
+              <div class="estadistica-box">
+                <strong>{{ estadisticas.comidasMuyBien }}</strong>
+                <span>Muy bien</span>
+              </div>
+
+              <div class="estadistica-box">
+                <strong>{{ estadisticas.comidasBien }}</strong>
+                <span>Bien</span>
+              </div>
+
+              <div class="estadistica-box">
+                <strong>{{ estadisticas.comidasRegular }}</strong>
+                <span>Regular</span>
+              </div>
+
+              <div class="estadistica-box">
+                <strong>{{ estadisticas.comidasRechazo + estadisticas.comidasSoloProbo }}</strong>
+                <span>Rechazó / solo probó</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
         <ion-card class="estadisticas-card sueno-card">
   <ion-card-header>
     <div class="estadisticas-card-header">

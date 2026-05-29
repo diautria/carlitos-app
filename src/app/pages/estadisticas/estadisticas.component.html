@@ -30,6 +30,9 @@
         <ion-segment-button value="sueno" aria-label="Sueño">
           <ion-icon name="moon-outline"></ion-icon>
         </ion-segment-button>
+        <ion-segment-button value="comida" aria-label="Comida">
+          <ion-icon name="restaurant-outline"></ion-icon>
+        </ion-segment-button>
       </ion-segment>
 
       <div *ngIf="segmento === 'resumen'" class="tab-content">
@@ -75,6 +78,16 @@
               <div class="stat-info">
                 <span class="stat-value">{{ formatearSueno(resumenDiario.suenoHoy) }}</span>
                 <span class="stat-label">de sueño</span>
+              </div>
+            </div>
+
+            <div class="stat-item stat-comida">
+              <div class="stat-icon">
+                <ion-icon name="restaurant"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ resumenDiario.comidasHoy }}</span>
+                <span class="stat-label">comidas</span>
               </div>
             </div>
           </ion-card-content>
@@ -155,6 +168,80 @@
           <ion-card-content>
             <div class="chart-container">
               <canvas #suenoChart></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div *ngIf="segmento === 'comida'" class="tab-content">
+        <ion-card class="resumen-card">
+          <ion-card-header>
+            <ion-card-title>Comida últimos 7 días</ion-card-title>
+          </ion-card-header>
+          <ion-card-content class="resumen-grid">
+            <div class="stat-item stat-comida">
+              <div class="stat-icon">
+                <ion-icon name="restaurant"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ resumenComida.total }}</span>
+                <span class="stat-label">comidas</span>
+              </div>
+            </div>
+
+            <div class="stat-item stat-comida">
+              <div class="stat-icon">
+                <ion-icon name="restaurant-outline"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ resumenComida.alimentosDiferentes }}</span>
+                <span class="stat-label">alimentos diferentes</span>
+              </div>
+            </div>
+
+            <div class="stat-item stat-comida">
+              <div class="stat-icon">
+                <ion-icon name="stats-chart-outline" color="primary"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ resumenComida.alimentosNuevos }}</span>
+                <span class="stat-label">primeras veces</span>
+              </div>
+            </div>
+
+            <div class="stat-item stat-comida">
+              <div class="stat-icon">
+                <ion-icon name="warning" color="danger"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ resumenComida.conReaccion }}</span>
+                <span class="stat-label">con reacción</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="stats-card chart-card">
+          <ion-card-header>
+            <ion-card-title>Aceptación por día</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="chart-container">
+              <canvas #comidaChart></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="stats-card" *ngIf="alimentosMasUsados.length">
+          <ion-card-header>
+            <ion-card-title>Alimentos más usados</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div
+              class="food-rank-row"
+              *ngFor="let alimento of alimentosMasUsados; let i = index">
+              <span>{{ i + 1 }}. {{ alimento.nombre }}</span>
+              <strong>{{ alimento.total }}</strong>
             </div>
           </ion-card-content>
         </ion-card>

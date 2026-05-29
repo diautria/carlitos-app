@@ -246,7 +246,20 @@ export class Tab2Page implements OnInit, OnDestroy {
   totalSuenoTexto: '0 min',
   promedioSuenoTexto: '0 min',
   suenoMasLargoTexto: '0 min',
-  suenosEnCurso: 0
+  suenosEnCurso: 0,
+
+  totalComidas: 0,
+  promedioComidasPorDia: 0,
+  alimentosDiferentes: 0,
+  alimentosNuevos: 0,
+  comidasConReaccion: 0,
+  comidasMuyBien: 0,
+  comidasBien: 0,
+  comidasRegular: 0,
+  comidasRechazo: 0,
+  comidasSoloProbo: 0,
+  alimentoMasUsado: 'Sin registros',
+  alimentoMasUsadoVeces: 0
 };
 
   groupedSuenos: ActivityYearGroup[] = [];
@@ -2059,6 +2072,7 @@ private cumpleFiltroComida(
     const tomas = actividadesUltimoMes.filter(a => a.type === 'toma-leche');
     const panales = actividadesUltimoMes.filter(a => a.type === 'cambio-panal');
     const medicamentos = actividadesUltimoMes.filter(a => a.type === 'medicamento');
+    const comidas = actividadesUltimoMes.filter(a => a.type === 'comida');
 
     const totalOnzas = tomas.reduce((total, toma) => {
       return total + Number((toma as any).cantidadOnzas || 0);
@@ -2108,6 +2122,29 @@ const suenoMasLargoMinutos = suenosFinalizados.reduce((max, sueno) => {
   return Math.max(max, Number((sueno as any).duracionMinutos || 0));
 }, 0);
 
+const alimentosUsados: Record<string, number> = {};
+
+comidas.forEach(comida => {
+  const alimentos = (comida as any).alimentos;
+
+  if (!Array.isArray(alimentos)) {
+    return;
+  }
+
+  alimentos.forEach((item: any) => {
+    const nombre = String(item?.nombre || '').trim();
+
+    if (!nombre) {
+      return;
+    }
+
+    alimentosUsados[nombre] = (alimentosUsados[nombre] || 0) + 1;
+  });
+});
+
+const alimentoMasUsadoEntry = Object.entries(alimentosUsados)
+  .sort((a, b) => b[1] - a[1])[0];
+
     this.estadisticas = {
       promedioOnzasPorDia: Number((totalOnzas / diasParaPromedio).toFixed(1)),
       totalFormula: Number(totalFormula.toFixed(1)),
@@ -2123,7 +2160,19 @@ totalMinutosSueno,
 totalSuenoTexto: this.formatearDuracion(totalMinutosSueno),
 promedioSuenoTexto: this.formatearDuracion(promedioSuenoMinutos),
 suenoMasLargoTexto: this.formatearDuracion(suenoMasLargoMinutos),
-suenosEnCurso
+suenosEnCurso,
+      totalComidas: comidas.length,
+      promedioComidasPorDia: Number((comidas.length / diasParaPromedio).toFixed(1)),
+      alimentosDiferentes: Object.keys(alimentosUsados).length,
+      alimentosNuevos: comidas.filter(comida => !!(comida as any).esPrimeraVez).length,
+      comidasConReaccion: comidas.filter(comida => !!(comida as any).huboReaccion).length,
+      comidasMuyBien: comidas.filter(comida => (comida as any).aceptacion === 'muy-bien').length,
+      comidasBien: comidas.filter(comida => (comida as any).aceptacion === 'bien').length,
+      comidasRegular: comidas.filter(comida => (comida as any).aceptacion === 'regular').length,
+      comidasRechazo: comidas.filter(comida => (comida as any).aceptacion === 'rechazo').length,
+      comidasSoloProbo: comidas.filter(comida => (comida as any).aceptacion === 'solo-probo').length,
+      alimentoMasUsado: alimentoMasUsadoEntry?.[0] || 'Sin registros',
+      alimentoMasUsadoVeces: alimentoMasUsadoEntry?.[1] || 0
     };
   }
 
