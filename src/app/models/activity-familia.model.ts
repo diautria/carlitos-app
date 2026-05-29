@@ -2,7 +2,46 @@ export type ActivityFamiliaType =
   | 'toma-leche'
   | 'cambio-panal'
   | 'medicamento'
-  | 'sueno';
+  | 'sueno'
+  | 'comida';
+
+export type MomentoComida =
+  | 'desayuno'
+  | 'almuerzo'
+  | 'merienda'
+  | 'cena'
+  | 'snack'
+  | 'otro';
+
+export type TipoComida =
+  | 'pure'
+  | 'papilla'
+  | 'solido-blando'
+  | 'blw'
+  | 'mixto'
+  | 'liquido-caldo';
+
+export type NivelAceptacionComida =
+  | 'muy-bien'
+  | 'bien'
+  | 'regular'
+  | 'rechazo'
+  | 'solo-probo';
+
+export type TipoReaccionComida =
+  | 'ronchas'
+  | 'vomito'
+  | 'diarrea'
+  | 'estrenimiento'
+  | 'gases'
+  | 'irritacion'
+  | 'otra';
+
+export interface ComidaAlimentoItem {
+  nombre: string;
+  categoria?: string;
+  esNuevo?: boolean;
+}
 
 export interface BaseActivityFamilia {
   id: string;
@@ -59,8 +98,23 @@ export interface SuenoFamiliaActivity extends BaseActivityFamilia {
   observaciones?: string;
 }
 
+export interface ComidaFamiliaActivity extends BaseActivityFamilia {
+  type: 'comida';
+  momento: MomentoComida;
+  tipoComida: TipoComida;
+  alimentos: ComidaAlimentoItem[];
+  cantidadAproximada?: number;
+  unidadCantidad?: 'cucharaditas' | 'cucharadas' | 'gramos' | 'porciones' | 'trozos' | 'otro';
+  aceptacion: NivelAceptacionComida;
+  esPrimeraVez?: boolean;
+  huboReaccion?: boolean;
+  reaccion?: TipoReaccionComida[];
+  observaciones?: string;
+}
+
 export type ActivityFamilia =
   | TomaLecheFamiliaActivity
   | CambioPanalFamiliaActivity
   | MedicamentoFamiliaActivity
-  | SuenoFamiliaActivity;
+  | SuenoFamiliaActivity
+  | ComidaFamiliaActivity;

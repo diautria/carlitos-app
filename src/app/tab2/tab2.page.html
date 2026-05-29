@@ -24,7 +24,8 @@
         {{ resumenFiltros.tomas }} tomas ·
 {{ resumenFiltros.panales }} pañales ·
 {{ resumenFiltros.medicamentos }} medicamentos ·
-{{ resumenFiltros.suenos }} sueños
+{{ resumenFiltros.suenos }} sueños ·
+{{ resumenFiltros.comidas }} comidas
       </span>
 
       <ion-button
@@ -94,6 +95,10 @@
 
 <ion-segment-button value="sueno">
   <ion-icon name="moon-outline"></ion-icon>
+</ion-segment-button>
+
+<ion-segment-button value="comida">
+  <ion-icon name="restaurant-outline"></ion-icon>
 </ion-segment-button>
       </ion-segment>
 
@@ -541,6 +546,154 @@
   </ion-accordion-group>
 </ng-container>
 
+<ng-container *ngIf="selectedTab === 'comida' && groupedComidas.length > 0">
+  <ion-accordion-group
+    multiple="true"
+    [value]="openGroupsComidas"
+    (ionChange)="onYearAccordionChange('comida', $event)">
+
+    <ion-accordion
+      *ngFor="let grupoAnio of groupedComidas; trackBy: trackByYear"
+      [value]="grupoAnio.year">
+
+      <ion-item slot="header" color="light">
+        <ion-label>
+          <h2>{{ grupoAnio.year }}</h2>
+        </ion-label>
+      </ion-item>
+
+      <div slot="content" class="year-content">
+        <ion-accordion-group
+          multiple="true"
+          [value]="getOpenMonthGroups('comida', grupoAnio.year)"
+          (ionChange)="onMonthAccordionChange('comida', grupoAnio.year, $event)">
+
+          <ion-accordion
+            *ngFor="let grupoMes of grupoAnio.months; trackBy: trackByMonth"
+            [value]="grupoMes.monthKey">
+
+            <ion-item slot="header" class="month-header">
+              <ion-label>
+                <h3>{{ grupoMes.monthName }}</h3>
+              </ion-label>
+
+              <ion-badge slot="end" class="activity-count-badge">
+                {{ grupoMes.activities.length }}
+              </ion-badge>
+            </ion-item>
+
+            <div slot="content">
+              <ion-accordion-group
+                multiple="true"
+                [value]="getOpenDateGroups('comida', grupoMes.monthKey)"
+                (ionChange)="onDateAccordionChange('comida', grupoMes.monthKey, $event)">
+
+                <ion-accordion
+                  *ngFor="let grupoFecha of grupoMes.dateGroups; trackBy: trackByDate"
+                  [value]="grupoFecha.fecha">
+
+                  <ion-item slot="header" class="date-header">
+                    <ion-label>
+                      <h4>{{ formatDateGroup(grupoFecha.fecha) }}</h4>
+                    </ion-label>
+
+                    <ion-badge slot="end" class="activity-count-badge">
+                      {{ grupoFecha.activities.length }}
+                    </ion-badge>
+                  </ion-item>
+
+                  <div slot="content" class="margen-derecho-listado">
+                    <ion-list lines="full">
+                      <ion-item
+                        *ngFor="let act of grupoFecha.activities; trackBy: trackByActivity">
+
+                        <ion-icon
+                          slot="start"
+                          class="activity-icon-small"
+                          name="restaurant"
+                          color="success">
+                        </ion-icon>
+
+                        <ion-label>
+                          <p>
+                            {{ act.time | date:'HH:mm' }} ·
+                            {{ formatearMomentoComida($any(act).momento) }} ·
+                            {{ obtenerNombresAlimentosComida(act) }}
+                          </p>
+
+                          <ion-note>
+                            {{ formatearTipoComida($any(act).tipoComida) }}
+                            <ng-container *ngIf="$any(act).cantidadAproximada">
+                              · {{ $any(act).cantidadAproximada }} {{ formatearUnidadComida($any(act).unidadCantidad) }}
+                            </ng-container>
+                            · {{ formatearAceptacionComida($any(act).aceptacion) }}
+                            <ng-container *ngIf="$any(act).esPrimeraVez">
+                              · Primera vez
+                            </ng-container>
+                            <ng-container *ngIf="$any(act).huboReaccion">
+                              · {{ formatearReaccionesComida($any(act).reaccion) }}
+                            </ng-container>
+                          </ion-note>
+
+                          <div class="comida-alertas">
+                            <ion-badge
+                              color="danger"
+                              *ngIf="$any(act).huboReaccion">
+                              Reacción: {{ formatearReaccionesComida($any(act).reaccion) }}
+                            </ion-badge>
+
+                            <ion-badge
+                              color="warning"
+                              *ngIf="$any(act).aceptacion === 'regular'">
+                              Aceptación regular
+                            </ion-badge>
+
+                            <ion-badge
+                              color="warning"
+                              *ngIf="$any(act).aceptacion === 'rechazo'">
+                              Rechazó la comida
+                            </ion-badge>
+
+                            <ion-badge
+                              color="warning"
+                              *ngIf="$any(act).aceptacion === 'solo-probo'">
+                              Solo probó
+                            </ion-badge>
+                          </div>
+
+                          <ion-note *ngIf="$any(act).observaciones">
+                            {{ $any(act).observaciones }}
+                          </ion-note>
+                        </ion-label>
+
+                        <ion-button
+                          slot="end"
+                          fill="clear"
+                          color="primary"
+                          (click)="$event.stopPropagation(); openEditModal(act)">
+                          <ion-icon name="create-outline"></ion-icon>
+                        </ion-button>
+
+                        <ion-button
+                          slot="end"
+                          fill="clear"
+                          color="danger"
+                          (click)="$event.stopPropagation(); deleteActivity(act.id)">
+                          <ion-icon name="trash-outline"></ion-icon>
+                        </ion-button>
+                      </ion-item>
+                    </ion-list>
+                  </div>
+                </ion-accordion>
+              </ion-accordion-group>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
+</ng-container>
+
 <div
   class="tab-empty-state"
   *ngIf="
@@ -549,7 +702,8 @@
       (selectedTab === 'toma-leche' && groupedTomasLeche.length === 0) ||
       (selectedTab === 'cambio-panal' && groupedCambiosPanal.length === 0) ||
       (selectedTab === 'medicamento' && groupedMedicamentos.length === 0) ||
-      (selectedTab === 'sueno' && groupedSuenos.length === 0)
+      (selectedTab === 'sueno' && groupedSuenos.length === 0) ||
+      (selectedTab === 'comida' && groupedComidas.length === 0)
     )
   ">
 
@@ -561,8 +715,10 @@
           : selectedTab === 'cambio-panal'
             ? 'leaf-outline'
             : selectedTab === 'medicamento'
-              ? 'medical-outline'
-              : 'moon-outline'
+            ? 'medical-outline'
+            : selectedTab === 'sueno'
+              ? 'moon-outline'
+              : 'restaurant'
       ">
     </ion-icon>
   </div>
@@ -575,7 +731,9 @@
           ? 'Todavía no hay cambios de pañal'
           : selectedTab === 'medicamento'
             ? 'Todavía no hay medicamentos'
-            : 'Todavía no hay sueños'
+            : selectedTab === 'sueno'
+              ? 'Todavía no hay sueños'
+              : 'Todavía no hay comidas'
     }}
   </h3>
 
@@ -587,7 +745,9 @@
           ? 'Registra un cambio y quedará guardado acá.'
           : selectedTab === 'medicamento'
             ? 'Registra una administración y aparecerá en esta lista.'
-            : 'Registra un horario de sueño y lo verás acá.'
+            : selectedTab === 'sueno'
+              ? 'Registra un horario de sueño y lo verás acá.'
+              : 'Registra una comida y quedará guardada acá.'
     }}
   </p>
 </div>
@@ -600,7 +760,8 @@
               (selectedTab === 'toma-leche' && groupedTomasLeche.length === 0) ||
               (selectedTab === 'cambio-panal' && groupedCambiosPanal.length === 0) ||
               (selectedTab === 'medicamento' && groupedMedicamentos.length === 0) ||
-              (selectedTab === 'sueno' && groupedSuenos.length === 0)
+              (selectedTab === 'sueno' && groupedSuenos.length === 0) ||
+              (selectedTab === 'comida' && groupedComidas.length === 0)
             )
           ">
           <div class="empty-filter-icon">
@@ -964,7 +1125,8 @@
               {{ getPreviewResumenFiltros().tomas }} tomas ·
               {{ getPreviewResumenFiltros().panales }} pañales ·
               {{ getPreviewResumenFiltros().medicamentos }} medicamentos ·
-{{ getPreviewResumenFiltros().suenos }} sueños
+{{ getPreviewResumenFiltros().suenos }} sueños ·
+{{ getPreviewResumenFiltros().comidas }} comidas
             </strong>
           </div>
 

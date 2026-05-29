@@ -57,7 +57,7 @@ import {
   refreshOutline,
   calendarOutline,
   timeOutline,
-  medical, medicalOutline, moonOutline, moon, waterOutline, leafOutline } from 'ionicons/icons';
+  medical, medicalOutline, moonOutline, moon, restaurant, waterOutline, leafOutline, restaurantOutline, calendarClearOutline } from 'ionicons/icons';
 
 import { ActivityFamiliaService } from '../services/activity-familia.service';
 import {
@@ -118,6 +118,7 @@ interface ResumenFiltros {
   panales: number;
   medicamentos: number;
   suenos: number;
+  comidas: number;
 }
 
 interface MedicamentoDisponible extends MedicamentoBebe {
@@ -184,6 +185,7 @@ export class Tab2Page implements OnInit, OnDestroy {
   groupedTomasLeche: ActivityYearGroup[] = [];
   groupedCambiosPanal: ActivityYearGroup[] = [];
   groupedMedicamentos: ActivityYearGroup[] = [];
+  groupedComidas: ActivityYearGroup[] = [];
 
   showModal = false;
   showModalFiltros = false;
@@ -201,20 +203,24 @@ export class Tab2Page implements OnInit, OnDestroy {
     tomas: 0,
     panales: 0,
     medicamentos: 0,
-  suenos: 0
+  suenos: 0,
+  comidas: 0
   };
 
   openGroupsTomaLeche: string[] = [];
   openGroupsCambioPanal: string[] = [];
   openGroupsMedicamentos: string[] = [];
+  openGroupsComidas: string[] = [];
 
   openMonthGroupsTomaLeche: Record<string, string[]> = {};
   openMonthGroupsCambioPanal: Record<string, string[]> = {};
   openMonthGroupsMedicamentos: Record<string, string[]> = {};
+  openMonthGroupsComidas: Record<string, string[]> = {};
 
   openDateGroupsTomaLeche: Record<string, string[]> = {};
   openDateGroupsCambioPanal: Record<string, string[]> = {};
   openDateGroupsMedicamentos: Record<string, string[]> = {};
+  openDateGroupsComidas: Record<string, string[]> = {};
 
   estadisticas = {
   promedioOnzasPorDia: 0,
@@ -261,7 +267,7 @@ private actividadGuardadaSubscription?: Subscription;
     private actividadEventosService: ActividadEventosService,
     private ngZone: NgZone
   ) {
-    addIcons({addCircle,barChartOutline,statsChartOutline,filterOutline,waterOutline,leafOutline,medical,moonOutline,createOutline,trashOutline,leaf,moon,close,water,heart,flask,checkmarkCircle,alertCircle,checkmark,calendarOutline,timeOutline,refreshOutline,medicalOutline});
+    addIcons({filterOutline,statsChartOutline,barChartOutline,waterOutline,leafOutline,medicalOutline,moonOutline,restaurantOutline,createOutline,trashOutline,leaf,medical,moon,restaurant,refreshOutline,calendarClearOutline,close,calendarOutline,timeOutline,water,checkmarkCircle,checkmark,addCircle,heart,flask,alertCircle});
   }
 
   async ngOnInit() {
@@ -328,16 +334,19 @@ private actividadGuardadaSubscription?: Subscription;
     const gruposPanalActuales = [...this.openGroupsCambioPanal];
     const gruposMedicamentosActuales = [...this.openGroupsMedicamentos];
     const gruposSuenosActuales = [...this.openGroupsSuenos];
+    const gruposComidasActuales = [...this.openGroupsComidas];
 
     const mesesTomaActuales = { ...this.openMonthGroupsTomaLeche };
     const mesesPanalActuales = { ...this.openMonthGroupsCambioPanal };
     const mesesMedicamentosActuales = { ...this.openMonthGroupsMedicamentos };
     const mesesSuenosActuales = { ...this.openMonthGroupsSuenos };
+    const mesesComidasActuales = { ...this.openMonthGroupsComidas };
 
     const fechasTomaActuales = { ...this.openDateGroupsTomaLeche };
     const fechasPanalActuales = { ...this.openDateGroupsCambioPanal };
     const fechasMedicamentosActuales = { ...this.openDateGroupsMedicamentos };
     const fechasSuenosActuales = { ...this.openDateGroupsSuenos };
+    const fechasComidasActuales = { ...this.openDateGroupsComidas };
 
     // ⚡ OPTIMIZATION: Cargar solo últimos N meses en la primera carga
     const actividades = forceLoadAll
@@ -395,6 +404,10 @@ private actividadGuardadaSubscription?: Subscription;
       ? gruposSuenosActuales
       : this.getDefaultOpenGroups('sueno');
 
+    this.openGroupsComidas = gruposComidasActuales.length
+      ? gruposComidasActuales
+      : this.getDefaultOpenGroups('comida');
+
     this.openMonthGroupsTomaLeche = Object.keys(mesesTomaActuales).length
       ? mesesTomaActuales
       : this.getDefaultOpenMonthGroupsByYear('toma-leche');
@@ -410,6 +423,10 @@ private actividadGuardadaSubscription?: Subscription;
     this.openMonthGroupsSuenos = Object.keys(mesesSuenosActuales).length
       ? mesesSuenosActuales
       : this.getDefaultOpenMonthGroupsByYear('sueno');
+
+    this.openMonthGroupsComidas = Object.keys(mesesComidasActuales).length
+      ? mesesComidasActuales
+      : this.getDefaultOpenMonthGroupsByYear('comida');
 
     this.openDateGroupsTomaLeche = Object.keys(fechasTomaActuales).length
       ? fechasTomaActuales
@@ -427,6 +444,10 @@ private actividadGuardadaSubscription?: Subscription;
       ? fechasSuenosActuales
       : this.getDefaultOpenDateGroupsByMonth('sueno');
 
+    this.openDateGroupsComidas = Object.keys(fechasComidasActuales).length
+      ? fechasComidasActuales
+      : this.getDefaultOpenDateGroupsByMonth('comida');
+
     void this.programarRecordatoriosConActividades(this.activities);
   } catch (error: any) {
     console.error('Error cargando actividades', error);
@@ -437,6 +458,7 @@ private actividadGuardadaSubscription?: Subscription;
     this.groupedCambiosPanal = [];
     this.groupedMedicamentos = [];
     this.groupedSuenos = [];
+    this.groupedComidas = [];
 
     if (error?.message && this.primeraCarga) {
       const alert = await this.alertController.create({
@@ -564,6 +586,22 @@ private actividadGuardadaSubscription?: Subscription;
     observaciones: ''
   };
 }
+
+    if (type === 'comida') {
+      return {
+        ...base,
+        momento: 'almuerzo',
+        tipoComida: 'pure',
+        alimentos: [],
+        cantidadAproximada: null,
+        unidadCantidad: 'cucharaditas',
+        aceptacion: 'bien',
+        esPrimeraVez: false,
+        huboReaccion: false,
+        reaccion: [],
+        observaciones: ''
+      };
+    }
 
     return base;
   }
@@ -953,6 +991,11 @@ private actividadGuardadaSubscription?: Subscription;
 
   if (type === 'sueno') {
     this.openGroupsSuenos = values;
+    return;
+  }
+
+  if (type === 'comida') {
+    this.openGroupsComidas = values;
   }
 }
 
@@ -989,6 +1032,14 @@ private actividadGuardadaSubscription?: Subscription;
   if (type === 'sueno') {
     this.openMonthGroupsSuenos = {
       ...this.openMonthGroupsSuenos,
+      [year]: values
+    };
+    return;
+  }
+
+  if (type === 'comida') {
+    this.openMonthGroupsComidas = {
+      ...this.openMonthGroupsComidas,
       [year]: values
     };
   }
@@ -1033,6 +1084,14 @@ private actividadGuardadaSubscription?: Subscription;
       ...this.openDateGroupsSuenos,
       [monthKey]: values
     };
+    return;
+  }
+
+  if (type === 'comida') {
+    this.openDateGroupsComidas = {
+      ...this.openDateGroupsComidas,
+      [monthKey]: values
+    };
   }
 }
 
@@ -1049,7 +1108,11 @@ private actividadGuardadaSubscription?: Subscription;
     return this.openMonthGroupsMedicamentos[year] || [];
   }
 
-  return this.openMonthGroupsSuenos[year] || [];
+  if (type === 'sueno') {
+    return this.openMonthGroupsSuenos[year] || [];
+  }
+
+  return this.openMonthGroupsComidas[year] || [];
   }
 
   getOpenDateGroups(type: ActivityFamiliaType, monthKey: string): string[] {
@@ -1065,7 +1128,11 @@ private actividadGuardadaSubscription?: Subscription;
     return this.openDateGroupsMedicamentos[monthKey] || [];
   }
 
-  return this.openDateGroupsSuenos[monthKey] || [];
+  if (type === 'sueno') {
+    return this.openDateGroupsSuenos[monthKey] || [];
+  }
+
+  return this.openDateGroupsComidas[monthKey] || [];
   }
 
   getDefaultOpenGroups(type: ActivityFamiliaType): string[] {
@@ -1153,7 +1220,11 @@ private actividadGuardadaSubscription?: Subscription;
     return this.groupedMedicamentos;
   }
 
-  return this.groupedSuenos;
+  if (type === 'sueno') {
+    return this.groupedSuenos;
+  }
+
+  return this.groupedComidas;
   }
 
   getGroupedActivitiesByType(type: ActivityFamiliaType): ActivityYearGroup[] {
@@ -1375,6 +1446,7 @@ private actividadGuardadaSubscription?: Subscription;
     this.groupedCambiosPanal = this.getGroupedActivitiesByType('cambio-panal');
     this.groupedMedicamentos = this.getGroupedActivitiesByType('medicamento');
     this.groupedSuenos = this.getGroupedActivitiesByType('sueno');
+    this.groupedComidas = this.getGroupedActivitiesByType('comida');
 
     this.resumenFiltros = this.obtenerResumenFiltros(this.filteredActivities);
 
@@ -1383,6 +1455,7 @@ private actividadGuardadaSubscription?: Subscription;
       this.openGroupsCambioPanal = this.getDefaultOpenGroups('cambio-panal');
       this.openGroupsMedicamentos = this.getDefaultOpenGroups('medicamento');
       this.openGroupsSuenos = this.getDefaultOpenGroups('sueno');
+      this.openGroupsComidas = this.getDefaultOpenGroups('comida');
 
       this.openMonthGroupsTomaLeche =
         this.getDefaultOpenMonthGroupsByYear('toma-leche');
@@ -1396,6 +1469,9 @@ private actividadGuardadaSubscription?: Subscription;
         this.openMonthGroupsSuenos =
   this.getDefaultOpenMonthGroupsByYear('sueno');
 
+      this.openMonthGroupsComidas =
+        this.getDefaultOpenMonthGroupsByYear('comida');
+
       this.openDateGroupsTomaLeche =
         this.getDefaultOpenDateGroupsByMonth('toma-leche');
 
@@ -1407,6 +1483,9 @@ private actividadGuardadaSubscription?: Subscription;
 
         this.openDateGroupsSuenos =
   this.getDefaultOpenDateGroupsByMonth('sueno');
+
+      this.openDateGroupsComidas =
+        this.getDefaultOpenDateGroupsByMonth('comida');
     }
   }
 
@@ -1749,7 +1828,8 @@ private cumpleFiltroMedicamento(
       tomas: activities.filter(a => a.type === 'toma-leche').length,
       panales: activities.filter(a => a.type === 'cambio-panal').length,
       medicamentos: activities.filter(a => a.type === 'medicamento').length,
-      suenos: activities.filter(a => a.type === 'sueno').length
+      suenos: activities.filter(a => a.type === 'sueno').length,
+      comidas: activities.filter(a => a.type === 'comida').length
     };
   }
 
@@ -1948,6 +2028,10 @@ suenosEnCurso
       return 'Medicamento';
     }
 
+    if (activity.type === 'comida') {
+      return `Comida - ${this.formatearMomentoComida((activity as any).momento)}`;
+    }
+
     return 'Actividad';
   }
 
@@ -1973,6 +2057,20 @@ suenosEnCurso
         : `${nombre} · ${gotas} gotas`;
     }
 
+    if (activity.type === 'comida') {
+      const comida = activity as any;
+      const alimentos = Array.isArray(comida.alimentos)
+        ? comida.alimentos.map((item: any) => item.nombre).join(', ')
+        : '';
+      const tipo = this.formatearTipoComida(comida.tipoComida);
+      const cantidad = comida.cantidadAproximada
+        ? ` - ${comida.cantidadAproximada} ${this.formatearUnidadComida(comida.unidadCantidad)}`
+        : '';
+      const reaccion = comida.huboReaccion ? ' - Reaccion' : '';
+
+      return `${alimentos || 'Alimentos'} - ${tipo}${cantidad}${reaccion}`;
+    }
+
     return '';
   }
 
@@ -1989,7 +2087,125 @@ suenosEnCurso
       return 'medical';
     }
 
+    if (activity.type === 'comida') {
+      return 'restaurant';
+    }
+
     return 'checkmark-circle';
+  }
+
+  formatearMomentoComida(value: string): string {
+    const labels: Record<string, string> = {
+      desayuno: 'Desayuno',
+      almuerzo: 'Almuerzo',
+      merienda: 'Merienda',
+      cena: 'Cena',
+      snack: 'Snack',
+      otro: 'Otro'
+    };
+
+    return labels[value] || 'Comida';
+  }
+
+  formatearTipoComida(value: string): string {
+    const labels: Record<string, string> = {
+      pure: 'Puré',
+      papilla: 'Papilla',
+      'solido-blando': 'Solido blando',
+      blw: 'BLW',
+      mixto: 'Mixto',
+      'liquido-caldo': 'Caldo'
+    };
+
+    return labels[value] || 'Comida';
+  }
+
+  formatearUnidadComida(value: string): string {
+    const labels: Record<string, string> = {
+      cucharaditas: 'cdtas',
+      cucharadas: 'cdas',
+      gramos: 'g',
+      porciones: 'porciones',
+      trozos: 'trozos',
+      otro: ''
+    };
+
+    return labels[value] || '';
+  }
+
+  formatearAceptacionComida(value: string): string {
+    const labels: Record<string, string> = {
+      'muy-bien': 'Muy bien',
+      bien: 'Bien',
+      regular: 'Regular',
+      rechazo: 'Rechazó',
+      'solo-probo': 'Solo probó'
+    };
+
+    return labels[value] || 'Sin aceptación';
+  }
+
+  formatearReaccionesComida(value: string[] | undefined): string {
+    if (!Array.isArray(value) || value.length === 0) {
+      return 'Reacción';
+    }
+
+    const labels: Record<string, string> = {
+      ronchas: 'Ronchas',
+      vomito: 'Vómito',
+      diarrea: 'Diarrea',
+      estrenimiento: 'Estreñimiento',
+      gases: 'Gases',
+      irritacion: 'Irritación',
+      otra: 'Otra reacción'
+    };
+
+    return value.map(item => labels[item] || item).join(', ');
+  }
+
+  obtenerNombresAlimentosComida(activity: ActivityFamilia): string {
+    const alimentos = (activity as any).alimentos;
+
+    if (!Array.isArray(alimentos) || alimentos.length === 0) {
+      return 'Comida';
+    }
+
+    return alimentos
+      .map((item: any) => item.nombre)
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  obtenerCategoriasAlimentosComida(activity: ActivityFamilia): string {
+    const alimentos = (activity as any).alimentos;
+
+    if (!Array.isArray(alimentos) || alimentos.length === 0) {
+      return 'Sin categoría';
+    }
+
+    const categorias = Array.from(new Set(
+      alimentos
+        .map((item: any) => item.categoria)
+        .filter(Boolean)
+        .map((categoria: string) => this.formatearCategoriaAlimento(categoria))
+    ));
+
+    return categorias.length ? categorias.join(', ') : 'Sin categoría';
+  }
+
+  private formatearCategoriaAlimento(value: string): string {
+    const labels: Record<string, string> = {
+      fruta: 'Fruta',
+      verdura: 'Verdura',
+      cereal: 'Cereal',
+      proteina: 'Proteína',
+      legumbre: 'Legumbre',
+      lacteo: 'Lácteo',
+      grasa: 'Grasa',
+      otro: 'Otro'
+    };
+
+    return labels[value] || value;
   }
 
   trackByYear(index: number, grupoAnio: ActivityYearGroup): string {

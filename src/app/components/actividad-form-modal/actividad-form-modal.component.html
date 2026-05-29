@@ -4,7 +4,10 @@
       <ion-title>{{ isEdit ? 'Editar' : 'Nueva' }} actividad</ion-title>
 
       <ion-buttons slot="end">
-        <ion-button (click)="closeModal()" color="medium">
+        <ion-button
+          (click)="closeModal()"
+          color="medium"
+          [disabled]="guardando">
           <ion-icon name="close"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -64,6 +67,17 @@
             (click)="onTypeChange('sueno')"
             size="small">
             <ion-icon name="moon"></ion-icon>
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            type="button"
+            aria-label="Comida"
+            title="Comida"
+            [color]="formType === 'comida' ? 'primary' : 'medium'"
+            (click)="onTypeChange('comida')"
+            size="small">
+            <ion-icon name="restaurant"></ion-icon>
           </ion-button>
         </div>
       </div>
@@ -180,6 +194,233 @@
         </div>
       </ng-container>
 
+      <ng-container *ngIf="formType === 'comida'">
+        <div class="form-section">
+          <label class="section-label">Momento</label>
+
+          <div class="chip-grid">
+            <ion-button
+              *ngFor="let momento of momentosComida"
+              type="button"
+              size="small"
+              [fill]="form.momento === momento.value ? 'solid' : 'outline'"
+              [color]="form.momento === momento.value ? 'primary' : 'medium'"
+              (click)="form.momento = momento.value">
+              {{ momento.label }}
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="section-label">Tipo de comida</label>
+
+          <div class="chip-grid">
+            <ion-button
+              *ngFor="let tipo of tiposComida"
+              type="button"
+              size="small"
+              [fill]="form.tipoComida === tipo.value ? 'solid' : 'outline'"
+              [color]="form.tipoComida === tipo.value ? 'primary' : 'medium'"
+              (click)="form.tipoComida = tipo.value">
+              {{ tipo.label }}
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-row">
+            <label class="section-label">Alimentos</label>
+
+            <ion-button
+              type="button"
+              size="small"
+              fill="clear"
+              color="primary"
+              (click)="editandoListaAlimentos = !editandoListaAlimentos">
+              {{ editandoListaAlimentos ? 'Listo' : 'Editar lista' }}
+            </ion-button>
+          </div>
+
+          <div class="chip-grid food-grid">
+            <ion-button
+              *ngFor="let alimento of alimentosComidaOptions"
+              type="button"
+              size="small"
+              [fill]="form.alimentosSeleccionados?.includes(alimento.nombre) ? 'solid' : 'outline'"
+              [color]="form.alimentosSeleccionados?.includes(alimento.nombre) ? 'primary' : 'medium'"
+              (click)="toggleAlimentoComida(alimento.nombre)">
+              {{ alimento.nombre }}
+            </ion-button>
+
+            <ion-button
+              type="button"
+              size="small"
+              [fill]="alimentoManualActivo ? 'solid' : 'outline'"
+              [color]="alimentoManualActivo ? 'primary' : 'medium'"
+              (click)="activarAlimentoManual()">
+              <ion-icon name="add" slot="start"></ion-icon>
+              Otro
+            </ion-button>
+          </div>
+
+          <div class="food-edit-box" *ngIf="editandoListaAlimentos">
+            <div class="food-edit-input">
+              <ion-input
+                [(ngModel)]="nuevoAlimentoNombre"
+                name="nuevoAlimentoNombre"
+                placeholder="Nuevo alimento"
+                class="custom-input">
+              </ion-input>
+
+              <ion-button
+                type="button"
+                size="small"
+                color="primary"
+                (click)="agregarAlimentoCatalogo()">
+                Agregar
+              </ion-button>
+            </div>
+
+            <div class="food-edit-list">
+              <button
+                type="button"
+                *ngFor="let alimento of alimentosComidaOptions"
+                (click)="quitarAlimentoCatalogo(alimento)">
+                {{ alimento.nombre }}
+                <ion-icon name="close"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <ion-input
+            *ngIf="alimentoManualActivo"
+            [(ngModel)]="form.alimentosTexto"
+            name="alimentosTexto"
+            placeholder="Escribe uno o varios, separados por coma"
+            class="custom-input food-manual-input">
+          </ion-input>
+        </div>
+
+        <div class="form-section two-fields">
+          <div>
+            <label class="section-label">Cantidad</label>
+
+            <ion-input
+              type="number"
+              inputmode="decimal"
+              [(ngModel)]="form.cantidadAproximada"
+              name="cantidadAproximada"
+              placeholder="Ej: 4"
+              class="custom-input">
+            </ion-input>
+          </div>
+
+          <div>
+            <label class="section-label">Unidad</label>
+
+            <div class="chip-grid compact">
+              <ion-button
+                type="button"
+                size="small"
+                [fill]="form.unidadCantidad === 'cucharaditas' ? 'solid' : 'outline'"
+                [color]="form.unidadCantidad === 'cucharaditas' ? 'primary' : 'medium'"
+                (click)="form.unidadCantidad = 'cucharaditas'">
+                Cdtas
+              </ion-button>
+
+              <ion-button
+                type="button"
+                size="small"
+                [fill]="form.unidadCantidad === 'cucharadas' ? 'solid' : 'outline'"
+                [color]="form.unidadCantidad === 'cucharadas' ? 'primary' : 'medium'"
+                (click)="form.unidadCantidad = 'cucharadas'">
+                Cdas
+              </ion-button>
+
+              <ion-button
+                type="button"
+                size="small"
+                [fill]="form.unidadCantidad === 'gramos' ? 'solid' : 'outline'"
+                [color]="form.unidadCantidad === 'gramos' ? 'primary' : 'medium'"
+                (click)="form.unidadCantidad = 'gramos'">
+                g
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="section-label">Aceptacion</label>
+
+          <div class="chip-grid">
+            <ion-button
+              *ngFor="let aceptacion of aceptacionesComida"
+              type="button"
+              size="small"
+              [fill]="form.aceptacion === aceptacion.value ? 'solid' : 'outline'"
+              [color]="form.aceptacion === aceptacion.value ? 'success' : 'medium'"
+              (click)="form.aceptacion = aceptacion.value">
+              {{ aceptacion.label }}
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="section-label">Detalles</label>
+
+          <div class="type-buttons">
+            <ion-button
+              expand="block"
+              type="button"
+              size="small"
+              [fill]="form.esPrimeraVez ? 'solid' : 'outline'"
+              [color]="form.esPrimeraVez ? 'warning' : 'medium'"
+              (click)="form.esPrimeraVez = !form.esPrimeraVez">
+              Primera vez
+            </ion-button>
+
+            <ion-button
+              expand="block"
+              type="button"
+              size="small"
+              [fill]="form.huboReaccion ? 'solid' : 'outline'"
+              [color]="form.huboReaccion ? 'danger' : 'medium'"
+              (click)="form.huboReaccion = !form.huboReaccion">
+              Hubo reaccion
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="form-section" *ngIf="form.huboReaccion">
+          <label class="section-label">Reaccion observada</label>
+
+          <div class="chip-grid">
+            <ion-button
+              *ngFor="let reaccion of reaccionesComida"
+              type="button"
+              size="small"
+              [fill]="form.reaccion?.includes(reaccion.value) ? 'solid' : 'outline'"
+              [color]="form.reaccion?.includes(reaccion.value) ? 'danger' : 'medium'"
+              (click)="toggleReaccionComida(reaccion.value)">
+              {{ reaccion.label }}
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="section-label">Observaciones</label>
+
+          <ion-textarea
+            [(ngModel)]="form.observaciones"
+            name="observacionesComida"
+            placeholder="Ej: Le gusto mas el boniato..."
+            auto-grow="true"
+            rows="3"
+            class="custom-input">
+          </ion-textarea>
+        </div>
+      </ng-container>
+
       <ng-container *ngIf="formType === 'medicamento'">
         <div class="form-section">
           <label class="section-label">Medicamento</label>
@@ -291,9 +532,10 @@
       <ion-button
         expand="block"
         type="submit"
-        class="save-button">
+        class="save-button"
+        [disabled]="guardando">
         <ion-icon name="checkmark"></ion-icon>
-        {{ isEdit ? 'Guardar cambios' : 'Agregar actividad' }}
+        {{ guardando ? 'Guardando...' : (isEdit ? 'Guardar cambios' : 'Agregar actividad') }}
       </ion-button>
     </form>
   </ion-content>

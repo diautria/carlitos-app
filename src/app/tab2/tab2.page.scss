@@ -189,6 +189,19 @@ ion-modal {
   text-transform: capitalize;
 }
 
+.comida-alertas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.comida-alertas ion-badge {
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
 .activity-actions-row {
   padding: 14px 16px 8px;
   display: block;

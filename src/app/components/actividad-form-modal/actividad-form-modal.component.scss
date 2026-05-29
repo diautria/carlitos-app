@@ -47,6 +47,29 @@
   padding-left: 4px;
 }
 
+.section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.section-row .section-label {
+  margin-bottom: 0;
+}
+
+.section-row ion-button {
+  min-height: 28px;
+  margin: 0;
+  --padding-start: 6px;
+  --padding-end: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .time-picker {
   display: flex;
   justify-content: center;
@@ -72,12 +95,98 @@
 .type-buttons {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .type-buttons ion-button {
   flex: 1;
+  min-width: 76px;
   --border-radius: 8px;
   font-size: 13px;
+}
+
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-grid ion-button {
+  min-height: 32px;
+  margin: 0;
+  --border-radius: 999px;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.chip-grid.compact {
+  gap: 6px;
+}
+
+.food-grid ion-button {
+  --padding-start: 9px;
+  --padding-end: 9px;
+}
+
+.food-manual-input {
+  margin-top: 10px;
+}
+
+.food-edit-box {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f8f9fd;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
+}
+
+.food-edit-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.food-edit-input ion-button {
+  margin: 4px 0 0;
+  min-height: 40px;
+  --border-radius: 12px;
+}
+
+.food-edit-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.food-edit-list button {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid rgba(var(--ion-color-medium-rgb), 0.24);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--ion-color-dark);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.food-edit-list ion-icon {
+  font-size: 14px;
+  color: var(--ion-color-danger);
+}
+
+.two-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 10px;
 }
 
 .save-button {
