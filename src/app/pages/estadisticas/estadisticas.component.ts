@@ -49,6 +49,13 @@ interface LecheDia {
   total: number;
 }
 
+interface PanalDia {
+  label: string;
+  pipi: number;
+  popo: number;
+  total: number;
+}
+
 interface SuenoDia {
   label: string;
   dia: number;
@@ -122,7 +129,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   lecheUltimos7: LecheDia[] = [];
   suenoUltimos7: SuenoDia[] = [];
   medicamentosUltimos7: MedicamentoDia[] = [];
-  panalesUltimos7 = { limpios: 0, conHeces: 0, total: 0 };
+  panalesUltimos7 = { limpios: 0, conHeces: 0, total: 0, dias: [] as PanalDia[] };
   distribucionActividades: DistribucionActividad[] = [];
 
   ngOnInit() {
@@ -350,24 +357,48 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
 
-  private getPanalesConfig(): ChartConfiguration<'doughnut'> {
+  private getPanalesConfig(): ChartConfiguration<'bar'> {
     return {
-      type: 'doughnut',
+      type: 'bar',
       data: {
-        labels: ['Sin heces', 'Con heces'],
+        labels: this.panalesUltimos7.dias.map(dia => dia.label),
         datasets: [
           {
-            data: [this.panalesUltimos7.limpios, this.panalesUltimos7.conHeces],
-            backgroundColor: ['#7ed6a5', '#ffd97d'],
-            borderColor: '#ffffff',
-            borderWidth: 4,
-            hoverOffset: 8
+            label: 'Pipí',
+            data: this.panalesUltimos7.dias.map(dia => dia.pipi),
+            backgroundColor: '#7ed6a5',
+            borderRadius: 4,
+            borderSkipped: false,
+            categoryPercentage: 0.72,
+            barPercentage: 0.78
+          },
+          {
+            label: 'Popó',
+            data: this.panalesUltimos7.dias.map(dia => dia.popo),
+            backgroundColor: '#ffd97d',
+            borderRadius: 4,
+            borderSkipped: false,
+            categoryPercentage: 0.72,
+            barPercentage: 0.78
           }
         ]
       },
       options: {
         ...this.getBaseOptions(),
-        cutout: '64%'
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#667085', font: { weight: 700 } }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(102, 112, 133, 0.14)' },
+            ticks: {
+              color: '#667085',
+              precision: 0
+            }
+          }
+        }
       }
     };
   }
@@ -579,28 +610,43 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private obtenerPanalesLast7Days() {
-    const hace7Dias = this.obtenerFechaDiasAtras(7);
+    const dias: PanalDia[] = [];
     let limpios = 0;
     let conHeces = 0;
 
-    const panales = this.activities.filter(
-      (activity): activity is CambioPanalFamiliaActivity => {
-        return activity.type === 'cambio-panal' && this.parseFecha(activity.time) >= hace7Dias;
-      }
-    );
+    for (let i = 6; i >= 0; i--) {
+      const fecha = this.obtenerFechaDiasAtras(i);
+      let pipi = 0;
+      let popo = 0;
 
-    panales.forEach(panal => {
-      if (panal.tieneHeces) {
-        conHeces++;
-      } else {
-        limpios++;
-      }
-    });
+      this.activities
+        .filter((activity): activity is CambioPanalFamiliaActivity => {
+          return activity.type === 'cambio-panal' && this.esMismoDia(activity.time, fecha);
+        })
+        .forEach(panal => {
+          if (panal.tieneHeces) {
+            popo++;
+          } else {
+            pipi++;
+          }
+        });
+
+      limpios += pipi;
+      conHeces += popo;
+
+      dias.push({
+        label: this.formatearDiaSemana(fecha),
+        pipi,
+        popo,
+        total: pipi + popo
+      });
+    }
 
     return {
       limpios,
       conHeces,
-      total: limpios + conHeces
+      total: limpios + conHeces,
+      dias
     };
   }
 
