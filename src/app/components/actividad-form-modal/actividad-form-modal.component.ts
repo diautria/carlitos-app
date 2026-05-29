@@ -133,8 +133,9 @@ export class ActividadFormModalComponent implements OnInit {
     }
 
     if (this.formType === 'toma-leche') {
-      this.otraCantidadActiva =
-        !!this.form.cantidadOnzas && this.form.cantidadOnzas > 9;
+      this.otraCantidadActiva = this.debeUsarOtraCantidad(
+        this.form.cantidadOnzas
+      );
     }
 
     this.modalLista = true;
@@ -223,6 +224,7 @@ export class ActividadFormModalComponent implements OnInit {
   onTypeChange(type: ActivityFamiliaType) {
     this.formType = type;
     this.form = this.getEmptyForm(type);
+    this.otraCantidadActiva = false;
   }
 
   onMedicamentoChange(medicamentoId: string) {
@@ -249,8 +251,19 @@ export class ActividadFormModalComponent implements OnInit {
   }
 
   activarOtraCantidad() {
+    const cantidadActual = Number(this.form.cantidadOnzas || 0);
+
     this.otraCantidadActiva = true;
-    this.form.cantidadOnzas = null;
+
+    if (this.cantidadOnzasOptions.includes(cantidadActual)) {
+      this.form.cantidadOnzas = null;
+    }
+  }
+
+  private debeUsarOtraCantidad(value: any): boolean {
+    const cantidad = Number(value || 0);
+
+    return cantidad > 0 && !this.cantidadOnzasOptions.includes(cantidad);
   }
 
   async saveActivity() {
