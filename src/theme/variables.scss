@@ -110,6 +110,7 @@
   --app-border: rgba(34, 39, 69, 0.08);
   --app-shadow: 0 10px 24px rgba(31, 38, 80, 0.07);
   --app-muted-text: #777f98;
+  --app-chart-grid: rgba(102, 112, 133, 0.14);
 
 /* Medicamento */
 // --ion-color-medicamento: #8a94a6;
@@ -231,6 +232,7 @@
     --app-border: rgba(226, 232, 240, 0.12);
     --app-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
     --app-muted-text: #a8adc3;
+    --app-chart-grid: rgba(226, 232, 240, 0.12);
   }
 }
 
@@ -329,6 +331,7 @@
   --app-border: rgba(226, 232, 240, 0.12);
   --app-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
   --app-muted-text: #a8adc3;
+  --app-chart-grid: rgba(226, 232, 240, 0.12);
 }
 
 .ion-color-panal-limpio {

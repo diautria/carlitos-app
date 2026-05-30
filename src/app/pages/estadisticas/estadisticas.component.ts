@@ -271,6 +271,9 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getBaseOptions(): any {
+    const textColor = this.getCssColor('--ion-text-color', '#25324b');
+    const mutedColor = this.getCssColor('--app-muted-text', '#667085');
+
     return {
       responsive: true,
       maintainAspectRatio: false,
@@ -279,21 +282,52 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
           position: 'bottom',
           labels: {
             usePointStyle: true,
+            pointStyle: 'rectRounded',
             boxWidth: 8,
             boxHeight: 8,
-            color: '#475467',
+            color: textColor,
             font: { weight: 700 }
           }
         },
         tooltip: {
-          backgroundColor: '#111827',
+          backgroundColor: this.getCssColor('--app-surface-2', '#111827'),
+          titleColor: textColor,
+          bodyColor: textColor,
+          borderColor: this.getCssColor('--app-border', 'rgba(102, 112, 133, 0.14)'),
+          borderWidth: 1,
           padding: 12,
           cornerRadius: 12,
           titleFont: { weight: 800 },
           bodyFont: { weight: 600 }
         }
+      },
+      color: mutedColor
+    };
+  }
+
+  private getAxisOptions(stacked = false): any {
+    const mutedColor = this.getCssColor('--app-muted-text', '#667085');
+    const gridColor = this.getCssColor('--app-chart-grid', 'rgba(102, 112, 133, 0.14)');
+
+    return {
+      x: {
+        stacked,
+        grid: { display: false },
+        ticks: { color: mutedColor, font: { weight: 700 } }
+      },
+      y: {
+        stacked,
+        beginAtZero: true,
+        grid: { color: gridColor },
+        ticks: { color: mutedColor }
       }
     };
+  }
+
+  private getCssColor(variable: string, fallback: string): string {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+
+    return value || fallback;
   }
 
   private getLecheConfig(): ChartConfiguration<'bar'> {
@@ -324,17 +358,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       options: {
         ...this.getBaseOptions(),
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: '#667085', font: { weight: 700 } }
-          },
-          y: {
-            beginAtZero: true,
-            grid: { color: 'rgba(102, 112, 133, 0.14)' },
-            ticks: { color: '#667085' }
-          }
-        }
+        scales: this.getAxisOptions()
       }
     };
   }
@@ -365,19 +389,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       options: {
         ...this.getBaseOptions(),
-        scales: {
-          x: {
-            stacked: true,
-            grid: { display: false },
-            ticks: { color: '#667085', font: { weight: 700 } }
-          },
-          y: {
-            stacked: true,
-            beginAtZero: true,
-            grid: { color: 'rgba(102, 112, 133, 0.14)' },
-            ticks: { color: '#667085' }
-          }
-        }
+        scales: this.getAxisOptions(true)
       }
     };
   }
@@ -410,20 +422,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       options: {
         ...this.getBaseOptions(),
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: '#667085', font: { weight: 700 } }
-          },
-          y: {
-            beginAtZero: true,
-            grid: { color: 'rgba(102, 112, 133, 0.14)' },
-            ticks: {
-              color: '#667085',
-              precision: 0
-            }
-          }
-        }
+        scales: this.withYAxisPrecision(this.getAxisOptions())
       }
     };
   }
@@ -448,22 +447,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       options: {
         ...this.getBaseOptions(),
-        scales: {
-          x: {
-            stacked: true,
-            grid: { display: false },
-            ticks: { color: '#667085', font: { weight: 700 } }
-          },
-          y: {
-            stacked: true,
-            beginAtZero: true,
-            grid: { color: 'rgba(102, 112, 133, 0.14)' },
-            ticks: {
-              color: '#667085',
-              precision: 0
-            }
-          }
-        }
+        scales: this.withYAxisPrecision(this.getAxisOptions(true))
       }
     };
   }
@@ -502,22 +486,7 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       options: {
         ...this.getBaseOptions(),
-        scales: {
-          x: {
-            stacked: true,
-            grid: { display: false },
-            ticks: { color: '#667085', font: { weight: 700 } }
-          },
-          y: {
-            stacked: true,
-            beginAtZero: true,
-            grid: { color: 'rgba(102, 112, 133, 0.14)' },
-            ticks: {
-              color: '#667085',
-              precision: 0
-            }
-          }
-        }
+        scales: this.withYAxisPrecision(this.getAxisOptions(true))
       }
     };
   }
@@ -531,8 +500,8 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
           {
             data: this.distribucionActividades.map(item => item.value),
             backgroundColor: this.distribucionActividades.map(item => item.color),
-            borderColor: '#ffffff',
-            borderWidth: 4,
+            borderColor: this.getCssColor('--app-surface', '#ffffff'),
+            borderWidth: 2,
             hoverOffset: 8
           }
         ]
@@ -540,6 +509,19 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
       options: {
         ...this.getBaseOptions(),
         cutout: '62%'
+      }
+    };
+  }
+
+  private withYAxisPrecision(scales: any): any {
+    return {
+      ...scales,
+      y: {
+        ...scales.y,
+        ticks: {
+          ...scales.y.ticks,
+          precision: 0
+        }
       }
     };
   }
