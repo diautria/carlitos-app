@@ -890,10 +890,10 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
 
     return [
       { label: 'Leche', value: conteos.leche, color: '#ff8fa3' },
-      { label: 'Pañales', value: conteos.panales, color: '#7ed6a5' },
+      { label: 'Pañales', value: conteos.panales, color: this.getCssColor('--ion-color-warning', '#ffd97d') },
       { label: 'Sueño', value: conteos.sueno, color: '#1048c2' },
       { label: 'Medicamentos', value: conteos.medicamentos, color: '#81769b' },
-      { label: 'Comida', value: conteos.comida, color: '#46c37b' }
+      { label: 'Comida', value: conteos.comida, color: this.getCssColor('--ion-color-success', '#7ed6a5') }
     ];
   }
 
