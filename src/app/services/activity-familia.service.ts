@@ -250,7 +250,7 @@ async obtenerSuenoActivo(): Promise<ActivityFamilia | null> {
   };
 }
 
-async iniciarSueno(fechaInicio: Date = new Date()): Promise<void> {
+async iniciarSueno(fechaInicio: Date = new Date()): Promise<ActivityFamilia> {
   const suenoActivo = await this.obtenerSuenoActivo();
 
   if (suenoActivo) {
@@ -269,10 +269,10 @@ async iniciarSueno(fechaInicio: Date = new Date()): Promise<void> {
     observaciones: ''
   };
 
-  await this.add(actividad);
+  return this.add(actividad);
 }
 
-async finalizarSueno(suenoId: string, fechaFin: Date = new Date()): Promise<void> {
+async finalizarSueno(suenoId: string, fechaFin: Date = new Date()): Promise<ActivityFamilia> {
   const { familiaId, bebeId } = await this.obtenerContextoActivo();
 
   const suenoRef = doc(
@@ -306,11 +306,15 @@ async finalizarSueno(suenoId: string, fechaFin: Date = new Date()): Promise<void
     (fin.getTime() - inicio.getTime()) / 60000
   );
 
-  await this.update({
+  const suenoFinalizado = {
     ...(sueno as any),
     fin: fin.toISOString(),
     duracionMinutos
-  });
+  } as ActivityFamilia;
+
+  await this.update(suenoFinalizado);
+
+  return suenoFinalizado;
 }
 
 async agregarSuenoManual(
@@ -420,13 +424,7 @@ async getOldestActivityDate(): Promise<Date | null> {
 }
 
 private getLocalDateTimeKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  return date.toISOString();
 }
 
 private mapActivities(

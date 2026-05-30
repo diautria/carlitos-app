@@ -103,6 +103,8 @@ bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
   progresoOnzas = 0;
 suenoActivo: ActivityFamilia | null = null;
 duracionSuenoActivoTexto = '';
+suenoAccionEnCurso = false;
+suenoAccionTipo: 'iniciar' | 'finalizar' | null = null;
 private intervaloSuenoActivo?: ReturnType<typeof setInterval>;
 private bebesSubscription?: Subscription;
 private actividadGuardadaSubscription?: Subscription;
@@ -204,6 +206,7 @@ private async cargarVistaInicialTab1() {
       this.cargarActividadesYProgresoDeHoy(),
       this.cargarSuenoActivo()
     ]);
+    this.incluirSuenoActivoEnActividadesRecientes();
 
     this.vistaInicialCargada = true;
   } finally {
@@ -997,41 +1000,61 @@ formatearDuracion(minutos: number): string {
 }
 
 async iniciarSuenoRapido() {
-  try {
-    await this.activityFamiliaService.iniciarSueno(new Date());
+  if (this.suenoAccionEnCurso || this.suenoActivo) {
+    return;
+  }
 
-    const actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
-    this.actualizarActividadesRecientes(actividadesHoy);
-    await this.cargarProgresoOnzas(actividadesHoy);
-    await this.cargarSuenoActivo();
-    void this.notificacionSuenosService.programarProximoSuenoBebeActivo(
-      actividadesHoy
-    );
+  this.suenoAccionEnCurso = true;
+  this.suenoAccionTipo = 'iniciar';
+
+  try {
+    const suenoIniciado = await this.activityFamiliaService.iniciarSueno(new Date());
+    this.actualizarActividadEnMemoria(suenoIniciado);
+    void this.refrescarDatosTrasCambioSueno();
   } catch (error: any) {
     alert(error?.message || 'No se pudo iniciar el sueño.');
+  } finally {
+    this.suenoAccionEnCurso = false;
+    this.suenoAccionTipo = null;
   }
 }
 
 async finalizarSuenoActivo() {
-  if (!this.suenoActivo) {
+  if (!this.suenoActivo || this.suenoAccionEnCurso) {
     return;
   }
 
+  this.suenoAccionEnCurso = true;
+  this.suenoAccionTipo = 'finalizar';
+
   try {
-    await this.activityFamiliaService.finalizarSueno(
+    const suenoFinalizado = await this.activityFamiliaService.finalizarSueno(
       this.suenoActivo.id,
       new Date()
     );
-
-    const actividadesHoy = await this.activityFamiliaService.getByDay(new Date());
-    this.actualizarActividadesRecientes(actividadesHoy);
-    await this.cargarProgresoOnzas(actividadesHoy);
-    await this.cargarSuenoActivo();
-    void this.notificacionSuenosService.programarProximoSuenoBebeActivo(
-      actividadesHoy
-    );
+    this.actualizarActividadEnMemoria(suenoFinalizado);
+    this.suenoActivo = null;
+    this.duracionSuenoActivoTexto = '';
+    this.limpiarIntervaloSuenoActivo();
+    void this.refrescarDatosTrasCambioSueno();
   } catch (error: any) {
     alert(error?.message || 'No se pudo finalizar el sueño.');
+  } finally {
+    this.suenoAccionEnCurso = false;
+    this.suenoAccionTipo = null;
+  }
+}
+
+private async refrescarDatosTrasCambioSueno(): Promise<void> {
+  try {
+    await this.cargarActividadesYProgresoDeHoy();
+    await this.cargarSuenoActivo();
+    this.incluirSuenoActivoEnActividadesRecientes();
+    void this.notificacionSuenosService.programarProximoSuenoBebeActivo(
+      this.actividadesRecientes
+    );
+  } catch (error) {
+    console.error('Error refrescando datos de sueño', error);
   }
 }
 
@@ -1062,6 +1085,7 @@ private async refrescarActividadGuardada(
     this.cargarActividadesYProgresoDeHoy(),
     this.cargarSuenoActivo()
   ]);
+  this.incluirSuenoActivoEnActividadesRecientes();
 
   if ((this as any).cargarResumenSueno) {
     await (this as any).cargarResumenSueno();
@@ -1245,6 +1269,21 @@ private actualizarActividadesRecientes(actividades: ActivityFamilia[]) {
       ? this.obtenerHoraSuenoFin(actividad)
       : undefined
   }));
+}
+
+private incluirSuenoActivoEnActividadesRecientes(): void {
+  if (!this.suenoActivo) {
+    return;
+  }
+
+  const actividadesSinDuplicado = this.actividadesRecientes.filter(
+    actividad => actividad.id !== this.suenoActivo?.id
+  );
+
+  this.actualizarActividadesRecientes([
+    this.suenoActivo,
+    ...actividadesSinDuplicado
+  ]);
 }
 
 private actualizarActividadEnMemoria(activity: ActivityFamilia): void {

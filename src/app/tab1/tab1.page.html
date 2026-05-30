@@ -150,23 +150,27 @@
         </div>
 
         <ion-button
-          *ngIf="!suenoActivo"
+          *ngIf="!suenoActivo || suenoAccionTipo === 'iniciar'"
           color="primary"
           shape="round"
           size="small"
           class="sueno-action-button"
+          [disabled]="suenoAccionEnCurso"
           (click)="iniciarSuenoRapido()">
-          Iniciar
+          <ion-spinner *ngIf="suenoAccionTipo === 'iniciar'" name="crescent"></ion-spinner>
+          <span *ngIf="suenoAccionTipo !== 'iniciar'">Iniciar</span>
         </ion-button>
 
         <ion-button
-          *ngIf="suenoActivo"
+          *ngIf="suenoActivo && suenoAccionTipo !== 'iniciar'"
           color="warning"
           shape="round"
           size="small"
           class="sueno-action-button"
+          [disabled]="suenoAccionEnCurso"
           (click)="finalizarSuenoActivo()">
-          Finalizar
+          <ion-spinner *ngIf="suenoAccionTipo === 'finalizar'" name="crescent"></ion-spinner>
+          <span *ngIf="suenoAccionTipo !== 'finalizar'">Finalizar</span>
         </ion-button>
 
       </div>
