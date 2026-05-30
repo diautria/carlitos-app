@@ -153,6 +153,32 @@ export class NotificacionFamiliaService {
     }
   }
 
+  async cancelarRecordatoriosFamiliaPorPrefijo(
+    recordatorioIdPrefix: string
+  ): Promise<void> {
+    try {
+      const usuario = await this.obtenerUsuarioActual();
+      const familiaId = await this.obtenerFamiliaActivaId(usuario.uid);
+
+      const recordatoriosRef = collection(
+        this.firestore,
+        `familias/${familiaId}/recordatorios`
+      );
+
+      const snapshot = await getDocs(recordatoriosRef);
+      const docsACancelar = snapshot.docs.filter(docSnap => {
+        const recordatorio = docSnap.data() as any;
+        return String(recordatorio.recordatorioId || '').startsWith(
+          recordatorioIdPrefix
+        );
+      });
+
+      await Promise.all(docsACancelar.map(docSnap => deleteDoc(docSnap.ref)));
+    } catch (error) {
+      console.error('Error cancelando recordatorios familiares:', error);
+    }
+  }
+
   private iniciarEscuchaNotificacionesInstantaneas(
     familiaId: string,
     uid: string

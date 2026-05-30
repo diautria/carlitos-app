@@ -9,6 +9,7 @@ import { NotificacionFamiliaService } from './notificacion-familia.service';
 export class NotificacionMedicamentosService {
   private readonly minutosAntes = 5;
   private readonly baseNotificationId = 300000;
+  private readonly cantidadNotificacionesPorMedicamento = 8;
 
   constructor(
     private notificacionFamiliaService: NotificacionFamiliaService
@@ -27,24 +28,22 @@ export class NotificacionMedicamentosService {
     const medicamentosActivos = medicamentos.filter(m => m.activo);
 
     for (const medicamento of medicamentosActivos) {
-      const fechaNotificacion = this.calcularProximaNotificacion(
+      const fechasNotificacion = this.calcularProximasNotificaciones(
         medicamento,
         actividades
       );
 
-      if (!fechaNotificacion) {
-        continue;
-      }
-
-      notifications.push({
-        recordatorioId: this.obtenerRecordatorioId(medicamento.id),
-        notificationId: this.obtenerNotificationId(medicamento.id),
-        tipo: 'medicamento',
-        titulo: 'Medicamento de ' + nombreBebe,
-        mensaje: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
-        fechaNotificacion,
-        bebeId,
-        medicamentoId: medicamento.id
+      fechasNotificacion.forEach((fechaNotificacion, index) => {
+        notifications.push({
+          recordatorioId: this.obtenerRecordatorioId(medicamento.id, index),
+          notificationId: this.obtenerNotificationId(medicamento.id, index),
+          tipo: 'medicamento',
+          titulo: 'Medicamento de ' + nombreBebe,
+          mensaje: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
+          fechaNotificacion,
+          bebeId,
+          medicamentoId: medicamento.id
+        });
       });
     }
 
@@ -69,25 +68,27 @@ export class NotificacionMedicamentosService {
       return;
     }
 
-    const fechaNotificacion = this.calcularProximaNotificacion(
+    const fechasNotificacion = this.calcularProximasNotificaciones(
       medicamento,
       actividades
     );
 
-    if (!fechaNotificacion) {
+    if (fechasNotificacion.length === 0) {
       return;
     }
 
-    await this.notificacionFamiliaService.programarRecordatorioFamilia({
-      recordatorioId: this.obtenerRecordatorioId(medicamento.id),
-      notificationId: this.obtenerNotificationId(medicamento.id),
-      tipo: 'medicamento',
-      titulo: 'Medicamento de ' + nombreBebe,
-      mensaje: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
-      fechaNotificacion,
-      bebeId,
-      medicamentoId: medicamento.id
-    });
+    await Promise.all(fechasNotificacion.map((fechaNotificacion, index) =>
+      this.notificacionFamiliaService.programarRecordatorioFamilia({
+        recordatorioId: this.obtenerRecordatorioId(medicamento.id, index),
+        notificationId: this.obtenerNotificationId(medicamento.id, index),
+        tipo: 'medicamento',
+        titulo: 'Medicamento de ' + nombreBebe,
+        mensaje: `${medicamento.nombre}: ${medicamento.dosisGotas} gotas`,
+        fechaNotificacion,
+        bebeId,
+        medicamentoId: medicamento.id
+      })
+    ));
   }
 
   async cancelarNotificacionesMedicamentos(
@@ -105,12 +106,55 @@ export class NotificacionMedicamentosService {
   async cancelarNotificacionMedicamento(
     medicamentoId: string
   ): Promise<void> {
-    await this.notificacionFamiliaService.cancelarRecordatorioFamilia(
-      this.obtenerRecordatorioId(medicamentoId)
+    await this.notificacionFamiliaService.cancelarRecordatoriosFamiliaPorPrefijo(
+      this.obtenerRecordatorioPrefix(medicamentoId)
     );
   }
 
+  private calcularProximasNotificaciones(
+    medicamento: MedicamentoBebe,
+    actividades: ActivityFamilia[]
+  ): Date[] {
+    const primeraDosis = this.calcularProximaDosis(medicamento, actividades);
+
+    if (!primeraDosis) {
+      return [];
+    }
+
+    const fechas: Date[] = [];
+    let dosisActual: Date | null = primeraDosis;
+
+    while (
+      dosisActual &&
+      fechas.length < this.cantidadNotificacionesPorMedicamento
+    ) {
+      const fechaNotificacion =
+        this.convertirDosisAFechaNotificacion(dosisActual);
+
+      if (fechaNotificacion) {
+        fechas.push(fechaNotificacion);
+      }
+
+      dosisActual = this.obtenerSiguienteDosis(medicamento, dosisActual);
+    }
+
+    return fechas;
+  }
+
   private calcularProximaNotificacion(
+    medicamento: MedicamentoBebe,
+    actividades: ActivityFamilia[]
+  ): Date | null {
+    const proximaDosis = this.calcularProximaDosis(medicamento, actividades);
+
+    if (!proximaDosis) {
+      return null;
+    }
+
+    return this.convertirDosisAFechaNotificacion(proximaDosis);
+  }
+
+  private calcularProximaDosis(
     medicamento: MedicamentoBebe,
     actividades: ActivityFamilia[]
   ): Date | null {
@@ -176,20 +220,42 @@ export class NotificacionMedicamentosService {
       }
     }
 
+    return proximaDosis;
+  }
+
+  private convertirDosisAFechaNotificacion(proximaDosis: Date): Date | null {
+    const ahora = new Date();
     const fechaNotificacion = new Date(proximaDosis);
-    fechaNotificacion.setMinutes(
-      fechaNotificacion.getMinutes() - this.minutosAntes
-    );
+    fechaNotificacion.setMinutes(fechaNotificacion.getMinutes() - this.minutosAntes);
 
     if (fechaNotificacion <= ahora) {
-      if (proximaDosis > ahora) {
-        return new Date(ahora.getTime() + 1000);
-      }
-
-      return null;
+      return proximaDosis > ahora ? new Date(ahora.getTime() + 1000) : null;
     }
 
     return fechaNotificacion;
+  }
+
+  private obtenerSiguienteDosis(
+    medicamento: MedicamentoBebe,
+    dosisActual: Date
+  ): Date | null {
+    if (
+      medicamento.frecuenciaHoras &&
+      medicamento.frecuenciaHoras > 0
+    ) {
+      return this.obtenerSiguienteDosisAnclada(
+        dosisActual,
+        Number(medicamento.frecuenciaHoras)
+      );
+    }
+
+    if (medicamento.horario) {
+      const siguiente = new Date(dosisActual);
+      siguiente.setDate(siguiente.getDate() + 1);
+      return siguiente;
+    }
+
+    return null;
   }
 
   private obtenerProximaDosisPorFrecuenciaDesdeHorario(
@@ -322,17 +388,22 @@ export class NotificacionMedicamentosService {
     return proximaDosis;
   }
 
-  private obtenerNotificationId(medicamentoId: string): number {
+  private obtenerNotificationId(medicamentoId: string, index: number = 0): number {
     let hash = 0;
+    const key = `${medicamentoId}-${index}`;
 
-    for (let i = 0; i < medicamentoId.length; i++) {
-      hash = medicamentoId.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < key.length; i++) {
+      hash = key.charCodeAt(i) + ((hash << 5) - hash);
     }
 
     return this.baseNotificationId + Math.abs(hash % 100000);
   }
 
-  private obtenerRecordatorioId(medicamentoId: string): string {
+  private obtenerRecordatorioId(medicamentoId: string, index: number = 0): string {
+    return `${this.obtenerRecordatorioPrefix(medicamentoId)}-${index}`;
+  }
+
+  private obtenerRecordatorioPrefix(medicamentoId: string): string {
     return `medicamento-${medicamentoId}`;
   }
 
