@@ -22,6 +22,30 @@
       <p class="mensaje">{{ mensajeError }}</p>
     </ion-text>
 
+    <section class="tema-card">
+      <div class="tema-copy">
+        <h3>Tema de la app</h3>
+        <p>Por defecto sigue la configuración del teléfono.</p>
+      </div>
+
+      <ion-segment
+        class="tema-segment"
+        [value]="temaSeleccionado"
+        (ionChange)="cambiarTema($event)">
+        <ion-segment-button value="system">
+          <ion-label>Sistema</ion-label>
+        </ion-segment-button>
+
+        <ion-segment-button value="light">
+          <ion-label>Claro</ion-label>
+        </ion-segment-button>
+
+        <ion-segment-button value="dark">
+          <ion-label>Oscuro</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </section>
+
     <ion-list *ngIf="!cargando && bebeActivoId">
       <ion-item>
         <ion-input

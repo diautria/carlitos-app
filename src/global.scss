@@ -36,31 +36,27 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 // @import '@ionic/angular/css/palettes/dark.system.css';
 
-:root {
-  color-scheme: light;
-}
-
 html,
 body,
 ion-app {
-  color-scheme: light;
-  background: #f7f8fc;
-  color: #1f2937;
+  color-scheme: light dark;
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
 }
 
 ion-content {
-  --background: #f7f8fc;
-  color: #1f2937;
+  --background: var(--ion-background-color);
+  color: var(--ion-text-color);
 }
 
 ion-card {
-  --background: #ffffff;
-  color: #1f2937;
+  --background: var(--ion-card-background);
+  color: var(--ion-text-color);
 }
 
 ion-item {
-  --background: #ffffff;
-  --color: #1f2937;
+  --background: var(--ion-item-background);
+  --color: var(--ion-text-color);
 }
 
 ion-list {
@@ -68,23 +64,23 @@ ion-list {
 }
 
 ion-toolbar {
-  --background: #ffffff;
-  --color: #1f2937;
+  --background: var(--ion-toolbar-background);
+  --color: var(--ion-text-color);
 }
 
 ion-header,
 ion-footer {
-  background: #ffffff;
+  background: var(--ion-toolbar-background);
 }
 
 ion-tab-bar {
-  --background: #ffffff;
-  --color: #6b7280;
-  border-top: 1px solid #e5e7eb;
+  --background: var(--ion-tab-bar-background);
+  --color: var(--ion-color-medium);
+  border-top: 1px solid var(--app-border);
 }
 
 ion-tab-button {
-  --color: #6b7280;
+  --color: var(--ion-color-medium);
   --color-selected: var(--ion-color-primary);
 }
 
@@ -105,7 +101,534 @@ ion-input,
 ion-textarea,
 ion-select,
 ion-datetime {
-  --color: #1f2937;
-  --placeholder-color: #9ca3af;
-  --background: #ffffff;
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+  --background: var(--app-surface);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.app-theme-light) {
+    ion-modal {
+    --background: var(--ion-background-color);
+    }
+
+    ion-alert,
+    ion-action-sheet,
+    ion-popover {
+      color: var(--ion-text-color);
+    }
+
+    ion-accordion ion-item[slot="header"],
+    ion-list,
+    ion-card,
+    ion-item,
+    ion-menu,
+    ion-menu ion-content {
+      --background: var(--app-surface);
+      background: var(--app-surface);
+      color: var(--ion-text-color);
+    }
+
+    ion-segment {
+      --background: var(--app-surface-2);
+    }
+
+    ion-segment-button {
+      --color: var(--ion-color-medium);
+      --color-checked: var(--ion-color-primary);
+      --indicator-color: rgba(var(--ion-color-primary-rgb), 0.2);
+    }
+
+    .dashboard-container,
+  .stats-container,
+  .modal-bebe-content,
+  .custom-modal,
+  .settings-page,
+    .familia-page {
+      background: var(--ion-background-color) !important;
+      color: var(--ion-text-color);
+    }
+
+    .empty-state,
+  .bebe-card,
+  .agregar-bebe-card,
+  .progreso-onzas-card,
+  .sueno-card,
+  .actividad-item,
+  .estadisticas-access-card,
+  .filter-card,
+  .estadisticas-card,
+  .stats-card,
+  .resumen-card,
+  .detail-card,
+  .medicamento-card,
+  .familia-card,
+  .login-card,
+  .inicio-card,
+  .form-bebe-card,
+  .food-edit-box,
+  .medicamento-option,
+    .medicamento-filter-option,
+    .activity-type-segment,
+    .stats-segment,
+    .ajustes-card,
+    .tema-card {
+      background: var(--app-surface) !important;
+      border-color: var(--app-border) !important;
+      box-shadow: var(--app-shadow) !important;
+      color: var(--ion-text-color) !important;
+    }
+
+    .bebe-card-activo,
+  .sueno-card.sueno-activo,
+  .resumen-card,
+  .estadisticas-access-card,
+  .empty-filter-card,
+    .tab-empty-state {
+      background:
+        radial-gradient(circle at top left, rgba(var(--ion-color-primary-rgb), 0.14), transparent 36%),
+        var(--app-surface) !important;
+    }
+
+    .empty-state p,
+  .empty-state small,
+  .bebe-edad-card,
+  .actividad-desc,
+  .actividad-fecha,
+  .sueno-subtitle,
+  .estadisticas-access-info span,
+  .filters-summary,
+  .stat-label,
+  .chart-subtitle,
+  .progress-target,
+  .form-hint,
+  .section-label,
+  .medicamento-option-info span,
+    .medicamento-filter-option small {
+      color: var(--app-muted-text) !important;
+    }
+
+    .actividad-titulo,
+  .bebe-nombre,
+  .sueno-info h2,
+  .estadisticas-access-info strong,
+  .stats-card ion-card-title,
+  .resumen-card ion-card-title,
+  .form-bebe-card h2,
+  .filter-card h3,
+    .stat-value {
+      color: var(--ion-text-color) !important;
+    }
+
+    .custom-input,
+  .food-edit-input,
+  .food-manual-input,
+  ion-input,
+  ion-textarea,
+    ion-select {
+      --background: var(--app-surface-2) !important;
+      --color: var(--ion-text-color) !important;
+      --placeholder-color: var(--ion-color-medium) !important;
+      background: var(--app-surface-2) !important;
+      color: var(--ion-text-color) !important;
+      border-color: var(--app-border) !important;
+    }
+
+    .foto-preview,
+  .bebe-avatar,
+  .sueno-icon-bg,
+  .empty-state-icon,
+  .estadisticas-access-icon,
+  .stat-icon,
+  .medicamento-option-icon,
+  .filters-hero-icon,
+    .tab-empty-icon {
+      background: rgba(var(--ion-color-primary-rgb), 0.16) !important;
+    }
+
+    .month-header,
+  .date-title,
+  .filters-action-button,
+  .filter-summary-pill,
+    .food-edit-list button {
+      --background: var(--app-surface-2) !important;
+      background: var(--app-surface-2) !important;
+      color: var(--ion-text-color) !important;
+      border-color: var(--app-border) !important;
+    }
+  }
+}
+
+:root.app-theme-dark {
+  ion-modal {
+    --background: var(--ion-background-color);
+  }
+
+  ion-alert,
+  ion-action-sheet,
+  ion-popover {
+    color: var(--ion-text-color);
+  }
+
+  ion-accordion ion-item[slot="header"],
+  ion-list,
+  ion-card,
+  ion-item,
+  ion-menu,
+  ion-menu ion-content {
+    --background: var(--app-surface);
+    background: var(--app-surface);
+    color: var(--ion-text-color);
+  }
+
+  ion-segment {
+    --background: var(--app-surface-2);
+  }
+
+  ion-segment-button {
+    --color: var(--ion-color-medium);
+    --color-checked: var(--ion-color-primary);
+    --indicator-color: rgba(var(--ion-color-primary-rgb), 0.2);
+  }
+
+  .dashboard-container,
+  .stats-container,
+  .modal-bebe-content,
+  .custom-modal,
+  .settings-page,
+  .familia-page {
+    background: var(--ion-background-color) !important;
+    color: var(--ion-text-color);
+  }
+
+  .empty-state,
+  .bebe-card,
+  .agregar-bebe-card,
+  .progreso-onzas-card,
+  .sueno-card,
+  .actividad-item,
+  .estadisticas-access-card,
+  .filter-card,
+  .estadisticas-card,
+  .stats-card,
+  .resumen-card,
+  .detail-card,
+  .medicamento-card,
+  .familia-card,
+  .login-card,
+  .inicio-card,
+  .form-bebe-card,
+  .food-edit-box,
+  .medicamento-option,
+  .medicamento-filter-option,
+  .activity-type-segment,
+  .stats-segment,
+  .ajustes-card,
+  .tema-card {
+    background: var(--app-surface) !important;
+    border-color: var(--app-border) !important;
+    box-shadow: var(--app-shadow) !important;
+    color: var(--ion-text-color) !important;
+  }
+
+  .bebe-card-activo,
+  .sueno-card.sueno-activo,
+  .resumen-card,
+  .estadisticas-access-card,
+  .empty-filter-card,
+  .tab-empty-state {
+    background:
+      radial-gradient(circle at top left, rgba(var(--ion-color-primary-rgb), 0.14), transparent 36%),
+      var(--app-surface) !important;
+  }
+
+  .empty-state p,
+  .empty-state small,
+  .bebe-edad-card,
+  .actividad-desc,
+  .actividad-fecha,
+  .sueno-subtitle,
+  .estadisticas-access-info span,
+  .filters-summary,
+  .stat-label,
+  .chart-subtitle,
+  .progress-target,
+  .form-hint,
+  .section-label,
+  .medicamento-option-info span,
+  .medicamento-filter-option small,
+  .ajustes-header p {
+    color: var(--app-muted-text) !important;
+  }
+
+  .actividad-titulo,
+  .bebe-nombre,
+  .sueno-info h2,
+  .estadisticas-access-info strong,
+  .stats-card ion-card-title,
+  .resumen-card ion-card-title,
+  .form-bebe-card h2,
+  .filter-card h3,
+  .stat-value,
+  .ajustes-header h2 {
+    color: var(--ion-text-color) !important;
+  }
+
+  .custom-input,
+  .food-edit-input,
+  .food-manual-input,
+  ion-input,
+  ion-textarea,
+  ion-select {
+    --background: var(--app-surface-2) !important;
+    --color: var(--ion-text-color) !important;
+    --placeholder-color: var(--ion-color-medium) !important;
+    background: var(--app-surface-2) !important;
+    color: var(--ion-text-color) !important;
+    border-color: var(--app-border) !important;
+  }
+
+  .foto-preview,
+  .bebe-avatar,
+  .sueno-icon-bg,
+  .empty-state-icon,
+  .estadisticas-access-icon,
+  .stat-icon,
+  .medicamento-option-icon,
+  .filters-hero-icon,
+  .tab-empty-icon,
+  .ajustes-icon {
+    background: rgba(var(--ion-color-primary-rgb), 0.16) !important;
+  }
+
+  .month-header,
+  .date-title,
+  .filters-action-button,
+  .filter-summary-pill,
+  .food-edit-list button,
+  .loading-box {
+    --background: var(--app-surface-2) !important;
+    background: var(--app-surface-2) !important;
+    color: var(--ion-text-color) !important;
+    border-color: var(--app-border) !important;
+  }
+}
+
+@mixin app-dark-surface-fixes {
+  ion-modal::part(content),
+  .filters-modal::part(content) {
+    background: var(--ion-background-color) !important;
+    color: var(--ion-text-color) !important;
+  }
+
+  ion-content,
+  .filters-modal-content,
+  .estadisticas-content {
+    --background: var(--ion-background-color) !important;
+    background: var(--ion-background-color) !important;
+    color: var(--ion-text-color) !important;
+  }
+
+  ion-accordion,
+  ion-accordion::part(native),
+  .accordion-card,
+  .accordion-card::part(native),
+  .accordion-header-item,
+  .accordion-header-item::part(native),
+  .date-header,
+  .date-header::part(native),
+  .month-header,
+  .month-header::part(native),
+  .accordion-content,
+  .date-content,
+  .year-content,
+  div[slot="content"] {
+    --background: var(--app-surface) !important;
+    background: var(--app-surface) !important;
+    color: var(--ion-text-color) !important;
+    border-color: var(--app-border) !important;
+  }
+
+  ion-item::part(native),
+  .codigo-input-item::part(native),
+  .miembro-item::part(native) {
+    background: var(--app-surface-2) !important;
+    color: var(--ion-text-color) !important;
+  }
+
+  .stat-card,
+  .stat-item,
+  .progress-card,
+  .stats-card,
+  .stats-card ion-card-header,
+  .progress-card ion-card-header,
+  .resumen-card,
+  .estadisticas-card,
+  .estadistica-principal,
+  .estadistica-box,
+  .filters-preview-card,
+  .filters-empty-result,
+  .filter-card,
+  .familia-card,
+  .miembros-card,
+  .modal-card,
+  .miembro-item,
+  .miembro-admin-row,
+  .codigo-box,
+  .loading-box,
+  .empty-state,
+  .seccion-card,
+  .medicamento-card,
+  .observaciones {
+    background: var(--app-surface) !important;
+    border-color: var(--app-border) !important;
+    box-shadow: var(--app-shadow) !important;
+    color: var(--ion-text-color) !important;
+  }
+
+  .peso-card,
+  .altura-card,
+  .vacuna-card,
+  .medicamento-card,
+  .estadisticas-card,
+  .filters-hero {
+    background:
+      radial-gradient(circle at top left, rgba(var(--ion-color-primary-rgb), 0.12), transparent 36%),
+      var(--app-surface) !important;
+  }
+
+  .stats-card ion-card-header,
+  .progress-card ion-card-header,
+  .miembro-item,
+  .miembro-admin-row,
+  .codigo-box,
+  .loading-box,
+  .estadistica-principal,
+  .estadistica-box,
+  .filters-preview-card,
+  .medicamento-filter-option,
+  .filter-grid ion-input,
+  .food-filter-card ion-input,
+  .tema-segment,
+  .accion-secundaria,
+  .familia-button {
+    --background: var(--app-surface-2) !important;
+    background: var(--app-surface-2) !important;
+    border-color: var(--app-border) !important;
+    box-shadow: none !important;
+    color: var(--ion-text-color) !important;
+  }
+
+  .accion-secundaria,
+  .familia-button,
+  .codigo-action {
+    --background: rgba(var(--ion-color-primary-rgb), 0.14) !important;
+    --background-hover: rgba(var(--ion-color-primary-rgb), 0.2) !important;
+    --background-activated: rgba(var(--ion-color-primary-rgb), 0.24) !important;
+    --color: var(--ion-color-primary) !important;
+  }
+
+  .accion-peligro-suave {
+    --background: rgba(var(--ion-color-danger-rgb), 0.14) !important;
+    --background-hover: rgba(var(--ion-color-danger-rgb), 0.2) !important;
+    --background-activated: rgba(var(--ion-color-danger-rgb), 0.24) !important;
+    --color: var(--ion-color-danger) !important;
+  }
+
+  .section-title span,
+  .miembro-avatar,
+  .familia-icon,
+  .ajustes-icon,
+  .estadisticas-icon,
+  .stat-icon {
+    background: rgba(var(--ion-color-primary-rgb), 0.16) !important;
+  }
+
+  .bebe-nombre,
+  .stat-value,
+  .stats-card ion-card-title,
+  .progress-card ion-card-title,
+  .resumen-card ion-card-title,
+  .food-rank-row span,
+  .familia-header h2,
+  .modal-card h2,
+  .section-title h3,
+  .miembro-info h2,
+  .miembro-admin-row strong,
+  .filters-preview-card strong,
+  .filters-hero h2,
+  .filter-card-title h3,
+  .date-header h4,
+  .titulo-seccion,
+  .medicamento-title-row h3,
+  .dosis {
+    color: var(--ion-text-color) !important;
+  }
+
+  .stat-label,
+  .progress-label,
+  .progress-target,
+  .familia-header p,
+  .modal-card p,
+  .codigo-label,
+  .miembro-info p,
+  .miembro-admin-row span,
+  .filters-preview-card span,
+  .filters-hero p,
+  .filter-card-title p,
+  .filter-subtitle,
+  .filters-empty-result p,
+  .food-rank-row,
+  .frecuencia,
+  .observaciones {
+    color: var(--app-muted-text) !important;
+  }
+
+  .date-content ion-list {
+    border-left-color: var(--app-border) !important;
+  }
+
+  .app-shell-header,
+  .app-shell-header ion-toolbar {
+    --background: var(--ion-toolbar-background) !important;
+    --color: var(--ion-text-color) !important;
+    background: var(--ion-toolbar-background) !important;
+    color: var(--ion-text-color) !important;
+    border-bottom-color: var(--app-border) !important;
+  }
+
+  .app-shell-header ion-title {
+    color: var(--ion-text-color) !important;
+  }
+
+  .bebe-card.agregar-bebe-card,
+  .agregar-bebe-card,
+  .agregar-bebe-card::part(native) {
+    background: rgba(var(--ion-color-primary-rgb), 0.1) !important;
+    border-color: rgba(var(--ion-color-primary-rgb), 0.42) !important;
+    box-shadow: none !important;
+  }
+
+  .agregar-bebe-solo-icono {
+    background: var(--ion-color-primary) !important;
+    color: var(--ion-color-primary-contrast) !important;
+  }
+
+  .agregar-bebe-solo-icono ion-icon {
+    color: var(--ion-color-primary-contrast) !important;
+  }
+
+  .agregar-bebe-texto {
+    color: var(--ion-color-primary) !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.app-theme-light) {
+    @include app-dark-surface-fixes;
+  }
+}
+
+:root.app-theme-dark {
+  @include app-dark-surface-fixes;
 }

@@ -55,6 +55,68 @@
   border-bottom: 1px solid rgba(108, 99, 255, 0.12);
 }
 
+:host-context(.app-theme-dark) .app-shell-header {
+  --background: var(--ion-toolbar-background);
+  --color: var(--ion-text-color);
+  border-bottom-color: var(--app-border);
+
+  &::after {
+    background: var(--app-border);
+  }
+
+  ion-toolbar {
+    --background: var(--ion-toolbar-background);
+    --color: var(--ion-text-color);
+  }
+
+  ion-title {
+    color: var(--ion-text-color);
+  }
+
+  .app-add-activity-button {
+    --background: rgba(var(--ion-color-primary-rgb), 0.18);
+    --background-hover: rgba(var(--ion-color-primary-rgb), 0.24);
+    --background-activated: rgba(var(--ion-color-primary-rgb), 0.3);
+    --color: var(--ion-color-primary);
+
+    ion-icon {
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :host-context(:root:not(.app-theme-light)) .app-shell-header {
+    --background: var(--ion-toolbar-background);
+    --color: var(--ion-text-color);
+    border-bottom-color: var(--app-border);
+
+    &::after {
+      background: var(--app-border);
+    }
+
+    ion-toolbar {
+      --background: var(--ion-toolbar-background);
+      --color: var(--ion-text-color);
+    }
+
+    ion-title {
+      color: var(--ion-text-color);
+    }
+
+    .app-add-activity-button {
+      --background: rgba(var(--ion-color-primary-rgb), 0.18);
+      --background-hover: rgba(var(--ion-color-primary-rgb), 0.24);
+      --background-activated: rgba(var(--ion-color-primary-rgb), 0.3);
+      --color: var(--ion-color-primary);
+
+      ion-icon {
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+}
+
 ion-router-outlet.with-app-shell {
   top: calc(var(--app-shell-height) + env(safe-area-inset-top));
   height: calc(100% - var(--app-shell-height) - env(safe-area-inset-top));

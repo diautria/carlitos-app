@@ -22,6 +22,7 @@ import { addCircle } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { NotificacionFamiliaService } from './services/notificacion-familia.service';
 import { ActividadEventosService } from './services/actividad-eventos.service';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -51,6 +52,7 @@ export class AppComponent implements OnDestroy {
   private modalController = inject(ModalController);
   private notificacionFamiliaService = inject(NotificacionFamiliaService);
   private actividadEventosService = inject(ActividadEventosService);
+  private themeService = inject(ThemeService);
   private usuarioSubscription?: Subscription;
   private routerSubscription?: Subscription;
   private hayUsuario = false;
@@ -72,6 +74,7 @@ export class AppComponent implements OnDestroy {
 
   private initializeApp() {
     this.platform.ready().then(() => {
+      void this.themeService.init();
       this.configurarBotonAtrasAndroid();
     });
   }

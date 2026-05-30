@@ -40,6 +40,47 @@
   color: var(--ion-color-medium);
 }
 
+.tema-card {
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid var(--app-border);
+  border-radius: 18px;
+  background: var(--app-surface-2);
+}
+
+.tema-copy h3 {
+  margin: 0;
+  color: var(--ion-color-dark);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.tema-copy p {
+  margin: 4px 0 12px;
+  color: var(--ion-color-medium);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.tema-segment {
+  padding: 3px;
+  border-radius: 14px;
+  background: var(--app-surface);
+}
+
+.tema-segment ion-segment-button {
+  min-width: 0;
+  min-height: 38px;
+  --border-radius: 11px;
+  --color: var(--ion-color-medium);
+  --color-checked: var(--ion-color-primary);
+  --indicator-color: rgba(var(--ion-color-primary-rgb), 0.14);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 ion-list {
   background: transparent;
 }

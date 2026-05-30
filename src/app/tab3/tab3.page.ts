@@ -7,7 +7,10 @@ import {
   IonButton,
   IonNote,
   IonText,
-  IonIcon
+  IonIcon,
+  IonSegment,
+  IonSegmentButton,
+  IonLabel
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
@@ -17,6 +20,7 @@ import { settingsOutline, happyOutline, peopleOutline } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { NotificacionSuenosService } from '../services/notificacion-suenos.service';
 import { Router } from '@angular/router';
+import { ThemePreference, ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-tab3',
@@ -33,12 +37,16 @@ import { Router } from '@angular/router';
     IonButton,
     IonNote,
     IonText,
-    IonIcon
+    IonIcon,
+    IonSegment,
+    IonSegmentButton,
+    IonLabel
   ],
 })
 export class Tab3Page implements OnInit {
   private bebeFamiliaService = inject(BebeFamiliaService);
   private notificacionSuenosService = inject(NotificacionSuenosService);
+  private themeService = inject(ThemeService);
 
   tiempoEntreTomasHoras = 3;
   tiempoEntreSuenosHoras = 2;
@@ -55,6 +63,7 @@ export class Tab3Page implements OnInit {
   mensajeError = '';
   cargando = false;
   guardando = false;
+  temaSeleccionado: ThemePreference = 'system';
 
   constructor(private router: Router) {
     addIcons({
@@ -65,13 +74,26 @@ export class Tab3Page implements OnInit {
   }
 
   async ngOnInit() {
+    this.temaSeleccionado = await this.themeService.init();
     await this.cargarConfiguracion();
   }
 
   async ionViewWillEnter() {
     this.mensajeGuardado = '';
     this.mensajeError = '';
+    this.temaSeleccionado = this.themeService.getPreference();
     await this.cargarConfiguracion();
+  }
+
+  async cambiarTema(event: CustomEvent) {
+    const value = event.detail.value as ThemePreference;
+
+    if (!value || value === this.temaSeleccionado) {
+      return;
+    }
+
+    this.temaSeleccionado = value;
+    await this.themeService.setPreference(value);
   }
 
   async cargarConfiguracion() {
