@@ -137,7 +137,7 @@ getIconoActividad(actividad: any): string {
   }
 
   if (actividad.type === 'comida') {
-    return 'restaurant';
+    return 'restaurant-outline';
   }
 
   return 'ellipse';

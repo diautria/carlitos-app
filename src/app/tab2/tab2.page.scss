@@ -204,6 +204,26 @@ ion-modal {
   padding: 6px 16px 2px;
 }
 
+.activity-type-segment {
+  width: calc(100% - 32px);
+  margin: 8px 16px 4px;
+  padding: 3px;
+  border-radius: 14px;
+  background: #ffffff;
+
+  ion-segment-button {
+    min-width: 0;
+    min-height: 42px;
+    --padding-start: 0;
+    --padding-end: 0;
+  }
+
+  ion-icon {
+    margin: 0 auto;
+    font-size: 21px;
+  }
+}
+
 .estadisticas-access-card {
   padding: 9px 10px;
   border: 1px solid rgba(var(--ion-color-primary-rgb), 0.12);
