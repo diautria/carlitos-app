@@ -177,6 +177,8 @@ export class ActividadFormModalComponent implements OnInit {
       } else {
         this.form.time = this.convertToDatetimeFormat(this.form.time);
       }
+
+      this.sincronizarFechaActividadDesdeTime();
     } else {
       this.formType = this.tipoInicial || 'toma-leche';
 
@@ -188,6 +190,7 @@ export class ActividadFormModalComponent implements OnInit {
       }
 
       this.form = this.getEmptyForm(this.formType);
+      this.sincronizarFechaActividadDesdeTime();
 
       if (this.formType === 'comida') {
         await this.cargarCatalogoAlimentos();
@@ -241,6 +244,7 @@ export class ActividadFormModalComponent implements OnInit {
       id: '',
       type,
       time: this.getLocalDateTimeForInput(),
+      fechaActividad: this.getLocalDateForInput(),
       createdAt: new Date().toISOString(),
       updatedAt: undefined
     };
@@ -302,8 +306,21 @@ export class ActividadFormModalComponent implements OnInit {
   }
 
   async onTypeChange(type: ActivityFamiliaType) {
+    const fechaActividadActual =
+      this.form?.fechaActividad || this.getLocalDateForInput();
+
     this.formType = type;
     this.form = this.getEmptyForm(type);
+    this.form.fechaActividad = fechaActividadActual;
+    this.form.time = this.combinarFechaActividadConHora(
+      this.form.time,
+      fechaActividadActual
+    );
+
+    if (this.formType === 'sueno') {
+      this.form.inicio = this.form.time;
+    }
+
     this.otraCantidadActiva = false;
     this.alimentoManualActivo = false;
 
@@ -514,6 +531,10 @@ export class ActividadFormModalComponent implements OnInit {
 
     try {
       this.form.type = this.formType;
+      this.form.time = this.combinarFechaActividadConHora(
+        this.form.time,
+        this.form.fechaActividad
+      );
       this.form.time = this.normalizarFechaHoraLocal(this.form.time);
 
       let medicamentoAdministrado: any = null;
@@ -594,7 +615,10 @@ export class ActividadFormModalComponent implements OnInit {
 
         if (this.form.fin) {
           this.form.fin = this.normalizarFechaHoraLocal(
-            this.form.fin,
+            this.combinarFechaActividadConHora(
+              this.form.fin,
+              this.form.fechaActividad
+            ),
             this.form.inicio || this.form.time
           );
 
@@ -636,22 +660,25 @@ export class ActividadFormModalComponent implements OnInit {
         this.form.observaciones = this.form.observaciones?.trim() || '';
       }
 
-      let actividadGuardada: ActivityFamilia = this.form;
+      const actividadParaGuardar = { ...this.form };
+      delete actividadParaGuardar.fechaActividad;
 
-      if (!this.form.id) {
-        this.form.id = '';
-        this.form.createdAt = new Date().toISOString();
+      let actividadGuardada: ActivityFamilia = actividadParaGuardar;
 
-        actividadGuardada = await this.activityFamiliaService.add(this.form);
+      if (!actividadParaGuardar.id) {
+        actividadParaGuardar.id = '';
+        actividadParaGuardar.createdAt = new Date().toISOString();
+
+        actividadGuardada = await this.activityFamiliaService.add(actividadParaGuardar);
         this.form = {
           ...this.form,
           ...actividadGuardada
         };
       } else {
-        this.form.updatedAt = new Date().toISOString();
+        actividadParaGuardar.updatedAt = new Date().toISOString();
 
-        await this.activityFamiliaService.update(this.form);
-        actividadGuardada = this.form;
+        await this.activityFamiliaService.update(actividadParaGuardar);
+        actividadGuardada = actividadParaGuardar;
       }
 
       const alimentosUsados = this.formType === 'comida'
@@ -728,6 +755,82 @@ export class ActividadFormModalComponent implements OnInit {
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  private getLocalDateForInput(date: Date = new Date()): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private sincronizarFechaActividadDesdeTime(): void {
+    if (!this.form) {
+      return;
+    }
+
+    const fecha = new Date(this.form.time || this.form.inicio || new Date());
+
+    this.form.fechaActividad = Number.isNaN(fecha.getTime())
+      ? this.getLocalDateForInput()
+      : this.getLocalDateForInput(fecha);
+  }
+
+  actualizarFechaActividad(): void {
+    if (!this.form?.fechaActividad) {
+      this.form.fechaActividad = this.getLocalDateForInput();
+    }
+
+    this.form.time = this.combinarFechaActividadConHora(
+      this.form.time,
+      this.form.fechaActividad
+    );
+
+    if (this.formType === 'sueno') {
+      this.form.inicio = this.form.time;
+
+      if (this.form.fin) {
+        this.form.fin = this.combinarFechaActividadConHora(
+          this.form.fin,
+          this.form.fechaActividad
+        );
+      }
+    }
+  }
+
+  private combinarFechaActividadConHora(
+    value: string,
+    fechaActividad?: string
+  ): string {
+    const fecha = fechaActividad || this.getLocalDateForInput();
+    const hora = this.obtenerHoraMinutos(value);
+
+    return `${fecha}T${hora}`;
+  }
+
+  private obtenerHoraMinutos(value: string): string {
+    if (!value) {
+      const ahora = new Date();
+      return `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
+    }
+
+    const horaSola = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+
+    if (horaSola) {
+      return `${String(Number(horaSola[1])).padStart(2, '0')}:${horaSola[2]}`;
+    }
+
+    const fecha = new Date(value);
+
+    if (!Number.isNaN(fecha.getTime())) {
+      return `${String(fecha.getHours()).padStart(2, '0')}:${String(fecha.getMinutes()).padStart(2, '0')}`;
+    }
+
+    const partes = value.split('T');
+    const hora = partes[1]?.slice(0, 5);
+
+    return hora && /^\d{2}:\d{2}$/.test(hora) ? hora : '00:00';
   }
 
   private normalizarFechaHoraLocal(value: string, baseValue?: string): string {

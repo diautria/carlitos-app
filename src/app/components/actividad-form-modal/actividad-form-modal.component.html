@@ -83,6 +83,18 @@
       </div>
 
       <div class="form-section">
+        <label class="section-label">Fecha</label>
+
+        <ion-input
+          type="date"
+          [(ngModel)]="form.fechaActividad"
+          name="fechaActividad"
+          class="custom-input"
+          (ionChange)="actualizarFechaActividad()">
+        </ion-input>
+      </div>
+
+      <div class="form-section">
         <label class="section-label">Hora</label>
 
         <div class="time-picker">
