@@ -13,9 +13,10 @@ import {
   query,
   where,
   orderBy,
-  limit
+  limit,
+  onSnapshot
 } from '@angular/fire/firestore';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { ActivityFamilia } from '../models/activity-familia.model';
 
 @Injectable({
@@ -89,6 +90,47 @@ export class ActivityFamiliaService {
     return this.mapActivities(snapshot.docs);
   }
 
+  observeAll(): Observable<ActivityFamilia[]> {
+    return new Observable<ActivityFamilia[]>(subscriber => {
+      let unsubscribe: (() => void) | undefined;
+      let cerrado = false;
+
+      const iniciar = async () => {
+        try {
+          const { familiaId, bebeId } = await this.obtenerContextoActivo();
+
+          if (cerrado) {
+            return;
+          }
+
+          const actividadesRef = collection(
+            this.firestore,
+            `familias/${familiaId}/bebes/${bebeId}/actividades`
+          );
+
+          const q = query(actividadesRef, orderBy('time', 'desc'));
+
+          unsubscribe = onSnapshot(
+            q,
+            snapshot => {
+              subscriber.next(this.mapActivities(snapshot.docs));
+            },
+            error => subscriber.error(error)
+          );
+        } catch (error) {
+          subscriber.error(error);
+        }
+      };
+
+      void iniciar();
+
+      return () => {
+        cerrado = true;
+        unsubscribe?.();
+      };
+    });
+  }
+
   async add(activity: ActivityFamilia): Promise<ActivityFamilia> {
     const { uid, familiaId, bebeId } = await this.obtenerContextoActivo();
 
@@ -155,6 +197,75 @@ export class ActivityFamiliaService {
     end.setDate(end.getDate() + 1);
 
     return this.getByDateRange(start, end);
+  }
+
+  observeByDay(date: Date): Observable<ActivityFamilia[]> {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+
+    return this.observeByDateRange(start, end);
+  }
+
+  observeByDateRange(
+    start: Date,
+    end: Date
+  ): Observable<ActivityFamilia[]> {
+    return new Observable<ActivityFamilia[]>(subscriber => {
+      let unsubscribe: (() => void) | undefined;
+      let cerrado = false;
+
+      const iniciar = async () => {
+        try {
+          const { familiaId, bebeId } = await this.obtenerContextoActivo();
+
+          if (cerrado) {
+            return;
+          }
+
+          const actividadesRef = collection(
+            this.firestore,
+            `familias/${familiaId}/bebes/${bebeId}/actividades`
+          );
+
+          const queryStart = new Date(start);
+          queryStart.setDate(queryStart.getDate() - 1);
+
+          const queryEnd = new Date(end);
+          queryEnd.setDate(queryEnd.getDate() + 1);
+
+          const q = query(
+            actividadesRef,
+            where('time', '>=', this.getLocalDateTimeForQuery(queryStart)),
+            where('time', '<', this.getLocalDateTimeForQuery(queryEnd)),
+            orderBy('time', 'desc')
+          );
+
+          unsubscribe = onSnapshot(
+            q,
+            snapshot => {
+              const actividades = this.mapActivities(snapshot.docs)
+                .filter(activity => this.isActivityInDateRange(activity, start, end))
+                .sort((a, b) => this.getActivityTime(b) - this.getActivityTime(a));
+
+              subscriber.next(actividades);
+            },
+            error => subscriber.error(error)
+          );
+        } catch (error) {
+          subscriber.error(error);
+        }
+      };
+
+      void iniciar();
+
+      return () => {
+        cerrado = true;
+        unsubscribe?.();
+      };
+    });
   }
 
   async getByDateRange(
@@ -258,6 +369,62 @@ async obtenerSuenoActivo(): Promise<ActivityFamilia | null> {
     ...(docSnap.data() as ActivityFamilia),
     id: docSnap.id
   };
+}
+
+observeSuenoActivo(): Observable<ActivityFamilia | null> {
+  return new Observable<ActivityFamilia | null>(subscriber => {
+    let unsubscribe: (() => void) | undefined;
+    let cerrado = false;
+
+    const iniciar = async () => {
+      try {
+        const { familiaId, bebeId } = await this.obtenerContextoActivo();
+
+        if (cerrado) {
+          return;
+        }
+
+        const actividadesRef = collection(
+          this.firestore,
+          `familias/${familiaId}/bebes/${bebeId}/actividades`
+        );
+
+        const q = query(
+          actividadesRef,
+          where('type', '==', 'sueno'),
+          where('fin', '==', null),
+          limit(1)
+        );
+
+        unsubscribe = onSnapshot(
+          q,
+          snapshot => {
+            if (snapshot.empty) {
+              subscriber.next(null);
+              return;
+            }
+
+            const docSnap = snapshot.docs[0];
+
+            subscriber.next({
+              ...(docSnap.data() as ActivityFamilia),
+              id: docSnap.id
+            });
+          },
+          error => subscriber.error(error)
+        );
+      } catch (error) {
+        subscriber.error(error);
+      }
+    };
+
+    void iniciar();
+
+    return () => {
+      cerrado = true;
+      unsubscribe?.();
+    };
+  });
 }
 
 async iniciarSueno(fechaInicio: Date = new Date()): Promise<ActivityFamilia> {

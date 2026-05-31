@@ -1,4 +1,4 @@
-﻿import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+﻿import { Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonAvatar, IonLabel, IonItem, IonList, IonIcon, IonProgressBar, IonButton,
@@ -80,6 +80,7 @@ export class Tab1Page implements OnInit, OnDestroy {
 private notificacionVacunasService = inject(NotificacionVacunasService);
 private notificacionSuenosService = inject(NotificacionSuenosService);
 private router = inject(Router);
+private ngZone = inject(NgZone);
 
 bebes: BebeFamilia[] = [];
 bebesVista: BebeVista[] = [];
@@ -109,6 +110,9 @@ suenoAccionTipo: 'iniciar' | 'finalizar' | null = null;
 private intervaloSuenoActivo?: ReturnType<typeof setInterval>;
 private bebesSubscription?: Subscription;
 private actividadGuardadaSubscription?: Subscription;
+private actividadesHoyRealtimeSubscription?: Subscription;
+private suenoActivoRealtimeSubscription?: Subscription;
+private realtimeBebeActivoId = '';
 private cargandoVistaInicial = false;
 private vistaInicialCargada = false;
 private modalController = inject(ModalController);
@@ -188,6 +192,7 @@ getIconoActividad(actividad: any): string {
   ngOnDestroy() {
     this.bebesSubscription?.unsubscribe();
     this.actividadGuardadaSubscription?.unsubscribe();
+    this.limpiarEscuchasRealtimeTab1();
     this.limpiarIntervaloSuenoActivo();
   }
 
@@ -208,6 +213,7 @@ private async cargarVistaInicialTab1() {
       this.cargarSuenoActivo()
     ]);
     this.incluirSuenoActivoEnActividadesRecientes();
+    this.iniciarEscuchasRealtimeTab1();
 
     this.vistaInicialCargada = true;
   } finally {
@@ -671,6 +677,54 @@ private formatearHoraActividad(fechaRaw: string): string {
   });
 }
 
+private iniciarEscuchasRealtimeTab1(): void {
+  if (!this.bebeActivoId) {
+    this.limpiarEscuchasRealtimeTab1();
+    return;
+  }
+
+  if (this.realtimeBebeActivoId === this.bebeActivoId) {
+    return;
+  }
+
+  this.limpiarEscuchasRealtimeTab1();
+  this.realtimeBebeActivoId = this.bebeActivoId;
+
+  this.actividadesHoyRealtimeSubscription =
+    this.activityFamiliaService.observeByDay(new Date()).subscribe({
+      next: actividadesHoy => {
+        this.ngZone.run(() => {
+          this.actualizarActividadesRecientes(actividadesHoy);
+          this.actualizarProgresoOnzasDesdeActividades(actividadesHoy);
+          this.incluirSuenoActivoEnActividadesRecientes();
+        });
+      },
+      error: error => {
+        console.error('Error escuchando actividades en tiempo real', error);
+      }
+    });
+
+  this.suenoActivoRealtimeSubscription =
+    this.activityFamiliaService.observeSuenoActivo().subscribe({
+      next: suenoActivo => {
+        this.ngZone.run(() => {
+          this.actualizarSuenoActivoDesdeRealtime(suenoActivo);
+        });
+      },
+      error: error => {
+        console.error('Error escuchando sueño activo en tiempo real', error);
+      }
+    });
+}
+
+private limpiarEscuchasRealtimeTab1(): void {
+  this.actividadesHoyRealtimeSubscription?.unsubscribe();
+  this.suenoActivoRealtimeSubscription?.unsubscribe();
+  this.actividadesHoyRealtimeSubscription = undefined;
+  this.suenoActivoRealtimeSubscription = undefined;
+  this.realtimeBebeActivoId = '';
+}
+
 private obtenerHoraPrincipalActividad(activity: ActivityFamilia): string {
   if (activity.type === 'sueno') {
     return this.obtenerHoraSuenoInicio(activity);
@@ -704,11 +758,12 @@ async seleccionarBebe(bebe: BebeFamilia) {
   try {
     await this.bebeFamiliaService.seleccionarBebeActivo(bebe.id);
     this.bebeActivoId = bebe.id;
+    this.limpiarEscuchasRealtimeTab1();
 
-    // Más adelante, cuando las actividades estén en Firebase,
-    // acá recargaremos actividades del bebé seleccionado.
     await this.cargarActividadesYProgresoDeHoy();
     await this.cargarSuenoActivo();
+    this.incluirSuenoActivoEnActividadesRecientes();
+    this.iniciarEscuchasRealtimeTab1();
   } catch (error) {
     console.error('Error seleccionando bebé activo', error);
   }
@@ -830,6 +885,7 @@ async guardarBebe() {
 
       await this.bebeFamiliaService.seleccionarBebeActivo(bebeId);
       this.bebeActivoId = bebeId;
+      this.limpiarEscuchasRealtimeTab1();
     }
 
     if (bebeId) {
@@ -861,6 +917,7 @@ async guardarBebe() {
     this.mensajeBebe = '';
 
     await this.cargarDatosBebe();
+    this.iniciarEscuchasRealtimeTab1();
   } catch (error: any) {
     console.error('Error guardando bebé', error);
     this.mensajeBebe = error?.message || 'No se pudo guardar el bebé.';
@@ -1033,6 +1090,35 @@ private actualizarDuracionSuenoActivo() {
   );
 
   this.duracionSuenoActivoTexto = this.formatearDuracion(minutos);
+}
+
+private actualizarSuenoActivoDesdeRealtime(
+  suenoActivo: ActivityFamilia | null
+): void {
+  const suenoActivoAnteriorId = this.suenoActivo?.id || '';
+
+  this.suenoActivo = suenoActivo;
+  this.actualizarDuracionSuenoActivo();
+  this.limpiarIntervaloSuenoActivo();
+
+  if (this.suenoActivo) {
+    this.intervaloSuenoActivo = setInterval(() => {
+      this.actualizarDuracionSuenoActivo();
+    }, 60000);
+
+    this.incluirSuenoActivoEnActividadesRecientes();
+    return;
+  }
+
+  if (suenoActivoAnteriorId) {
+    this.actualizarActividadesRecientes(
+      this.actividadesRecientes.filter(
+        actividad =>
+          actividad.id !== suenoActivoAnteriorId ||
+          !!(actividad as any).fin
+      )
+    );
+  }
 }
 
 formatearDuracion(minutos: number): string {
@@ -1377,8 +1463,10 @@ private actualizarActividadEnMemoria(activity: ActivityFamilia): void {
   }
 }
 
-private actualizarProgresoOnzasDesdeActividades(): void {
-  this.actividadesHoy = this.actividadesRecientes;
+private actualizarProgresoOnzasDesdeActividades(
+  actividades: ActivityFamilia[] = this.actividadesRecientes
+): void {
+  this.actividadesHoy = actividades;
 
   this.onzasTomadasHoy = this.actividadesHoy
     .filter(a => a.type === 'toma-leche')

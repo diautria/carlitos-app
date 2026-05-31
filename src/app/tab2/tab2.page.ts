@@ -71,7 +71,7 @@ import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, MedicamentoBebe } from '../models/bebe-familia.model';
 import { NotificacionMedicamentosService } from '../services/notificacion-medicamentos.service';
 import { ActividadEventosService } from '../services/actividad-eventos.service';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 interface ActivityDateGroup {
   fecha: string;
@@ -275,6 +275,8 @@ allActivitiesLoaded = false;
 loadingMoreMonths = false;
   oldestActivityDate: Date | null = null;
 private actividadGuardadaSubscription?: Subscription;
+private actividadesRealtimeSubscription?: Subscription;
+private realtimeFiltersKey = '';
 
   constructor(
     private activityFamiliaService: ActivityFamiliaService,
@@ -307,6 +309,7 @@ private actividadGuardadaSubscription?: Subscription;
 
   ngOnDestroy() {
     this.actividadGuardadaSubscription?.unsubscribe();
+    this.limpiarEscuchaRealtimeTab2();
   }
 
   async ionViewWillEnter() {
@@ -314,6 +317,8 @@ private actividadGuardadaSubscription?: Subscription;
       this.cargarMedicamentosRegistrados(),
       this.loadActivities()
     ]);
+
+    this.iniciarEscuchaRealtimeTab2();
   }
 
   private async cargarMedicamentosRegistrados() {
@@ -545,6 +550,103 @@ private actividadGuardadaSubscription?: Subscription;
     }
 
     return this.activityFamiliaService.getByDay(new Date());
+  }
+
+  private obtenerActividadesRealtimeParaFiltros(
+    filters: ActivityFilters
+  ): Observable<ActivityFamilia[]> {
+    const filtros = this.normalizarFiltros(filters);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    if (filtros.rangoFecha === 'todos') {
+      return this.activityFamiliaService.observeAll();
+    }
+
+    if (filtros.rangoFecha === 'hoy') {
+      return this.activityFamiliaService.observeByDay(new Date());
+    }
+
+    if (filtros.rangoFecha === 'ayer') {
+      const ayer = new Date(hoy);
+      ayer.setDate(ayer.getDate() - 1);
+
+      return this.activityFamiliaService.observeByDay(ayer);
+    }
+
+    if (filtros.rangoFecha === '7dias' || filtros.rangoFecha === '30dias') {
+      const dias = filtros.rangoFecha === '7dias' ? 7 : 30;
+      const desde = new Date(hoy);
+      desde.setDate(desde.getDate() - (dias - 1));
+
+      const hasta = new Date(hoy);
+      hasta.setDate(hasta.getDate() + 1);
+
+      return this.activityFamiliaService.observeByDateRange(desde, hasta);
+    }
+
+    if (filtros.rangoFecha === 'personalizado') {
+      const desde = filtros.fechaDesde
+        ? this.getDateFromInput(filtros.fechaDesde)
+        : new Date(0);
+
+      const hasta = filtros.fechaHasta
+        ? this.getDateFromInput(filtros.fechaHasta)
+        : new Date();
+
+      const hastaExclusivo = new Date(hasta);
+      hastaExclusivo.setDate(hastaExclusivo.getDate() + 1);
+
+      return this.activityFamiliaService.observeByDateRange(desde, hastaExclusivo);
+    }
+
+    return this.activityFamiliaService.observeByDay(new Date());
+  }
+
+  private iniciarEscuchaRealtimeTab2(): void {
+    const filtros = this.normalizarFiltros(this.filters);
+    const filtersKey = JSON.stringify(filtros);
+
+    if (
+      this.actividadesRealtimeSubscription &&
+      this.realtimeFiltersKey === filtersKey
+    ) {
+      return;
+    }
+
+    this.limpiarEscuchaRealtimeTab2();
+    this.realtimeFiltersKey = filtersKey;
+
+    this.actividadesRealtimeSubscription =
+      this.obtenerActividadesRealtimeParaFiltros(filtros).subscribe({
+        next: actividades => {
+          this.ngZone.run(() => {
+            this.actualizarActividadesDesdeRealtime(actividades);
+          });
+        },
+        error: error => {
+          console.error('Error escuchando historial en tiempo real', error);
+        }
+      });
+  }
+
+  private limpiarEscuchaRealtimeTab2(): void {
+    this.actividadesRealtimeSubscription?.unsubscribe();
+    this.actividadesRealtimeSubscription = undefined;
+    this.realtimeFiltersKey = '';
+  }
+
+  private actualizarActividadesDesdeRealtime(
+    actividades: ActivityFamilia[]
+  ): void {
+    this.activities = (actividades || [])
+      .filter(activity => !this.actividadesEliminadasRecientes.has(activity.id))
+      .sort((a, b) => b.time.localeCompare(a.time));
+
+    this.aplicarFiltros(false);
+    this.cdr.detectChanges();
+
+    void this.programarRecordatoriosConActividades(this.activities);
   }
 
   private async programarRecordatoriosConActividades(
@@ -1405,6 +1507,7 @@ private actividadGuardadaSubscription?: Subscription;
   async aplicarFiltrosDesdeModal() {
     this.filters = this.normalizarFiltros(this.filtersDraft);
     await this.loadActivities();
+    this.iniciarEscuchaRealtimeTab2();
     this.aplicarFiltros(true);
     this.cerrarModalFiltros();
   }
@@ -1417,6 +1520,7 @@ private actividadGuardadaSubscription?: Subscription;
     this.filters = this.getDefaultFilters();
     this.filtersDraft = this.getDefaultFilters();
     await this.loadActivities();
+    this.iniciarEscuchaRealtimeTab2();
     this.aplicarFiltros(true);
   }
 
