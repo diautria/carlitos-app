@@ -168,16 +168,26 @@ export class ActivityFamiliaService {
       `familias/${familiaId}/bebes/${bebeId}/actividades`
     );
 
+    const queryStart = new Date(start);
+    queryStart.setDate(queryStart.getDate() - 1);
+
+    const queryEnd = new Date(end);
+    queryEnd.setDate(queryEnd.getDate() + 1);
+
     const q = query(
       actividadesRef,
-      where('time', '>=', this.getLocalDateTimeKey(start)),
-      where('time', '<', this.getLocalDateTimeKey(end)),
+      where('time', '>=', this.getLocalDateTimeForQuery(queryStart)),
+      where('time', '<', this.getLocalDateTimeForQuery(queryEnd)),
       orderBy('time', 'desc')
     );
 
     const snapshot = await getDocs(q);
 
-    return this.mapActivities(snapshot.docs);
+    return this.mapActivities(snapshot.docs)
+      .filter(activity => this.isActivityInDateRange(activity, start, end))
+      .sort((a, b) => {
+        return this.getActivityTime(b) - this.getActivityTime(a);
+      });
   }
 
   async getByCategory(type: string, date: Date): Promise<ActivityFamilia[]> {
@@ -425,6 +435,35 @@ async getOldestActivityDate(): Promise<Date | null> {
 
 private getLocalDateTimeKey(date: Date): string {
   return date.toISOString();
+}
+
+private getLocalDateTimeForQuery(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
+private isActivityInDateRange(
+  activity: ActivityFamilia,
+  start: Date,
+  end: Date
+): boolean {
+  const activityTime = this.getActivityTime(activity);
+
+  if (Number.isNaN(activityTime)) {
+    return false;
+  }
+
+  return activityTime >= start.getTime() && activityTime < end.getTime();
+}
+
+private getActivityTime(activity: ActivityFamilia): number {
+  return new Date(activity.time).getTime();
 }
 
 private mapActivities(
