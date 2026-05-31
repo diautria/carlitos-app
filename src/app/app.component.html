@@ -11,12 +11,70 @@
           <ion-icon name="add-outline" slot="icon-only"></ion-icon>
         </ion-button>
 
-        <app-notificaciones-menu></app-notificaciones-menu>
+        <ion-button
+          class="app-notifications-button"
+          fill="clear"
+          aria-label="Notificaciones"
+          (click)="alternarNotificaciones($event)">
+          <ion-icon name="notifications-outline" slot="icon-only"></ion-icon>
+
+          <ion-badge
+            *ngIf="cantidadNotificaciones > 0"
+            class="app-notifications-badge">
+            {{ cantidadNotificaciones > 9 ? '9+' : cantidadNotificaciones }}
+          </ion-badge>
+        </ion-button>
 
         <app-usuario-menu></app-usuario-menu>
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
+
+  <ion-popover
+    [isOpen]="notificacionesAbiertas"
+    [event]="popoverNotificacionesEvent"
+    [showBackdrop]="false"
+    side="bottom"
+    alignment="end"
+    (didPresent)="marcarNotificacionesComoVistas()"
+    (didDismiss)="cerrarNotificaciones()">
+    <ng-template>
+      <ion-content class="app-notifications-popover-content">
+        <div class="app-notifications-header">
+          <strong>Notificaciones</strong>
+          <span>Últimas y próximas</span>
+        </div>
+
+        <ion-list
+          *ngIf="notificacionesHeader.length > 0; else sinNotificaciones"
+          lines="none">
+          <ion-item
+            *ngFor="let notificacion of notificacionesHeader"
+            class="app-notification-item">
+            <ion-icon
+              [name]="notificacion.icono"
+              slot="start">
+            </ion-icon>
+
+            <ion-label>
+              <h3>{{ notificacion.titulo }}</h3>
+              <time *ngIf="notificacion.fechaObjetivo">
+                {{ formatearFechaNotificacion(notificacion.fechaObjetivo) }}
+              </time>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+        <ng-template #sinNotificaciones>
+          <div class="app-notifications-empty">
+            <ion-icon name="notifications-off-outline"></ion-icon>
+            <strong>Sin notificaciones</strong>
+            <span>Cuando haya avisos, apareceran aca.</span>
+          </div>
+        </ng-template>
+      </ion-content>
+    </ng-template>
+  </ion-popover>
 
   <ion-router-outlet [class.with-app-shell]="mostrarHeaderApp"></ion-router-outlet>
 </ion-app>
