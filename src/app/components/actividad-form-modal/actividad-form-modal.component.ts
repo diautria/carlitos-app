@@ -12,6 +12,7 @@ import {
   IonInput,
   IonModal,
   IonNote,
+  IonSpinner,
   IonTextarea,
   IonTitle,
   IonToolbar,
@@ -76,6 +77,7 @@ interface MedicamentoDisponible extends MedicamentoBebe {
     IonInput,
     IonDatetime,
     IonTextarea,
+    IonSpinner,
     IonNote
   ]
 })
@@ -132,9 +134,12 @@ export class ActividadFormModalComponent implements OnInit {
   ];
 
   alimentosComidaOptions: AlimentoFamilia[] = [];
+  cargandoCatalogoAlimentos = false;
   alimentoManualActivo = false;
   editandoListaAlimentos = false;
   nuevoAlimentoNombre = '';
+  private catalogoAlimentosCargado = false;
+  private catalogoAlimentosPromise?: Promise<void>;
 
   bebes: BebeFamilia[] = [];
   medicamentosDisponibles: MedicamentoDisponible[] = [];
@@ -150,19 +155,22 @@ export class ActividadFormModalComponent implements OnInit {
 
     this.isEdit = this.modo === 'editar';
 
-    await Promise.all([
-      this.cargarMedicamentosRegistrados(),
-      this.cargarCatalogoAlimentos()
-    ]);
+    await this.cargarMedicamentosRegistrados();
 
     if (this.isEdit && this.actividad) {
       this.formType = this.actividad.type;
       this.form = { ...this.actividad };
-      this.prepararFormularioComidaParaEditar();
+
+      if (this.formType === 'comida') {
+        await this.cargarCatalogoAlimentos();
+        this.prepararFormularioComidaParaEditar();
+      }
 
       // Convertir tiempos a formato correcto para ion-datetime
       if (this.formType === 'sueno') {
-        this.form.time = this.convertToDatetimeFormat(this.form.time);
+        this.form.time = this.convertToDatetimeFormat(
+          this.form.time || (this.form as any).inicio
+        );
         if (this.form.fin) {
           this.form.fin = this.convertToDatetimeFormat(this.form.fin);
         }
@@ -180,6 +188,10 @@ export class ActividadFormModalComponent implements OnInit {
       }
 
       this.form = this.getEmptyForm(this.formType);
+
+      if (this.formType === 'comida') {
+        await this.cargarCatalogoAlimentos();
+      }
     }
 
     if (this.formType === 'toma-leche') {
@@ -289,20 +301,48 @@ export class ActividadFormModalComponent implements OnInit {
     return base;
   }
 
-  onTypeChange(type: ActivityFamiliaType) {
+  async onTypeChange(type: ActivityFamiliaType) {
     this.formType = type;
     this.form = this.getEmptyForm(type);
     this.otraCantidadActiva = false;
     this.alimentoManualActivo = false;
+
+    if (type === 'comida') {
+      await this.cargarCatalogoAlimentos();
+    }
   }
 
-  private async cargarCatalogoAlimentos() {
+  private async cargarCatalogoAlimentos(forzarRecarga = false) {
+    if (forzarRecarga) {
+      this.catalogoAlimentosCargado = false;
+      this.catalogoAlimentosPromise = undefined;
+    }
+
+    if (this.catalogoAlimentosCargado) {
+      return;
+    }
+
+    if (this.catalogoAlimentosPromise) {
+      return this.catalogoAlimentosPromise;
+    }
+
+    this.catalogoAlimentosPromise = this.cargarCatalogoAlimentosDesdeServicio();
+    await this.catalogoAlimentosPromise;
+  }
+
+  private async cargarCatalogoAlimentosDesdeServicio() {
+    this.cargandoCatalogoAlimentos = true;
+
     try {
       this.alimentosComidaOptions =
         await this.alimentoFamiliaService.obtenerAlimentosFamiliaActual();
+      this.catalogoAlimentosCargado = true;
     } catch (error) {
       console.error('Error cargando alimentos', error);
       this.alimentosComidaOptions = [];
+    } finally {
+      this.cargandoCatalogoAlimentos = false;
+      this.catalogoAlimentosPromise = undefined;
     }
   }
 
@@ -382,7 +422,7 @@ export class ActividadFormModalComponent implements OnInit {
 
     await this.alimentoFamiliaService.crearAlimentosPorNombres([nombre]);
     this.nuevoAlimentoNombre = '';
-    await this.cargarCatalogoAlimentos();
+    await this.cargarCatalogoAlimentos(true);
     this.toggleAlimentoComida(nombre);
   }
 
@@ -390,7 +430,7 @@ export class ActividadFormModalComponent implements OnInit {
     await this.alimentoFamiliaService.desactivarAlimento(alimento.id);
     this.form.alimentosSeleccionados = (this.form.alimentosSeleccionados || [])
       .filter((nombre: string) => nombre !== alimento.nombre);
-    await this.cargarCatalogoAlimentos();
+    await this.cargarCatalogoAlimentos(true);
   }
 
   private prepararFormularioComidaParaEditar() {
@@ -549,15 +589,8 @@ export class ActividadFormModalComponent implements OnInit {
       }
 
       if (this.formType === 'sueno') {
-        // Solo actualizar inicio si es modo crear, no editar
-        if (!this.isEdit) {
-          this.form.inicio = this.form.time;
-        } else {
-          this.form.inicio = this.normalizarFechaHoraLocal(
-            this.form.inicio || this.form.time,
-            this.form.time
-          );
-        }
+        this.form.inicio = this.form.time;
+        this.form.time = this.form.inicio;
 
         if (this.form.fin) {
           this.form.fin = this.normalizarFechaHoraLocal(

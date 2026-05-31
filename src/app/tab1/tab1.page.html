@@ -137,7 +137,7 @@
           <h2 *ngIf="!suenoActivo">No está durmiendo</h2>
 
           <p *ngIf="suenoActivo" class="sueno-subtitle">
-            Desde {{ $any(suenoActivo).inicio || suenoActivo.time | date:'HH:mm' }}
+            Desde {{ ($any(suenoActivo).inicio || suenoActivo.time) | date:'HH:mm' }}
           </p>
 
           <strong *ngIf="suenoActivo">
@@ -187,6 +187,15 @@
   </h2>
 
   <div class="actividad-actions">
+    <ion-button
+      fill="clear"
+      size="small"
+      color="primary"
+      [routerLink]="['/estadisticas']"
+      aria-label="Ver estadísticas">
+      <ion-icon name="stats-chart-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+
     <ion-button
       *ngIf="actividadesRecientes.length > 0"
       fill="clear"
@@ -257,7 +266,7 @@
           </div>
 
           <time class="actividad-fecha">
-            {{ actividad.time | date:'HH:mm' }}
+            {{ actividad.horaActividad }}
           </time>
         </div>
       </ion-list>

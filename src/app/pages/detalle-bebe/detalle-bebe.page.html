@@ -222,9 +222,12 @@
               *ngFor="let nota of bebe.notas; let i = index; trackBy: trackByNota"
               class="nota-item">
 
-              <ion-label>{{ nota }}</ion-label>
+              <div class="nota-content">
+                <ion-icon name="document-text"></ion-icon>
+                <p>{{ nota }}</p>
+              </div>
 
-              <ion-buttons slot="end">
+              <ion-buttons slot="end" class="nota-actions">
                 <ion-button
                   fill="clear"
                   color="primary"

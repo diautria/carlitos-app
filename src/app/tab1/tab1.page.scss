@@ -165,10 +165,22 @@ ion-progress-bar {
   margin: 0;
 }
 
+.actividad-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .actividad-header ion-button {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
   --padding-start: 6px;
   --padding-end: 6px;
+  --border-radius: 11px;
   font-size: 0.82rem;
+  margin: 0;
 }
 
 .actividades-list {

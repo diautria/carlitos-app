@@ -10,7 +10,8 @@ import {
   IonIcon,
   IonSegment,
   IonSegmentButton,
-  IonLabel
+  IonLabel,
+  IonSpinner
 } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
@@ -40,7 +41,8 @@ import { ThemePreference, ThemeService } from '../services/theme.service';
     IonIcon,
     IonSegment,
     IonSegmentButton,
-    IonLabel
+    IonLabel,
+    IonSpinner
   ],
 })
 export class Tab3Page implements OnInit {

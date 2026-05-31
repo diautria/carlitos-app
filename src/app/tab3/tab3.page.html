@@ -1,4 +1,5 @@
 ﻿<ion-content class="ion-padding">
+<ng-container *ngIf="!cargando; else loadingState">
 <div class="ajustes-card">
     <div class="ajustes-header">
       <div class="ajustes-icon">
@@ -24,7 +25,7 @@
 
     <section class="tema-card">
       <div class="tema-copy">
-        <h3>Tema de la app</h3>
+        <h3>Tema</h3>
         <p>Por defecto sigue la configuración del teléfono.</p>
       </div>
 
@@ -46,7 +47,7 @@
       </ion-segment>
     </section>
 
-    <ion-list *ngIf="!cargando && bebeActivoId">
+    <ion-list *ngIf="bebeActivoId">
       <ion-item>
         <ion-input
           label="Tiempo entre tomas"
@@ -111,10 +112,6 @@
       </ion-item>
     </ion-list>
 
-    <div class="loading-box" *ngIf="cargando">
-      Cargando configuración...
-    </div>
-
     <div class="acciones-ajustes">
       <ion-button
         expand="block"
@@ -137,4 +134,12 @@
       <p class="mensaje">{{ mensajeGuardado }}</p>
     </ion-text>
   </div>
+</ng-container>
+
+<ng-template #loadingState>
+  <div class="loading-state">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando configuración...</p>
+  </div>
+</ng-template>
 </ion-content>

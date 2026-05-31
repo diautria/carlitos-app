@@ -10,7 +10,7 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, Io
   IonAlert
  } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { people, time, medical, chevronForward, water, logoWhatsapp,documentText, addCircleOutline, restaurant } from 'ionicons/icons';
+import { people, time, medical, chevronForward, water, logoWhatsapp,documentText, addCircleOutline, restaurant, statsChartOutline } from 'ionicons/icons';
 import { personOutline, trashOutline, close  } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
@@ -36,6 +36,7 @@ type ActividadVista = ActivityFamilia & {
   color: string;
   titulo: string;
   descripcion: string;
+  horaActividad: string;
   horaFinSueno?: string;
   comidaAlerta?: string;
   comidaAlertaColor?: string;
@@ -114,7 +115,7 @@ private modalController = inject(ModalController);
 private actividadEventosService = inject(ActividadEventosService);
 
   async ngOnInit() {
-   addIcons({ people, time, medical, restaurant, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline   });
+   addIcons({ people, time, medical, restaurant, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline, statsChartOutline   });
    this.actividadGuardadaSubscription =
      this.actividadEventosService.actividadGuardada$.subscribe(async activity => {
        await this.refrescarActividadGuardada(activity || undefined);
@@ -429,6 +430,7 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
   const panales = activities.filter(a => a.type === 'cambio-panal');
   const medicamentos = activities.filter(a => a.type === 'medicamento');
   const suenos = activities.filter(a => a.type === 'sueno');
+  const comidas = activities.filter(a => a.type === 'comida');
 
   const totalOnzas = tomas.reduce((total, toma) => {
     return total + Number((toma as any).cantidadOnzas || 0);
@@ -467,6 +469,7 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
   lineas.push(`- Solo pipí: ${totalPipi}`);
   lineas.push(`- Medicamentos: ${medicamentos.length}`);
   lineas.push(`- Sueños: ${suenos.length}`);
+  lineas.push(`- Comidas: ${comidas.length}`);
 
   if (totalMinutosSueno > 0) {
     lineas.push(`- Tiempo dormido: ${this.formatearMinutosSueno(totalMinutosSueno)}`);
@@ -541,6 +544,46 @@ private generarMensajeActividadesDelDia(activities: ActivityFamilia[]): string {
           linea += ` · ${this.formatearMinutosSueno(duracionMinutos)}`;
         } else {
           linea += ` · en curso`;
+        }
+
+        lineas.push(linea);
+      }
+
+      if (activity.type === 'comida') {
+        const comida = activity as any;
+        const momento = this.formatearMomentoComida(comida.momento);
+        const alimentos = this.obtenerNombresAlimentosComida(activity);
+        const tipo = this.formatearTipoComida(comida.tipoComida);
+        const aceptacion = this.formatearAceptacionComida(comida.aceptacion);
+        const observaciones = comida.observaciones;
+        const cantidad = comida.cantidadAproximada
+          ? `${comida.cantidadAproximada} ${this.formatearUnidadComida(comida.unidadCantidad)}`.trim()
+          : '';
+
+        let linea = `- ${hora} · Comida · ${momento} · ${alimentos}`;
+
+        if (tipo) {
+          linea += ` · ${tipo}`;
+        }
+
+        if (cantidad) {
+          linea += ` · ${cantidad}`;
+        }
+
+        if (aceptacion) {
+          linea += ` · ${aceptacion}`;
+        }
+
+        if (comida.esPrimeraVez) {
+          linea += ' · primera vez';
+        }
+
+        if (comida.huboReaccion) {
+          linea += ` · Reacción: ${this.formatearReaccionesComida(comida.reaccion)}`;
+        }
+
+        if (observaciones) {
+          linea += ` · ${observaciones}`;
         }
 
         lineas.push(linea);
@@ -626,6 +669,14 @@ private formatearHoraActividad(fechaRaw: string): string {
     minute: '2-digit',
     hour12: false
   });
+}
+
+private obtenerHoraPrincipalActividad(activity: ActivityFamilia): string {
+  if (activity.type === 'sueno') {
+    return this.obtenerHoraSuenoInicio(activity);
+  }
+
+  return this.formatearHoraActividad(activity.time);
 }
 
 private formatearMinutosSueno(totalMinutos: number): string {
@@ -1250,7 +1301,7 @@ private actualizarActividadesRecientes(actividades: ActivityFamilia[]) {
   this.actividadesRecientes = (actividades || [])
     .slice()
     .sort((a, b) => {
-      return new Date(b.time).getTime() - new Date(a.time).getTime();
+      return this.obtenerTiempoPrincipalActividad(b) - this.obtenerTiempoPrincipalActividad(a);
     });
 
   this.actividadesRecientesVista = this.actividadesRecientes.map(actividad => ({
@@ -1259,6 +1310,7 @@ private actualizarActividadesRecientes(actividades: ActivityFamilia[]) {
     color: this.getColorActividad(actividad),
     titulo: this.getTituloActividad(actividad),
     descripcion: this.getDescripcionActividad(actividad),
+    horaActividad: this.obtenerHoraPrincipalActividad(actividad),
     comidaAlerta: this.getAlertaComidaTexto(actividad),
     comidaAlertaColor: this.getAlertaComidaColor(actividad),
     comidaDetalle: this.getDetalleComidaTexto(actividad),
@@ -1269,6 +1321,15 @@ private actualizarActividadesRecientes(actividades: ActivityFamilia[]) {
       ? this.obtenerHoraSuenoFin(actividad)
       : undefined
   }));
+}
+
+private obtenerTiempoPrincipalActividad(activity: ActivityFamilia): number {
+  const fechaRaw = activity.type === 'sueno'
+    ? ((activity as any).inicio || activity.time)
+    : activity.time;
+  const fecha = new Date(fechaRaw);
+
+  return Number.isNaN(fecha.getTime()) ? 0 : fecha.getTime();
 }
 
 private incluirSuenoActivoEnActividadesRecientes(): void {

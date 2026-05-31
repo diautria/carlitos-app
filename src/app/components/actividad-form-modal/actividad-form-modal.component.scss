@@ -132,6 +132,24 @@
   --padding-end: 9px;
 }
 
+.food-loading {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: var(--ion-color-light);
+  color: var(--ion-color-medium);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.food-loading ion-spinner {
+  width: 18px;
+  height: 18px;
+}
+
 .food-manual-input {
   margin-top: 10px;
 }
@@ -147,14 +165,37 @@
 .food-edit-input {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
+  align-items: center;
   gap: 8px;
+  padding: 4px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.12);
+  border-radius: 8px;
+  background: #ffffff;
 }
 
-.food-edit-input ion-button {
-  margin: 4px 0 0;
+.food-edit-new-input {
+  --background: transparent;
+  --padding-start: 10px;
+  --padding-end: 10px;
   min-height: 40px;
-  --border-radius: 12px;
+  margin: 0;
+}
+
+.food-edit-add-button {
+  min-width: 104px;
+  min-height: 38px;
+  margin: 0;
+  --border-radius: 8px;
+  --padding-start: 11px;
+  --padding-end: 12px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.food-edit-add-button ion-icon {
+  font-size: 16px;
 }
 
 .food-edit-list {
@@ -162,6 +203,16 @@
   flex-wrap: wrap;
   gap: 7px;
   margin-top: 10px;
+}
+
+@media (max-width: 360px) {
+  .food-edit-input {
+    grid-template-columns: 1fr;
+  }
+
+  .food-edit-add-button {
+    width: 100%;
+  }
 }
 
 .food-edit-list button {

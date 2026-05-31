@@ -236,12 +236,18 @@
               size="small"
               fill="clear"
               color="primary"
+              [disabled]="cargandoCatalogoAlimentos"
               (click)="editandoListaAlimentos = !editandoListaAlimentos">
               {{ editandoListaAlimentos ? 'Listo' : 'Editar lista' }}
             </ion-button>
           </div>
 
-          <div class="chip-grid food-grid">
+          <div *ngIf="cargandoCatalogoAlimentos" class="food-loading">
+            <ion-spinner name="crescent"></ion-spinner>
+            <span>Cargando alimentos...</span>
+          </div>
+
+          <div class="chip-grid food-grid" *ngIf="!cargandoCatalogoAlimentos">
             <ion-button
               *ngFor="let alimento of alimentosComidaOptions"
               type="button"
@@ -263,21 +269,24 @@
             </ion-button>
           </div>
 
-          <div class="food-edit-box" *ngIf="editandoListaAlimentos">
+          <div class="food-edit-box" *ngIf="editandoListaAlimentos && !cargandoCatalogoAlimentos">
             <div class="food-edit-input">
               <ion-input
                 [(ngModel)]="nuevoAlimentoNombre"
                 name="nuevoAlimentoNombre"
                 placeholder="Nuevo alimento"
-                class="custom-input">
+                class="custom-input food-edit-new-input">
               </ion-input>
 
               <ion-button
                 type="button"
                 size="small"
                 color="primary"
+                class="food-edit-add-button"
+                [disabled]="!nuevoAlimentoNombre.trim()"
                 (click)="agregarAlimentoCatalogo()">
-                Agregar
+                <ion-icon name="add" slot="start"></ion-icon>
+                <span>Agregar</span>
               </ion-button>
             </div>
 

@@ -267,6 +267,80 @@
   gap: 10px;
 }
 
+.notas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+}
+
+.nota-item {
+  --background: #ffffff;
+  --border-radius: 12px;
+  --min-height: 48px;
+  --padding-start: 10px;
+  --padding-end: 6px;
+  --inner-padding-end: 0;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(37, 56, 76, 0.045);
+}
+
+.nota-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 0;
+}
+
+.nota-content > ion-icon {
+  margin-top: 2px;
+  font-size: 0.95rem;
+  color: var(--ion-color-primary);
+  opacity: 0.72;
+}
+
+.nota-content p {
+  margin: 0;
+  color: var(--ion-color-dark);
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.nota-actions {
+  gap: 1px;
+  margin-left: 6px;
+}
+
+.nota-actions ion-button {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --border-radius: 9px;
+  margin: 0;
+}
+
+.nota-actions ion-button::part(native) {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+}
+
+.nota-actions ion-icon {
+  font-size: 0.9rem;
+}
+
 .medicamento-card {
   position: relative;
   background: linear-gradient(
