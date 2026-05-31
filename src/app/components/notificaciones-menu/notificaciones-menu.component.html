@@ -1,0 +1,58 @@
+<ion-button
+  id="global-notifications-menu-trigger"
+  class="notifications-button"
+  fill="clear"
+  aria-label="Notificaciones">
+  <ion-icon name="notifications-outline" slot="icon-only"></ion-icon>
+
+  <ion-badge
+    *ngIf="cantidadNotificaciones > 0"
+    class="notifications-badge">
+    {{ cantidadNotificaciones > 9 ? '9+' : cantidadNotificaciones }}
+  </ion-badge>
+</ion-button>
+
+<ion-popover
+  trigger="global-notifications-menu-trigger"
+  triggerAction="click"
+  (didPresent)="marcarNotificacionesComoVistas()">
+  <ng-template>
+    <ion-content class="notifications-popover-content">
+      <div class="notifications-header">
+        <strong>Notificaciones</strong>
+        <span>Últimas y próximas</span>
+      </div>
+
+      <ion-list
+        *ngIf="notificaciones.length > 0; else sinNotificaciones"
+        lines="none">
+        <ion-item
+          *ngFor="let notificacion of notificaciones"
+          class="notification-item">
+          <ion-icon
+            [name]="notificacion.icono"
+            slot="start">
+          </ion-icon>
+
+          <ion-label>
+            <div class="notification-title-row">
+              <h3>{{ notificacion.titulo }}</h3>
+            </div>
+
+            <time *ngIf="notificacion.fechaObjetivo">
+              {{ formatearFechaCorta(notificacion.fechaObjetivo) }}
+            </time>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ng-template #sinNotificaciones>
+        <div class="notifications-empty">
+          <ion-icon name="notifications-off-outline"></ion-icon>
+          <strong>Sin notificaciones</strong>
+          <span>Cuando haya avisos, aparecerán acá.</span>
+        </div>
+      </ng-template>
+    </ion-content>
+  </ng-template>
+</ion-popover>

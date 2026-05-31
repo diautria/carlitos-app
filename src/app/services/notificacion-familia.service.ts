@@ -14,7 +14,7 @@ import {
   onSnapshot,
   serverTimestamp
 } from '@angular/fire/firestore';
-import { firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { FamiliaMiembrosService } from './familia-miembros.service';
 import { ActivityFamilia } from '../models/activity-familia.model';
@@ -26,6 +26,27 @@ export interface RecordatorioFamilia {
   titulo: string;
   mensaje: string;
   fechaNotificacion: Date;
+  fechaObjetivo?: Date;
+  bebeId?: string;
+  medicamentoId?: string;
+}
+
+export interface NotificacionRecienteFamilia {
+  id: string;
+  titulo: string;
+  mensaje: string;
+  tipo: string;
+  bebeId?: string;
+  fecha: Date;
+}
+
+export interface RecordatorioProgramadoFamilia {
+  id: string;
+  tipo: string;
+  titulo: string;
+  mensaje: string;
+  fechaNotificacion: Date;
+  fechaObjetivo: Date;
   bebeId?: string;
   medicamentoId?: string;
 }
@@ -45,6 +66,15 @@ export class NotificacionFamiliaService {
   private ultimaNotificacionId = 0;
   private unsubscribe?: () => void;
   private unsubscribeRecordatorios?: () => void;
+  private notificacionesRecientesSubject =
+    new BehaviorSubject<NotificacionRecienteFamilia[]>([]);
+  private recordatoriosProgramadosSubject =
+    new BehaviorSubject<RecordatorioProgramadoFamilia[]>([]);
+
+  notificacionesRecientes$ =
+    this.notificacionesRecientesSubject.asObservable();
+  recordatoriosProgramados$ =
+    this.recordatoriosProgramadosSubject.asObservable();
 
   async notificarFamilia(
     actividad: ActivityFamilia,
@@ -100,6 +130,8 @@ export class NotificacionFamiliaService {
       this.unsubscribeRecordatorios();
       this.unsubscribeRecordatorios = undefined;
     }
+
+    this.recordatoriosProgramadosSubject.next([]);
   }
 
   async programarRecordatorioFamilia(
@@ -120,6 +152,7 @@ export class NotificacionFamiliaService {
         {
           ...recordatorio,
           fechaNotificacion: recordatorio.fechaNotificacion.toISOString(),
+          fechaObjetivo: (recordatorio.fechaObjetivo || recordatorio.fechaNotificacion).toISOString(),
           destinatarioUid: miembro.uid,
           usuarioId: usuario.uid,
           updatedAt: serverTimestamp()
@@ -206,6 +239,7 @@ export class NotificacionFamiliaService {
         const notificacion = change.doc.data() as any;
 
         if (notificacion.usuarioId !== uid) {
+          this.agregarNotificacionReciente(change.doc.id, notificacion);
           await this.mostrarNotificacionLocal(notificacion);
         }
 
@@ -233,6 +267,13 @@ export class NotificacionFamiliaService {
     }
 
     this.unsubscribeRecordatorios = onSnapshot(q, async (snapshot) => {
+      this.recordatoriosProgramadosSubject.next(
+        snapshot.docs
+          .map(docSnap => this.mapRecordatorioProgramado(docSnap.id, docSnap.data()))
+          .filter((recordatorio): recordatorio is RecordatorioProgramadoFamilia => !!recordatorio)
+          .sort((a, b) => a.fechaObjetivo.getTime() - b.fechaObjetivo.getTime())
+      );
+
       for (const change of snapshot.docChanges()) {
         const recordatorio = change.doc.data() as any;
 
@@ -278,6 +319,78 @@ export class NotificacionFamiliaService {
     } catch (error) {
       console.error('Error mostrando notificacion local:', error);
     }
+  }
+
+  private agregarNotificacionReciente(id: string, notificacion: any): void {
+    const notificacionesActuales = this.notificacionesRecientesSubject.value;
+    const nuevaNotificacion: NotificacionRecienteFamilia = {
+      id,
+      titulo: notificacion.titulo || 'Notificacion',
+      mensaje: notificacion.mensaje || '',
+      tipo: notificacion.tipo || 'actividad',
+      bebeId: notificacion.bebeId,
+      fecha: new Date()
+    };
+
+    this.notificacionesRecientesSubject.next([
+      nuevaNotificacion,
+      ...notificacionesActuales.filter(item => item.id !== id)
+    ].slice(0, 8));
+  }
+
+  private mapRecordatorioProgramado(
+    id: string,
+    data: any
+  ): RecordatorioProgramadoFamilia | null {
+    const fechaNotificacion = new Date(data.fechaNotificacion);
+    const fechaObjetivo = this.obtenerFechaObjetivoRecordatorio(data, fechaNotificacion);
+
+    if (
+      Number.isNaN(fechaNotificacion.getTime()) ||
+      Number.isNaN(fechaObjetivo.getTime()) ||
+      fechaObjetivo <= new Date()
+    ) {
+      return null;
+    }
+
+    return {
+      id,
+      tipo: data.tipo || 'recordatorio',
+      titulo: data.titulo || 'Recordatorio',
+      mensaje: data.mensaje || '',
+      fechaNotificacion,
+      fechaObjetivo,
+      bebeId: data.bebeId,
+      medicamentoId: data.medicamentoId
+    };
+  }
+
+  private obtenerFechaObjetivoRecordatorio(
+    data: any,
+    fechaNotificacion: Date
+  ): Date {
+    if (data.fechaObjetivo) {
+      return new Date(data.fechaObjetivo);
+    }
+
+    const fechaObjetivo = new Date(fechaNotificacion);
+
+    if (data.tipo === 'vacuna') {
+      fechaObjetivo.setDate(fechaObjetivo.getDate() + 7);
+      return fechaObjetivo;
+    }
+
+    if (data.tipo === 'toma-leche') {
+      fechaObjetivo.setMinutes(fechaObjetivo.getMinutes() + 15);
+      return fechaObjetivo;
+    }
+
+    if (data.tipo === 'medicamento') {
+      fechaObjetivo.setMinutes(fechaObjetivo.getMinutes() + 5);
+      return fechaObjetivo;
+    }
+
+    return fechaObjetivo;
   }
 
   private async programarNotificacionLocal(recordatorio: any): Promise<void> {

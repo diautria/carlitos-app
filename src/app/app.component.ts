@@ -17,6 +17,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AuthService } from './services/auth.service';
 import { UsuarioMenuComponent } from './components/usuario-menu/usuario-menu.component';
+import { NotificacionesMenuComponent } from './components/notificaciones-menu/notificaciones-menu.component';
 import { ActividadFormModalComponent } from './components/actividad-form-modal/actividad-form-modal.component';
 import { addCircle } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
@@ -39,6 +40,7 @@ import { ThemeService } from './services/theme.service';
     IonRouterOutlet,
     IonTitle,
     IonToolbar,
+    NotificacionesMenuComponent,
     UsuarioMenuComponent
   ]
 })

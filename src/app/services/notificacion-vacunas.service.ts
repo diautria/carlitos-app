@@ -51,6 +51,7 @@ export class NotificacionVacunasService {
           notificationId,
           bebe,
           new Date(ahora.getTime() + 1000),
+          fechaVacuna,
           'La proxima vacuna esta dentro de los proximos 7 dias.'
         );
       }
@@ -62,6 +63,7 @@ export class NotificacionVacunasService {
       notificationId,
       bebe,
       fechaNotificacion,
+      fechaVacuna,
       'Falta una semana para la proxima vacuna.'
     );
   }
@@ -94,6 +96,7 @@ export class NotificacionVacunasService {
     notificationId: number,
     bebe: BebeFamilia,
     fechaNotificacion: Date,
+    fechaObjetivo: Date,
     body: string
   ): Promise<void> {
     await this.notificacionFamiliaService.programarRecordatorioFamilia({
@@ -103,6 +106,7 @@ export class NotificacionVacunasService {
       titulo: `Proxima vacuna de ${bebe.nombre || 'tu bebe'}`,
       mensaje: body,
       fechaNotificacion,
+      fechaObjetivo,
       bebeId: bebe.id
     });
   }

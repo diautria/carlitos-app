@@ -80,6 +80,7 @@ export class NotificacionTomasService {
           notificationId,
           bebe,
           new Date(ahora.getTime() + 1000),
+          fechaProximaToma,
           `Faltan menos de ${this.minutosAntes} minutos para la proxima toma de leche.`
         );
       }
@@ -91,6 +92,7 @@ export class NotificacionTomasService {
       notificationId,
       bebe,
       fechaNotificacion,
+      fechaProximaToma,
       `Faltan ${this.minutosAntes} minutos para la proxima toma de leche.`
     );
   }
@@ -184,6 +186,7 @@ export class NotificacionTomasService {
           notificationId,
           bebe,
           new Date(ahora.getTime() + 1000),
+          fechaProximaToma,
           `Faltan menos de ${this.minutosAntes} minutos para la proxima toma de leche.`
         );
       }
@@ -195,6 +198,7 @@ export class NotificacionTomasService {
       notificationId,
       bebe,
       fechaNotificacion,
+      fechaProximaToma,
       `Faltan ${this.minutosAntes} minutos para la proxima toma de leche.`
     );
   }
@@ -203,6 +207,7 @@ export class NotificacionTomasService {
     notificationId: number,
     bebe: BebeFamilia,
     fechaNotificacion: Date,
+    fechaObjetivo: Date,
     body: string
   ): Promise<void> {
     await this.notificacionFamiliaService.programarRecordatorioFamilia({
@@ -212,6 +217,7 @@ export class NotificacionTomasService {
       titulo: `Proxima toma de ${bebe.nombre || 'tu bebe'}`,
       mensaje: body,
       fechaNotificacion,
+      fechaObjetivo,
       bebeId: bebe.id
     });
   }
