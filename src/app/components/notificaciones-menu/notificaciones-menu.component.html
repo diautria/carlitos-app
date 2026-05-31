@@ -1,8 +1,8 @@
 <ion-button
-  id="global-notifications-menu-trigger"
   class="notifications-button"
   fill="clear"
-  aria-label="Notificaciones">
+  aria-label="Notificaciones"
+  (click)="alternarNotificaciones($event)">
   <ion-icon name="notifications-outline" slot="icon-only"></ion-icon>
 
   <ion-badge
@@ -13,14 +13,18 @@
 </ion-button>
 
 <ion-popover
-  trigger="global-notifications-menu-trigger"
-  triggerAction="click"
-  (didPresent)="marcarNotificacionesComoVistas()">
+  [isOpen]="notificacionesAbiertas"
+  [event]="popoverEvent"
+  [showBackdrop]="false"
+  side="bottom"
+  alignment="end"
+  (didPresent)="marcarNotificacionesComoVistas()"
+  (didDismiss)="cerrarNotificaciones()">
   <ng-template>
     <ion-content class="notifications-popover-content">
       <div class="notifications-header">
         <strong>Notificaciones</strong>
-        <span>Últimas y próximas</span>
+        <span>Ultimas y proximas</span>
       </div>
 
       <ion-list
@@ -50,7 +54,7 @@
         <div class="notifications-empty">
           <ion-icon name="notifications-off-outline"></ion-icon>
           <strong>Sin notificaciones</strong>
-          <span>Cuando haya avisos, aparecerán acá.</span>
+          <span>Cuando haya avisos, apareceran aca.</span>
         </div>
       </ng-template>
     </ion-content>

@@ -34,7 +34,7 @@ interface NotificacionMenuItem {
   mensaje: string;
   fechaObjetivo?: Date;
   fechaAviso?: Date;
-  estado: 'Reciente' | 'Próxima';
+  estado: 'Reciente' | 'Proxima';
   icono: string;
 }
 
@@ -63,6 +63,8 @@ export class NotificacionesMenuComponent implements OnInit, OnDestroy {
   notificacionesRecientes: NotificacionRecienteFamilia[] = [];
   recordatoriosProgramados: RecordatorioProgramadoFamilia[] = [];
   notificacionesNoVistas = 0;
+  notificacionesAbiertas = false;
+  popoverEvent?: Event;
   private notificacionesVistasIds = new Set<string>();
 
   constructor() {
@@ -106,6 +108,16 @@ export class NotificacionesMenuComponent implements OnInit, OnDestroy {
     return this.notificacionesNoVistas;
   }
 
+  alternarNotificaciones(event: Event): void {
+    event.stopPropagation();
+    this.popoverEvent = event;
+    this.notificacionesAbiertas = !this.notificacionesAbiertas;
+  }
+
+  cerrarNotificaciones(): void {
+    this.notificacionesAbiertas = false;
+  }
+
   marcarNotificacionesComoVistas(): void {
     this.notificacionesRecientes.forEach(notificacion => {
       this.notificacionesVistasIds.add(notificacion.id);
@@ -130,7 +142,7 @@ export class NotificacionesMenuComponent implements OnInit, OnDestroy {
       mensaje: this.obtenerMensajeRecordatorio(recordatorio),
       fechaObjetivo: recordatorio.fechaObjetivo,
       fechaAviso: recordatorio.fechaNotificacion,
-      estado: 'Próxima' as const,
+      estado: 'Proxima' as const,
       icono: this.obtenerIconoTipo(recordatorio.tipo)
     }));
 
@@ -146,22 +158,22 @@ export class NotificacionesMenuComponent implements OnInit, OnDestroy {
     const nombre = this.obtenerNombreDesdeTitulo(recordatorio.titulo);
 
     if (recordatorio.tipo === 'toma-leche') {
-      return `Próxima toma de leche${nombre ? ` de ${nombre}` : ''}`;
+      return `Proxima toma de leche${nombre ? ` de ${nombre}` : ''}`;
     }
 
     if (recordatorio.tipo === 'vacuna') {
-      return `Próxima vacuna${nombre ? ` de ${nombre}` : ''}`;
+      return `Proxima vacuna${nombre ? ` de ${nombre}` : ''}`;
     }
 
     if (recordatorio.tipo === 'sueno') {
-      return `Próximo sueño${nombre ? ` para ${nombre}` : ''}`;
+      return `Proximo sueno${nombre ? ` para ${nombre}` : ''}`;
     }
 
     if (recordatorio.tipo === 'medicamento') {
-      return recordatorio.titulo || 'Próximo medicamento';
+      return recordatorio.titulo || 'Proximo medicamento';
     }
 
-    return recordatorio.titulo || 'Próximo recordatorio';
+    return recordatorio.titulo || 'Proximo recordatorio';
   }
 
   private obtenerMensajeRecordatorio(
@@ -180,7 +192,7 @@ export class NotificacionesMenuComponent implements OnInit, OnDestroy {
     }
 
     if (recordatorio.tipo === 'medicamento') {
-      return recordatorio.mensaje || 'Próxima dosis';
+      return recordatorio.mensaje || 'Proxima dosis';
     }
 
     return recordatorio.mensaje || 'Recordatorio programado';
