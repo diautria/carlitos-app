@@ -18,6 +18,7 @@ import { addIcons } from 'ionicons';
 import { settingsOutline, happyOutline, peopleOutline } from 'ionicons/icons';
 
 import { BebeFamiliaService } from '../services/bebe-familia.service';
+import { FamiliaMiembrosService } from '../services/familia-miembros.service';
 import { NotificacionSuenosService } from '../services/notificacion-suenos.service';
 import { Router } from '@angular/router';
 import { ThemePreference, ThemeService } from '../services/theme.service';
@@ -45,6 +46,7 @@ import { ThemePreference, ThemeService } from '../services/theme.service';
 })
 export class Tab3Page implements OnInit {
   private bebeFamiliaService = inject(BebeFamiliaService);
+  private familiaMiembrosService = inject(FamiliaMiembrosService);
   private notificacionSuenosService = inject(NotificacionSuenosService);
   private themeService = inject(ThemeService);
 
@@ -63,6 +65,7 @@ export class Tab3Page implements OnInit {
   mensajeError = '';
   cargando = false;
   guardando = false;
+  esAdminFamilia = false;
   temaSeleccionado: ThemePreference = 'system';
 
   constructor(private router: Router) {
@@ -75,14 +78,14 @@ export class Tab3Page implements OnInit {
 
   async ngOnInit() {
     this.temaSeleccionado = await this.themeService.init();
-    await this.cargarConfiguracion();
+    await this.cargarPermisosYConfiguracion();
   }
 
   async ionViewWillEnter() {
     this.mensajeGuardado = '';
     this.mensajeError = '';
     this.temaSeleccionado = this.themeService.getPreference();
-    await this.cargarConfiguracion();
+    await this.cargarPermisosYConfiguracion();
   }
 
   async cambiarTema(event: CustomEvent) {
@@ -94,6 +97,26 @@ export class Tab3Page implements OnInit {
 
     this.temaSeleccionado = value;
     await this.themeService.setPreference(value);
+  }
+
+  private async cargarPermisosYConfiguracion() {
+    try {
+      this.esAdminFamilia = await this.familiaMiembrosService.esUsuarioAdmin();
+    } catch (error) {
+      console.error('Error cargando permisos de ajustes', error);
+      this.esAdminFamilia = false;
+    }
+
+    if (!this.esAdminFamilia) {
+      this.bebeActivoId = '';
+      this.nombreBebeActivo = '';
+      this.mensajeError = '';
+      this.mensajeGuardado = '';
+      this.cargando = false;
+      return;
+    }
+
+    await this.cargarConfiguracion();
   }
 
   async cargarConfiguracion() {

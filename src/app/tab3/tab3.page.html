@@ -7,14 +7,18 @@
       </div>
 
       <div>
-        <h2>Configuración del bebé</h2>
+        <h2>Ajustes</h2>
 
-        <p *ngIf="nombreBebeActivo">
+        <p *ngIf="esAdminFamilia && nombreBebeActivo">
           Ajustes para {{ nombreBebeActivo }}
         </p>
 
-        <p *ngIf="!nombreBebeActivo">
+        <p *ngIf="esAdminFamilia && !nombreBebeActivo">
           Seleccioná un bebé en el inicio para configurar sus datos.
+        </p>
+
+        <p *ngIf="!esAdminFamilia">
+          Personalizá cómo querés ver la app.
         </p>
       </div>
     </div>
@@ -47,6 +51,7 @@
       </ion-segment>
     </section>
 
+    <ng-container *ngIf="esAdminFamilia">
     <div class="ajustes-fields" *ngIf="bebeActivoId">
       <div class="ajuste-field">
         <ion-item lines="none">
@@ -133,6 +138,7 @@
     <ion-text color="success" *ngIf="mensajeGuardado">
       <p class="mensaje">{{ mensajeGuardado }}</p>
     </ion-text>
+    </ng-container>
   </div>
 </ng-container>
 
