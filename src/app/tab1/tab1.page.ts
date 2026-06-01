@@ -15,7 +15,6 @@ import {
   time,
   medical,
   chevronForward,
-  water,
   logoWhatsapp,
   documentText,
   addCircleOutline,

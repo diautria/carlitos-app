@@ -105,15 +105,8 @@
     <section class="seccion-progreso-onzas">
       <ion-card class="progreso-onzas-card">
         <ion-card-content>
-          <div class="progreso-header">
-            <div class="progreso-title">
-              <ion-icon name="water-outline"></ion-icon>
-              <span>Leche hoy</span>
-            </div>
-
-            <span class="progreso-porcentaje">
-              {{ porcentajeOnzas }}%
-            </span>
+          <div class="progreso-resumen">
+            <strong>{{ porcentajeOnzas }}%</strong>
           </div>
 
           <ion-progress-bar
@@ -122,9 +115,7 @@
           </ion-progress-bar>
 
           <div class="progreso-detalle">
-            <span>{{ onzasTomadasHoy }} oz tomadas</span>
-            <span>{{ onzasDiariasObjetivo }} oz meta</span>
-            <strong>Faltan {{ onzasRestantes }} oz</strong>
+            <span>{{ onzasTomadasHoy }} oz de {{ onzasDiariasObjetivo }} oz</span>
           </div>
         </ion-card-content>
       </ion-card>
