@@ -81,18 +81,38 @@
   text-transform: none;
 }
 
-ion-list {
-  background: transparent;
+.ajustes-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-ion-item {
+.ajuste-field ion-item {
   --background: #f7f7fb;
   --border-radius: 16px;
   --padding-start: 14px;
   --padding-end: 14px;
-
+  --inner-padding-end: 10px;
+  --min-height: 64px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.08);
   border-radius: 16px;
-  margin-bottom: 10px;
+}
+
+.ajuste-field ion-note[slot='end'] {
+  align-self: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  color: var(--ion-color-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.field-help {
+  margin: 6px 2px 0;
+  color: var(--ion-color-medium);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .guardar-config-button {

@@ -47,70 +47,70 @@
       </ion-segment>
     </section>
 
-    <ion-list *ngIf="bebeActivoId">
-      <ion-item>
-        <ion-input
-          label="Tiempo entre tomas"
-          label-placement="stacked"
-          type="number"
-          min="1"
-          max="24"
-          [(ngModel)]="tiempoEntreTomasHoras"
-          (ionInput)="limpiarMensaje()"
-          placeholder="Ej: 3">
-        </ion-input>
+    <div class="ajustes-fields" *ngIf="bebeActivoId">
+      <div class="ajuste-field">
+        <ion-item lines="none">
+          <ion-input
+            label="Tiempo entre tomas"
+            label-placement="stacked"
+            type="number"
+            min="1"
+            max="24"
+            [(ngModel)]="tiempoEntreTomasHoras"
+            (ionInput)="limpiarMensaje()"
+            placeholder="Ej: 3">
+          </ion-input>
 
-        <ion-note slot="end">horas</ion-note>
-      </ion-item>
+          <ion-note slot="end">horas</ion-note>
+        </ion-item>
 
-      <ion-item lines="none">
-        <ion-note>
-          Indica cada cuántas horas debería tomar leche este bebé.
-        </ion-note>
-      </ion-item>
+        <p class="field-help">
+          Cada cuántas horas debería tomar leche este bebé.
+        </p>
+      </div>
 
-      <ion-item>
-        <ion-input
-          label="Tiempo entre sueños"
-          label-placement="stacked"
-          type="number"
-          min="1"
-          max="24"
-          [(ngModel)]="tiempoEntreSuenosHoras"
-          (ionInput)="limpiarMensaje()"
-          placeholder="Ej: 2">
-        </ion-input>
+      <div class="ajuste-field">
+        <ion-item lines="none">
+          <ion-input
+            label="Tiempo entre sueños"
+            label-placement="stacked"
+            type="number"
+            min="1"
+            max="24"
+            [(ngModel)]="tiempoEntreSuenosHoras"
+            (ionInput)="limpiarMensaje()"
+            placeholder="Ej: 2">
+          </ion-input>
 
-        <ion-note slot="end">horas</ion-note>
-      </ion-item>
+          <ion-note slot="end">horas</ion-note>
+        </ion-item>
 
-      <ion-item lines="none">
-        <ion-note>
-          Indica cada cuántas horas debería dormir o tomar una siesta este bebé.
-        </ion-note>
-      </ion-item>
+        <p class="field-help">
+          Cada cuántas horas debería dormir o tomar una siesta.
+        </p>
+      </div>
 
-      <ion-item>
-        <ion-input
-          label="Onzas diarias objetivo"
-          label-placement="stacked"
-          type="number"
-          min="1"
-          inputmode="decimal"
-          [(ngModel)]="onzasDiariasObjetivo"
-          (ionInput)="limpiarMensaje()"
-          placeholder="Ej: 24">
-        </ion-input>
+      <div class="ajuste-field">
+        <ion-item lines="none">
+          <ion-input
+            label="Onzas diarias objetivo"
+            label-placement="stacked"
+            type="number"
+            min="1"
+            inputmode="decimal"
+            [(ngModel)]="onzasDiariasObjetivo"
+            (ionInput)="limpiarMensaje()"
+            placeholder="Ej: 24">
+          </ion-input>
 
-        <ion-note slot="end">oz</ion-note>
-      </ion-item>
+          <ion-note slot="end">oz</ion-note>
+        </ion-item>
 
-      <ion-item lines="none">
-        <ion-note>
-          Esta meta se usará para calcular el progreso diario de onzas de este bebé.
-        </ion-note>
-      </ion-item>
-    </ion-list>
+        <p class="field-help">
+          Meta usada para calcular el progreso diario de onzas.
+        </p>
+      </div>
+    </div>
 
     <div class="acciones-ajustes">
       <ion-button

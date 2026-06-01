@@ -1,7 +1,6 @@
 ﻿import { Component, OnInit, inject } from '@angular/core';
 import {
   IonContent,
-  IonList,
   IonItem,
   IonInput,
   IonButton,
@@ -32,7 +31,6 @@ import { ThemePreference, ThemeService } from '../services/theme.service';
     FormsModule,
     NgIf,
     IonContent,
-    IonList,
     IonItem,
     IonInput,
     IonButton,
