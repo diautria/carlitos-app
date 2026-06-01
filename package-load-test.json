@@ -1,0 +1,29 @@
+{
+  "description": "Scripts para pruebas de carga y estrés",
+  "scripts": {
+    "test:load": "ng test --include='**/load-test.spec.ts' --watch=false",
+    "test:load:watch": "ng test --include='**/load-test.spec.ts'",
+    "test:load:coverage": "ng test --include='**/load-test.spec.ts' --code-coverage --watch=false",
+    "test:load:ui": "ng test --include='**/load-test.spec.ts' --browsers=Chrome",
+    "k6:load:basic": "k6 run tests/load-test-api.js --vus=50 --duration=10m",
+    "k6:load:light": "k6 run tests/load-test-api.js --vus=10 --duration=5m",
+    "k6:load:heavy": "k6 run tests/load-test-api.js --vus=250 --duration=15m",
+    "k6:stress:progressive": "k6 run tests/load-test-api.js --stage 5m:10 --stage 5m:20 --stage 5m:50 --stage 5m:100",
+    "k6:stress:spike": "k6 run tests/load-test-api.js --stage 2m:10 --stage 1m:100 --stage 2m:10",
+    "k6:endurance": "k6 run tests/load-test-api.js --vus=20 --duration=60m",
+    "k6:cloud": "k6 cloud tests/load-test-api.js --vus=100 --duration=10m",
+    "k6:json": "k6 run tests/load-test-api.js --vus=50 --duration=10m --out json=load-test-result.json",
+    "lighthouse": "lighthouse http://localhost:4200 --output=json --output-path=./lighthouse-report.json",
+    "lighthouse:view": "npm run lighthouse && open ./lighthouse-report.json",
+    "perf:profile": "ng serve --configuration=production & lighthouse http://localhost:4200 --emulated-form-factor=mobile",
+    "memory:profile": "node --inspect node_modules/@angular/cli/bin/ng serve",
+    "cpu:profile": "ng build --stats-json && webpack-bundle-analyzer dist/app/stats.json",
+    "devtools:trace": "echo 'Open Chrome DevTools (F12) > Performance tab and record'",
+    "test:all": "npm run test:load && npm run k6:load:light",
+    "test:ci": "npm run test:load:coverage && npm run k6:load:basic"
+  },
+  "devDependencies": {
+    "@angular/cli": "^20.0.0",
+    "k6": "^0.50.0"
+  }
+}
