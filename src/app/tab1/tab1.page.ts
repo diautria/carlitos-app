@@ -10,7 +10,24 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, Io
   IonAlert
  } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { people, time, medical, chevronForward, water, logoWhatsapp,documentText, addCircleOutline, restaurant, statsChartOutline } from 'ionicons/icons';
+import {
+  people,
+  time,
+  medical,
+  chevronForward,
+  water,
+  logoWhatsapp,
+  documentText,
+  addCircleOutline,
+  restaurant,
+  restaurantOutline,
+  statsChartOutline,
+  personAddOutline,
+  todayOutline,
+  heart,
+  flask,
+  leaf
+} from 'ionicons/icons';
 import { personOutline, trashOutline, close  } from 'ionicons/icons';
 import { BebeFamiliaService } from '../services/bebe-familia.service';
 import { BebeFamilia, CrearBebeFamiliaRequest } from '../models/bebe-familia.model';
@@ -119,7 +136,27 @@ private modalController = inject(ModalController);
 private actividadEventosService = inject(ActividadEventosService);
 
   async ngOnInit() {
-   addIcons({ people, time, medical, restaurant, chevronForward, personOutline, addOutline, trashOutline, close, createOutline, documentText, moonOutline, statsChartOutline   });
+   addIcons({
+     people,
+     time,
+     medical,
+     restaurant,
+     restaurantOutline,
+     chevronForward,
+     personOutline,
+     personAddOutline,
+     addOutline,
+     trashOutline,
+     close,
+     createOutline,
+     documentText,
+     moonOutline,
+     statsChartOutline,
+     todayOutline,
+     heart,
+     flask,
+     leaf
+   });
    this.actividadGuardadaSubscription =
      this.actividadEventosService.actividadGuardada$.subscribe(async activity => {
        await this.refrescarActividadGuardada(activity || undefined);
