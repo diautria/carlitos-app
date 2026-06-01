@@ -275,7 +275,7 @@
                                   slot="start"
                                   class="activity-icon-small"
                                   name="leaf"
-                                  [color]="$any(act).tieneHeces ? 'warning' : 'success'">
+                                  [color]="$any(act).tieneHeces ? 'warning' : 'medium'">
                                 </ion-icon>
 
                                 <ion-label>
@@ -971,7 +971,7 @@
                 <ion-button
                   expand="block"
                   type="button"
-                  [color]="!form.tieneHeces ? 'success' : 'medium'"
+                  [color]="!form.tieneHeces ? 'tertiary' : 'medium'"
                   (click)="form.tieneHeces = false"
                   size="small">
                   <ion-icon name="checkmark-circle"></ion-icon>
@@ -1319,7 +1319,7 @@
 
         <div class="filter-card diaper-filter-card">
           <div class="filter-card-title">
-            <ion-icon name="leaf"></ion-icon>
+            <ion-icon name="leaf" color="warning"></ion-icon>
 
             <div>
               <h3>Cambios de pañal</h3>
@@ -1340,7 +1340,7 @@
               type="button"
               size="small"
               [fill]="filtersDraft.tipoPanal === 'pipi' ? 'solid' : 'outline'"
-              color="success"
+              color="medium"
               (click)="filtersDraft.tipoPanal = 'pipi'">
               Solo pipí
             </ion-button>

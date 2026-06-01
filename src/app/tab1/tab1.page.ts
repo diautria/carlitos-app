@@ -199,7 +199,7 @@ getIconoActividad(actividad: any): string {
   }
 
   if (actividad.type === 'cambio-panal') {
-    return actividad.tieneHeces ? 'warning' : 'success';
+    return actividad.tieneHeces ? 'warning' : 'medium';
   }
 
   if (actividad.type === 'medicamento') {

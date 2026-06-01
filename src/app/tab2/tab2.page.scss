@@ -695,6 +695,10 @@ ion-modal {
   letter-spacing: 0;
 }
 
+.type-buttons ion-icon {
+  margin-right: 6px;
+}
+
 /* Inputs */
 .filter-grid {
   display: grid;
@@ -718,7 +722,7 @@ ion-modal {
 }
 
 .diaper-filter-card {
-  border-left: 4px solid rgba(var(--ion-color-success-rgb), 0.22);
+  border-left: 4px solid rgba(var(--ion-color-warning-rgb), 0.24);
 }
 
 .food-filter-card {
