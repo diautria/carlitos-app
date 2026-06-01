@@ -10,6 +10,10 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: 'ic_notification_c',
       iconColor: '#7ec8ff'
+    },
+    SystemBars: {
+      insetsHandling: 'css',
+      hidden: false
     }
   }
 };

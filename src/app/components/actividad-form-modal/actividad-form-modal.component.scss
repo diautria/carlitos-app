@@ -1,5 +1,5 @@
 .modal-form {
-  padding: 16px;
+  padding: 16px 16px calc(16px + var(--ion-safe-area-bottom, 0px));
 }
 
 .form-section {
