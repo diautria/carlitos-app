@@ -47,7 +47,6 @@
           </ion-button>
 
           <ion-button
-            *ngIf="tieneMedicamentosRegistrados()"
             expand="block"
             type="button"
             aria-label="Medicamento"
@@ -448,7 +447,7 @@
 
           <div
             class="medicamentos-inline-list"
-            *ngIf="medicamentosDisponibles.length; else sinMedicamentosRegistrados">
+            *ngIf="!cargandoMedicamentos && medicamentosDisponibles.length; else estadoMedicamentos">
 
             <button
               type="button"
@@ -481,8 +480,13 @@
             </button>
           </div>
 
-          <ng-template #sinMedicamentosRegistrados>
-            <div class="empty-state">
+          <ng-template #estadoMedicamentos>
+            <div class="food-loading" *ngIf="cargandoMedicamentos">
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>Cargando medicamentos...</span>
+            </div>
+
+            <div class="empty-state" *ngIf="!cargandoMedicamentos">
               <p>No hay medicamentos activos registrados.</p>
               <small>Primero agrégalos desde el detalle del bebé.</small>
             </div>

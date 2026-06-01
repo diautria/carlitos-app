@@ -143,8 +143,11 @@ export class ActividadFormModalComponent implements OnInit {
 
   bebes: BebeFamilia[] = [];
   medicamentosDisponibles: MedicamentoDisponible[] = [];
+  cargandoMedicamentos = false;
   modalLista = false;
   guardando = false;
+  private medicamentosCargados = false;
+  private medicamentosPromise?: Promise<void>;
 
   constructor() {
     addIcons({close,water,leaf,medical,moon,restaurant,add,heart,flask,checkmarkCircle,alertCircle,medicalOutline,checkmark});
@@ -155,11 +158,13 @@ export class ActividadFormModalComponent implements OnInit {
 
     this.isEdit = this.modo === 'editar';
 
-    await this.cargarMedicamentosRegistrados();
-
     if (this.isEdit && this.actividad) {
       this.formType = this.actividad.type;
       this.form = { ...this.actividad };
+
+      if (this.formType === 'medicamento') {
+        await this.cargarMedicamentosRegistrados();
+      }
 
       if (this.formType === 'comida') {
         await this.cargarCatalogoAlimentos();
@@ -182,15 +187,12 @@ export class ActividadFormModalComponent implements OnInit {
     } else {
       this.formType = this.tipoInicial || 'toma-leche';
 
-      if (
-        this.formType === 'medicamento' &&
-        !this.tieneMedicamentosRegistrados()
-      ) {
-        this.formType = 'toma-leche';
-      }
-
       this.form = this.getEmptyForm(this.formType);
       this.sincronizarFechaActividadDesdeTime();
+
+      if (this.formType === 'medicamento') {
+        await this.cargarMedicamentosRegistrados();
+      }
 
       if (this.formType === 'comida') {
         await this.cargarCatalogoAlimentos();
@@ -207,6 +209,21 @@ export class ActividadFormModalComponent implements OnInit {
   }
 
   private async cargarMedicamentosRegistrados() {
+    if (this.medicamentosCargados) {
+      return;
+    }
+
+    if (this.medicamentosPromise) {
+      return this.medicamentosPromise;
+    }
+
+    this.medicamentosPromise = this.cargarMedicamentosRegistradosDesdeServicio();
+    await this.medicamentosPromise;
+  }
+
+  private async cargarMedicamentosRegistradosDesdeServicio() {
+    this.cargandoMedicamentos = true;
+
     try {
       const bebes = await this.bebeFamiliaService.obtenerBebesFamiliaActual();
 
@@ -228,15 +245,16 @@ export class ActividadFormModalComponent implements OnInit {
           });
         }
       }
+
+      this.medicamentosCargados = true;
     } catch (error) {
       console.error('Error cargando medicamentos registrados', error);
       this.bebes = [];
       this.medicamentosDisponibles = [];
+    } finally {
+      this.cargandoMedicamentos = false;
+      this.medicamentosPromise = undefined;
     }
-  }
-
-  tieneMedicamentosRegistrados(): boolean {
-    return this.medicamentosDisponibles.length > 0;
   }
 
   getEmptyForm(type: ActivityFamiliaType) {
@@ -326,6 +344,10 @@ export class ActividadFormModalComponent implements OnInit {
 
     if (type === 'comida') {
       await this.cargarCatalogoAlimentos();
+    }
+
+    if (type === 'medicamento') {
+      await this.cargarMedicamentosRegistrados();
     }
   }
 
