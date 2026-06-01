@@ -263,7 +263,10 @@
     </div>
   </ng-template>
 
-  <ion-modal [isOpen]="showModalMedicamento" (didDismiss)="cerrarModalMedicamento()">
+  <ion-modal
+    [isOpen]="showModalMedicamento"
+    [canDismiss]="!guardandoMedicamento"
+    (didDismiss)="cerrarModalMedicamento()">
     <ng-template>
       <ion-header>
         <ion-toolbar>
@@ -272,7 +275,10 @@
           </ion-title>
 
           <ion-buttons slot="end">
-            <ion-button (click)="cerrarModalMedicamento()" color="medium">
+            <ion-button
+              (click)="cerrarModalMedicamento()"
+              color="medium"
+              [disabled]="guardandoMedicamento">
               <ion-icon name="close"></ion-icon>
             </ion-button>
           </ion-buttons>
@@ -285,69 +291,104 @@
             <ion-icon name="medical-outline"></ion-icon>
           </div>
 
-          <h2>Medicamento tomado</h2>
+          <h2>Datos del medicamento</h2>
           <p>Registra el nombre, la dosis en gotas y cuándo debe tomarlo.</p>
         </div>
 
         <ion-list lines="none" class="form-list">
-          <ion-item lines="none" class="form-item">
+          <ion-item
+            lines="none"
+            class="form-item"
+            [class.form-item-invalid]="camposMedicamentoTocados.nombre && medicamentoNombreRequerido">
+            <ion-label position="stacked">
+              Nombre del medicamento <span class="required-mark">*</span>
+            </ion-label>
             <ion-input
-              label="Nombre del medicamento"
-              label-placement="stacked"
               placeholder="Ej: Vitaminas, hierro, gotas..."
               [(ngModel)]="medicamentoForm.nombre"
+              (ionBlur)="marcarCampoMedicamentoTocado('nombre')"
               required>
             </ion-input>
           </ion-item>
 
-          <p class="field-error" *ngIf="erroresMedicamento.nombre">
-            {{ erroresMedicamento.nombre }}
+          <p class="field-error" *ngIf="camposMedicamentoTocados.nombre && medicamentoNombreRequerido">
+            El nombre del medicamento es obligatorio.
           </p>
 
-          <ion-item lines="none" class="form-item">
+          <ion-item
+            lines="none"
+            class="form-item"
+            [class.form-item-invalid]="camposMedicamentoTocados.dosisGotas && (medicamentoDosisRequerida || medicamentoDosisInvalida)">
+            <ion-label position="stacked">
+              Dosis en gotas <span class="required-mark">*</span>
+            </ion-label>
             <ion-input
               type="number"
               min="1"
-              label="Dosis en gotas"
-              label-placement="stacked"
               placeholder="Ej: 5"
               [(ngModel)]="medicamentoForm.dosisGotas"
+              (ionBlur)="marcarCampoMedicamentoTocado('dosisGotas')"
               required>
             </ion-input>
           </ion-item>
 
-          <p class="field-error" *ngIf="erroresMedicamento.dosisGotas">
-            {{ erroresMedicamento.dosisGotas }}
+          <p class="field-error" *ngIf="camposMedicamentoTocados.dosisGotas && medicamentoDosisRequerida">
+            La dosis en gotas es obligatoria.
           </p>
 
-          <ion-item lines="none" class="form-item">
-            <ion-input
-              type="number"
-              min="1"
-              label="Cada cuántas horas"
-              label-placement="stacked"
-              placeholder="Ej: 8"
-              [(ngModel)]="medicamentoForm.frecuenciaHoras">
-            </ion-input>
-          </ion-item>
-
-          <ion-item lines="none" class="form-item">
-            <ion-input
-              type="time"
-              label="Horario fijo"
-              label-placement="stacked"
-              [(ngModel)]="medicamentoForm.horario">
-            </ion-input>
-          </ion-item>
-
-          <p class="field-error" *ngIf="erroresMedicamento.horarioFrecuencia">
-            {{ erroresMedicamento.horarioFrecuencia }}
+          <p class="field-error" *ngIf="camposMedicamentoTocados.dosisGotas && medicamentoDosisInvalida">
+            La dosis debe ser mayor a 0.
           </p>
 
+          <div class="medicamento-schedule-box">
+            <div class="medicamento-schedule-header">
+              <span>Frecuencia u horario <strong>*</strong></span>
+              <small>Completa uno</small>
+            </div>
+
+            <div class="medicamento-schedule-grid">
+              <ion-item
+                lines="none"
+                class="form-item schedule-item"
+                [class.form-item-invalid]="camposMedicamentoTocados.horarioFrecuencia && medicamentoFrecuenciaInvalida">
+                <ion-label position="stacked">Cada cuántas horas</ion-label>
+                <ion-input
+                  type="number"
+                  min="1"
+                  placeholder="Ej: 8"
+                  [(ngModel)]="medicamentoForm.frecuenciaHoras"
+                  (ionBlur)="marcarCampoMedicamentoTocado('horarioFrecuencia')">
+                </ion-input>
+              </ion-item>
+
+              <ion-item lines="none" class="form-item schedule-item">
+                <ion-label position="stacked">Horario fijo</ion-label>
+                <ion-input
+                  type="time"
+                  [(ngModel)]="medicamentoForm.horario"
+                  (ionBlur)="marcarCampoMedicamentoTocado('horarioFrecuencia')">
+                </ion-input>
+              </ion-item>
+            </div>
+
+            <p
+              class="field-error schedule-error"
+              *ngIf="camposMedicamentoTocados.horarioFrecuencia && medicamentoHorarioFrecuenciaRequerido && !medicamentoFrecuenciaInvalida">
+              Indicá cada cuántas horas o un horario fijo.
+            </p>
+
+            <p
+              class="field-error schedule-error"
+              *ngIf="camposMedicamentoTocados.horarioFrecuencia && medicamentoFrecuenciaInvalida">
+              La frecuencia debe ser mayor a 0.
+            </p>
+          </div>
+
           <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">
+              Observaciones <span class="optional-mark">opcional</span>
+            </ion-label>
             <ion-textarea
-              label="Observaciones"
-              label-placement="stacked"
               placeholder="Ej: Dar después de la leche, por 7 días..."
               auto-grow="true"
               rows="3"
@@ -371,15 +412,29 @@
         <ion-button
           expand="block"
           class="save-button"
+          [disabled]="!puedeGuardarMedicamento || !bebe"
           (click)="guardarMedicamento()">
-          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-          {{ indiceMedicamentoEditando !== null ? 'Guardar cambios' : 'Guardar medicamento' }}
+          <ion-spinner
+            *ngIf="guardandoMedicamento"
+            name="crescent"
+            slot="start"
+            class="spinner-button">
+          </ion-spinner>
+          <ion-icon
+            *ngIf="!guardandoMedicamento"
+            name="checkmark-circle-outline"
+            slot="start">
+          </ion-icon>
+          {{ guardandoMedicamento ? 'Guardando...' : (indiceMedicamentoEditando !== null ? 'Guardar cambios' : 'Guardar medicamento') }}
         </ion-button>
       </ion-content>
     </ng-template>
   </ion-modal>
 
-  <ion-modal [isOpen]="showModalNota" (didDismiss)="cerrarModalNota()">
+  <ion-modal
+    [isOpen]="showModalNota"
+    [canDismiss]="!guardandoNota"
+    (didDismiss)="cerrarModalNota()">
     <ng-template>
       <ion-header>
         <ion-toolbar>
@@ -388,31 +443,72 @@
           </ion-title>
 
           <ion-buttons slot="end">
-            <ion-button (click)="cerrarModalNota()" color="medium">
+            <ion-button
+              (click)="cerrarModalNota()"
+              color="medium"
+              [disabled]="guardandoNota">
               <ion-icon name="close"></ion-icon>
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
-        <ion-list lines="none">
-          <ion-item lines="none">
+      <ion-content class="ion-padding nota-modal-content">
+        <div class="modal-intro nota-modal-intro">
+          <div class="modal-icon nota-modal-icon">
+            <ion-icon name="document-text"></ion-icon>
+          </div>
+
+          <div>
+            <h2>Nota del bebé</h2>
+            <p>Guarda una observación breve para tenerla a mano en el detalle.</p>
+          </div>
+        </div>
+
+        <ion-list lines="none" class="form-list">
+          <ion-item
+            lines="none"
+            class="form-item nota-form-item"
+            [class.form-item-invalid]="notaTocada && notaRequerida">
+            <ion-label position="stacked">
+              Nota <span class="required-mark">*</span>
+            </ion-label>
             <ion-textarea
-              label-placement="stacked"
               [(ngModel)]="nuevaNota"
-              placeholder="Escribe una nota"
+              (ionBlur)="marcarNotaTocada()"
+              placeholder="Ej: Le costó dormir después de la toma..."
               auto-grow="true"
-              rows="4">
+              rows="5"
+              maxlength="500"
+              required>
             </ion-textarea>
           </ion-item>
+
+          <div class="nota-helper-row">
+            <p class="field-error" *ngIf="notaTocada && notaRequerida">
+              La nota es obligatoria.
+            </p>
+            <span>{{ nuevaNota.length || 0 }}/500</span>
+          </div>
         </ion-list>
 
         <ion-button
           expand="block"
-          class="ion-margin-top"
+          class="save-button"
+          [disabled]="!puedeGuardarNota"
           (click)="guardarNota()">
-          {{ indiceNotaEditando !== null ? 'Guardar cambios' : 'Guardar nota' }}
+          <ion-spinner
+            *ngIf="guardandoNota"
+            name="crescent"
+            slot="start"
+            class="spinner-button">
+          </ion-spinner>
+          <ion-icon
+            *ngIf="!guardandoNota"
+            name="checkmark-circle-outline"
+            slot="start">
+          </ion-icon>
+          {{ guardandoNota ? 'Guardando...' : (indiceNotaEditando !== null ? 'Guardar cambios' : 'Guardar nota') }}
         </ion-button>
       </ion-content>
     </ng-template>

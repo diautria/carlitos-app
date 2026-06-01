@@ -112,6 +112,12 @@ fotoSeleccionada?: File;
 showEliminarBebeAlert = false;
 cargandoTab1 = true;
 bebeAEliminar: BebeFamilia | null = null;
+camposBebeTocados = {
+  nombre: false,
+  fechaNacimiento: false,
+  peso: false,
+  altura: false
+};
 private familiaMiembrosService = inject(FamiliaMiembrosService);
 esAdminFamilia = false;
 bebeForm: CrearBebeFamiliaRequest = this.crearFormBebeVacio();
@@ -855,6 +861,7 @@ abrirModalNuevoBebe() {
   this.bebeEditandoId = '';
   this.fotoSeleccionada = undefined;
   this.mensajeBebe = '';
+  this.resetCamposBebeTocados();
   this.bebeForm = this.crearFormBebeVacio();
   this.showModalBebe = true;
 }
@@ -863,18 +870,60 @@ cerrarModalBebe() {
   this.showModalBebe = false;
   this.guardandoBebe = false;
   this.mensajeBebe = '';
+  this.resetCamposBebeTocados();
 }
 
 async guardarBebe() {
+  if (this.guardandoBebe) {
+    return;
+  }
+
+  if (!this.puedeGuardarBebe) {
+    this.marcarCamposBebeTocados();
+    return;
+  }
+
   const nombre = this.bebeForm.nombre?.trim();
 
   if (!nombre) {
-    this.mensajeBebe = 'Ingresá el nombre del bebé.';
+    this.mensajeBebe = 'El nombre del bebé es obligatorio.';
     return;
   }
 
   if (!this.bebeForm.fechaNacimiento) {
-    this.mensajeBebe = 'Ingresá la fecha de nacimiento.';
+    this.mensajeBebe = 'La fecha de nacimiento es obligatoria.';
+    return;
+  }
+
+  if (
+    this.bebeForm.peso === undefined ||
+    this.bebeForm.peso === null ||
+    String(this.bebeForm.peso).trim() === ''
+  ) {
+    this.mensajeBebe = 'El peso actual es obligatorio.';
+    return;
+  }
+
+  const peso = Number(this.bebeForm.peso);
+
+  if (Number.isNaN(peso) || peso <= 0) {
+    this.mensajeBebe = 'Ingresá un peso válido mayor que cero.';
+    return;
+  }
+
+  if (
+    this.bebeForm.altura === undefined ||
+    this.bebeForm.altura === null ||
+    String(this.bebeForm.altura).trim() === ''
+  ) {
+    this.mensajeBebe = 'La altura actual es obligatoria.';
+    return;
+  }
+
+  const altura = Number(this.bebeForm.altura);
+
+  if (Number.isNaN(altura) || altura <= 0) {
+    this.mensajeBebe = 'Ingresá una altura válida mayor que cero.';
     return;
   }
 
@@ -890,21 +939,8 @@ async guardarBebe() {
       notas: this.bebeForm.notas || []
     };
 
-    if (
-      this.bebeForm.peso !== undefined &&
-      this.bebeForm.peso !== null &&
-      String(this.bebeForm.peso).trim() !== ''
-    ) {
-      request.peso = Number(this.bebeForm.peso);
-    }
-
-    if (
-      this.bebeForm.altura !== undefined &&
-      this.bebeForm.altura !== null &&
-      String(this.bebeForm.altura).trim() !== ''
-    ) {
-      request.altura = Number(this.bebeForm.altura);
-    }
+    request.peso = peso;
+    request.altura = altura;
 
     let bebeId = this.bebeEditandoId;
 
@@ -950,6 +986,7 @@ async guardarBebe() {
     this.fotoSeleccionada = undefined;
     this.bebeEditandoId = '';
     this.bebeForm = this.crearFormBebeVacio();
+    this.resetCamposBebeTocados();
     this.showModalBebe = false;
     this.mensajeBebe = '';
 
@@ -961,6 +998,73 @@ async guardarBebe() {
   } finally {
     this.guardandoBebe = false;
   }
+}
+
+marcarCampoBebeTocado(campo: keyof Tab1Page['camposBebeTocados']) {
+  this.camposBebeTocados[campo] = true;
+}
+
+private marcarCamposBebeTocados() {
+  this.camposBebeTocados = {
+    nombre: true,
+    fechaNacimiento: true,
+    peso: true,
+    altura: true
+  };
+}
+
+private resetCamposBebeTocados() {
+  this.camposBebeTocados = {
+    nombre: false,
+    fechaNacimiento: false,
+    peso: false,
+    altura: false
+  };
+}
+
+get nombreBebeRequerido(): boolean {
+  return !this.bebeForm.nombre?.trim();
+}
+
+get fechaNacimientoRequerida(): boolean {
+  return !this.bebeForm.fechaNacimiento;
+}
+
+get pesoBebeRequerido(): boolean {
+  return this.campoNumericoVacio(this.bebeForm.peso);
+}
+
+get pesoBebeInvalido(): boolean {
+  return !this.pesoBebeRequerido && !this.esNumeroPositivo(this.bebeForm.peso);
+}
+
+get alturaBebeRequerida(): boolean {
+  return this.campoNumericoVacio(this.bebeForm.altura);
+}
+
+get alturaBebeInvalida(): boolean {
+  return !this.alturaBebeRequerida && !this.esNumeroPositivo(this.bebeForm.altura);
+}
+
+get puedeGuardarBebe(): boolean {
+  return !this.nombreBebeRequerido &&
+    !this.fechaNacimientoRequerida &&
+    !this.pesoBebeRequerido &&
+    !this.pesoBebeInvalido &&
+    !this.alturaBebeRequerida &&
+    !this.alturaBebeInvalida;
+}
+
+private campoNumericoVacio(value: unknown): boolean {
+  return value === undefined ||
+    value === null ||
+    String(value).trim() === '';
+}
+
+private esNumeroPositivo(value: unknown): boolean {
+  const numero = Number(value);
+
+  return !Number.isNaN(numero) && numero > 0;
 }
 
 onFotoSeleccionada(event: Event) {
@@ -1054,6 +1158,7 @@ editarBebe(event: Event, bebe: BebeFamilia) {
   this.bebeEditandoId = bebe.id;
   this.fotoSeleccionada = undefined;
   this.mensajeBebe = '';
+  this.resetCamposBebeTocados();
 
   this.bebeForm = {
     nombre: bebe.nombre,

@@ -585,3 +585,253 @@
   font-size: 1.1rem;
   opacity: 0.86;
 }
+
+.medicamento-modal-content {
+  --background: linear-gradient(180deg, #f8fbff 0%, #f3f8f5 100%);
+  --padding-bottom: calc(18px + var(--ion-safe-area-bottom, 0px));
+}
+
+.modal-intro {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(var(--ion-color-medicamento-rgb), 0.13);
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.08);
+
+  h2 {
+    margin: 0 0 3px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--ion-color-dark);
+  }
+
+  p {
+    margin: 0;
+    color: var(--ion-color-medium);
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+}
+
+.modal-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(var(--ion-color-medicamento-rgb), 0.12);
+  color: var(--ion-color-medicamento);
+  border: 1px solid rgba(var(--ion-color-medicamento-rgb), 0.16);
+
+  ion-icon {
+    font-size: 1.35rem;
+  }
+}
+
+.form-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  background: transparent;
+}
+
+.form-item {
+  --background: #ffffff;
+  --border-radius: 14px;
+  --inner-padding-end: 12px;
+  --padding-start: 12px;
+  --min-height: 62px;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.06);
+  overflow: hidden;
+
+  ion-label {
+    color: var(--ion-color-dark);
+    font-size: 0.76rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  ion-input,
+  ion-textarea {
+    --color: var(--ion-color-dark);
+    --placeholder-color: var(--ion-color-medium);
+    --placeholder-opacity: 0.8;
+    font-size: 0.94rem;
+  }
+}
+
+.form-item-invalid {
+  border-color: rgba(var(--ion-color-danger-rgb), 0.42);
+  box-shadow: 0 8px 18px rgba(var(--ion-color-danger-rgb), 0.08);
+}
+
+.required-mark,
+.medicamento-schedule-header strong {
+  color: var(--ion-color-danger);
+  font-weight: 900;
+}
+
+.optional-mark {
+  color: var(--ion-color-medium);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.field-error {
+  margin: -5px 4px 2px;
+  color: var(--ion-color-danger);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.medicamento-schedule-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(var(--ion-color-medicamento-rgb), 0.13);
+  box-shadow: 0 8px 20px rgba(16, 24, 40, 0.06);
+}
+
+.medicamento-schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  span {
+    color: var(--ion-color-dark);
+    font-size: 0.83rem;
+    font-weight: 850;
+  }
+
+  small {
+    flex: 0 0 auto;
+    color: var(--ion-color-medicamento);
+    background: rgba(var(--ion-color-medicamento-rgb), 0.1);
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-size: 0.68rem;
+    font-weight: 800;
+  }
+}
+
+.medicamento-schedule-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.schedule-item {
+  --min-height: 58px;
+  box-shadow: none;
+}
+
+.schedule-error {
+  margin: -2px 2px 0;
+}
+
+.toggle-item {
+  ion-label {
+    h3 {
+      margin: 0 0 3px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--ion-color-dark);
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.74rem;
+      color: var(--ion-color-medium);
+    }
+  }
+}
+
+.save-button {
+  margin-top: 18px;
+  --border-radius: 14px;
+  --background: var(--ion-color-medicamento);
+  --background-activated: var(--ion-color-medicamento-shade);
+  --box-shadow: 0 10px 22px rgba(var(--ion-color-medicamento-rgb), 0.22);
+  min-height: 48px;
+  font-weight: 800;
+}
+
+.save-button[disabled] {
+  opacity: 0.52;
+  --box-shadow: none;
+}
+
+.spinner-button {
+  width: 18px;
+  height: 18px;
+}
+
+.nota-modal-content {
+  --background: linear-gradient(180deg, #fbfcff 0%, #f7f9f2 100%);
+  --padding-bottom: calc(18px + var(--ion-safe-area-bottom, 0px));
+}
+
+.nota-modal-intro {
+  border-color: rgba(var(--ion-color-primary-rgb), 0.12);
+}
+
+.nota-modal-icon {
+  background: rgba(var(--ion-color-primary-rgb), 0.11);
+  color: var(--ion-color-primary);
+  border-color: rgba(var(--ion-color-primary-rgb), 0.15);
+}
+
+.nota-form-item {
+  --min-height: 150px;
+  align-items: flex-start;
+
+  ion-textarea {
+    min-height: 112px;
+    line-height: 1.4;
+  }
+}
+
+.nota-helper-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 18px;
+  padding: 0 4px;
+
+  .field-error {
+    margin: -5px 0 0;
+  }
+
+  span {
+    margin-left: auto;
+    color: var(--ion-color-medium);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 380px) {
+  .medicamento-schedule-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .medicamento-schedule-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

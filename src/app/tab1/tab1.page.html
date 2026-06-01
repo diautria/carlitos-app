@@ -351,41 +351,75 @@
           </div>
 
           <ion-item class="form-item" lines="none">
-            <ion-label position="stacked">Nombre</ion-label>
+            <ion-label position="stacked">
+              Nombre <span class="required-mark">*</span>
+            </ion-label>
             <ion-input
               [(ngModel)]="bebeForm.nombre"
-              placeholder="Ej: Carlos Daniel">
+              placeholder="Ej: Carlos Daniel"
+              (ionBlur)="marcarCampoBebeTocado('nombre')"
+              required>
             </ion-input>
           </ion-item>
+          <p class="field-error" *ngIf="camposBebeTocados.nombre && nombreBebeRequerido">
+            El nombre es obligatorio.
+          </p>
 
           <ion-item class="form-item" lines="none">
-            <ion-label position="stacked">Fecha de nacimiento</ion-label>
+            <ion-label position="stacked">
+              Fecha de nacimiento <span class="required-mark">*</span>
+            </ion-label>
             <ion-input
               type="date"
-              [(ngModel)]="bebeForm.fechaNacimiento">
+              [(ngModel)]="bebeForm.fechaNacimiento"
+              (ionBlur)="marcarCampoBebeTocado('fechaNacimiento')"
+              required>
             </ion-input>
           </ion-item>
+          <p class="field-error" *ngIf="camposBebeTocados.fechaNacimiento && fechaNacimientoRequerida">
+            La fecha de nacimiento es obligatoria.
+          </p>
 
           <ion-item class="form-item" lines="none">
-            <ion-label position="stacked">Peso actual kg</ion-label>
+            <ion-label position="stacked">
+              Peso actual kg <span class="required-mark">*</span>
+            </ion-label>
             <ion-input
               type="number"
               [(ngModel)]="bebeForm.peso"
-              placeholder="Ej: 6.2">
+              placeholder="Ej: 6.2"
+              (ionBlur)="marcarCampoBebeTocado('peso')"
+              required>
             </ion-input>
           </ion-item>
+          <p class="field-error" *ngIf="camposBebeTocados.peso && pesoBebeRequerido">
+            El peso actual es obligatorio.
+          </p>
+          <p class="field-error" *ngIf="camposBebeTocados.peso && pesoBebeInvalido">
+            Ingresá un peso mayor que cero.
+          </p>
 
           <ion-item class="form-item" lines="none">
-            <ion-label position="stacked">Altura actual cm</ion-label>
+            <ion-label position="stacked">
+              Altura actual cm <span class="required-mark">*</span>
+            </ion-label>
             <ion-input
               type="number"
               [(ngModel)]="bebeForm.altura"
-              placeholder="Ej: 62">
+              placeholder="Ej: 62"
+              (ionBlur)="marcarCampoBebeTocado('altura')"
+              required>
             </ion-input>
           </ion-item>
+          <p class="field-error" *ngIf="camposBebeTocados.altura && alturaBebeRequerida">
+            La altura actual es obligatoria.
+          </p>
+          <p class="field-error" *ngIf="camposBebeTocados.altura && alturaBebeInvalida">
+            Ingresá una altura mayor que cero.
+          </p>
 
           <ion-item class="form-item" lines="none">
-            <ion-label position="stacked">Próxima vacuna</ion-label>
+            <ion-label position="stacked">Próxima vacuna <span class="optional-mark">opcional</span></ion-label>
             <ion-input
               type="date"
               [(ngModel)]="bebeForm.proximaVacuna">
@@ -399,7 +433,7 @@
           <ion-button
             expand="block"
             class="guardar-bebe-button"
-            [disabled]="guardandoBebe"
+            [disabled]="guardandoBebe || !puedeGuardarBebe"
             (click)="guardarBebe()">
 
 {{ guardandoBebe ? 'Guardando...' : (bebeEditandoId ? 'Guardar cambios' : 'Guardar bebé') }}

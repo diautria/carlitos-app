@@ -105,15 +105,24 @@ private activityFamiliaService = inject(ActivityFamiliaService);
   showModalNota = false;
   nuevaNota = '';
   indiceNotaEditando: number | null = null;
+  notaTocada = false;
+  guardandoNota = false;
 
   showModalMedicamento = false;
   indiceMedicamentoEditando: number | null = null;
   medicamentoForm: MedicamentoBebe = this.crearMedicamentoVacio();
+  guardandoMedicamento = false;
 
   erroresMedicamento = {
     nombre: '',
     dosisGotas: '',
     horarioFrecuencia: ''
+  };
+
+  camposMedicamentoTocados = {
+    nombre: false,
+    dosisGotas: false,
+    horarioFrecuencia: false
   };
 
   async ngOnInit() {
@@ -208,6 +217,7 @@ private activityFamiliaService = inject(ActivityFamiliaService);
   abrirModalNota() {
     this.nuevaNota = '';
     this.indiceNotaEditando = null;
+    this.notaTocada = false;
     this.showModalNota = true;
   }
 
@@ -215,6 +225,8 @@ private activityFamiliaService = inject(ActivityFamiliaService);
     this.showModalNota = false;
     this.nuevaNota = '';
     this.indiceNotaEditando = null;
+    this.notaTocada = false;
+    this.guardandoNota = false;
   }
 
   trackByMedicamentoId(_index: number, medicamento: MedicamentoBebe): string {
@@ -228,34 +240,58 @@ private activityFamiliaService = inject(ActivityFamiliaService);
   abrirModalEditarNota(index: number, nota: string) {
     this.indiceNotaEditando = index;
     this.nuevaNota = nota;
+    this.notaTocada = false;
     this.showModalNota = true;
   }
 
-  async guardarNota() {
-    const nota = this.nuevaNota.trim();
+  marcarNotaTocada() {
+    this.notaTocada = true;
+  }
 
-    if (!nota || !this.bebe) {
+  get notaRequerida(): boolean {
+    return !this.nuevaNota.trim();
+  }
+
+  get puedeGuardarNota(): boolean {
+    return !this.notaRequerida && !!this.bebe && !this.guardandoNota;
+  }
+
+  async guardarNota() {
+    if (this.guardandoNota) {
       return;
     }
 
-    const notasActuales = [...(this.bebe.notas || [])];
+    const nota = this.nuevaNota.trim();
 
-    if (this.indiceNotaEditando !== null) {
-      notasActuales[this.indiceNotaEditando] = nota;
-    } else {
-      notasActuales.push(nota);
+    if (!nota || !this.bebe) {
+      this.notaTocada = true;
+      return;
     }
 
-    await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
-      notas: notasActuales
-    });
+    this.guardandoNota = true;
 
-    this.bebe = {
-      ...this.bebe,
-      notas: notasActuales
-    };
+    try {
+      const notasActuales = [...(this.bebe.notas || [])];
 
-    this.cerrarModalNota();
+      if (this.indiceNotaEditando !== null) {
+        notasActuales[this.indiceNotaEditando] = nota;
+      } else {
+        notasActuales.push(nota);
+      }
+
+      await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
+        notas: notasActuales
+      });
+
+      this.bebe = {
+        ...this.bebe,
+        notas: notasActuales
+      };
+
+      this.cerrarModalNota();
+    } finally {
+      this.guardandoNota = false;
+    }
   }
 
   async eliminarNota(index: number) {
@@ -280,7 +316,7 @@ private activityFamiliaService = inject(ActivityFamiliaService);
     return {
       id: crypto.randomUUID(),
       nombre: '',
-      dosisGotas: 0,
+      dosisGotas: undefined as unknown as number,
       frecuenciaHoras: undefined,
       horario: '',
       observaciones: '',
@@ -292,6 +328,7 @@ private activityFamiliaService = inject(ActivityFamiliaService);
     this.indiceMedicamentoEditando = null;
     this.medicamentoForm = this.crearMedicamentoVacio();
     this.limpiarErroresMedicamento();
+    this.resetCamposMedicamentoTocados();
     this.showModalMedicamento = true;
   }
 
@@ -303,6 +340,7 @@ private activityFamiliaService = inject(ActivityFamiliaService);
     };
 
     this.limpiarErroresMedicamento();
+    this.resetCamposMedicamentoTocados();
     this.showModalMedicamento = true;
   }
 
@@ -311,6 +349,8 @@ private activityFamiliaService = inject(ActivityFamiliaService);
     this.indiceMedicamentoEditando = null;
     this.medicamentoForm = this.crearMedicamentoVacio();
     this.limpiarErroresMedicamento();
+    this.resetCamposMedicamentoTocados();
+    this.guardandoMedicamento = false;
   }
 
   private limpiarErroresMedicamento() {
@@ -321,23 +361,98 @@ private activityFamiliaService = inject(ActivityFamiliaService);
     };
   }
 
+  marcarCampoMedicamentoTocado(campo: keyof DetalleBebePage['camposMedicamentoTocados']) {
+    this.camposMedicamentoTocados = {
+      ...this.camposMedicamentoTocados,
+      [campo]: true
+    };
+  }
+
+  private resetCamposMedicamentoTocados() {
+    this.camposMedicamentoTocados = {
+      nombre: false,
+      dosisGotas: false,
+      horarioFrecuencia: false
+    };
+  }
+
+  private marcarCamposMedicamentoTocados() {
+    this.camposMedicamentoTocados = {
+      nombre: true,
+      dosisGotas: true,
+      horarioFrecuencia: true
+    };
+  }
+
+  private campoNumericoVacio(valor: unknown): boolean {
+    return valor === undefined || valor === null || String(valor).trim() === '';
+  }
+
+  private esNumeroPositivo(valor: unknown): boolean {
+    if (this.campoNumericoVacio(valor)) {
+      return false;
+    }
+
+    return Number(valor) > 0;
+  }
+
+  get medicamentoNombreRequerido(): boolean {
+    return !this.medicamentoForm.nombre?.trim();
+  }
+
+  get medicamentoDosisRequerida(): boolean {
+    return this.campoNumericoVacio(this.medicamentoForm.dosisGotas);
+  }
+
+  get medicamentoDosisInvalida(): boolean {
+    return (
+      !this.medicamentoDosisRequerida &&
+      !this.esNumeroPositivo(this.medicamentoForm.dosisGotas)
+    );
+  }
+
+  get medicamentoFrecuenciaInvalida(): boolean {
+    return (
+      !this.campoNumericoVacio(this.medicamentoForm.frecuenciaHoras) &&
+      !this.esNumeroPositivo(this.medicamentoForm.frecuenciaHoras)
+    );
+  }
+
+  get medicamentoHorarioFrecuenciaRequerido(): boolean {
+    return (
+      !this.esNumeroPositivo(this.medicamentoForm.frecuenciaHoras) &&
+      !this.medicamentoForm.horario?.trim()
+    );
+  }
+
+  get puedeGuardarMedicamento(): boolean {
+    return (
+      !this.medicamentoNombreRequerido &&
+      !this.medicamentoDosisRequerida &&
+      !this.medicamentoDosisInvalida &&
+      !this.medicamentoFrecuenciaInvalida &&
+      !this.medicamentoHorarioFrecuenciaRequerido &&
+      !this.guardandoMedicamento
+    );
+  }
+
   private validarMedicamento(): boolean {
     this.limpiarErroresMedicamento();
 
     let esValido = true;
 
-    const nombre = this.medicamentoForm.nombre?.trim();
-
-    if (!nombre) {
+    if (this.medicamentoNombreRequerido) {
       this.erroresMedicamento.nombre = 'El nombre del medicamento es obligatorio.';
       esValido = false;
     }
 
-    if (
-      !this.medicamentoForm.dosisGotas ||
-      Number(this.medicamentoForm.dosisGotas) <= 0
-    ) {
+    if (this.medicamentoDosisRequerida) {
       this.erroresMedicamento.dosisGotas = 'La dosis en gotas es obligatoria.';
+      esValido = false;
+    }
+
+    if (this.medicamentoDosisInvalida) {
+      this.erroresMedicamento.dosisGotas = 'La dosis debe ser mayor a 0.';
       esValido = false;
     }
 
@@ -357,10 +472,30 @@ private activityFamiliaService = inject(ActivityFamiliaService);
       esValido = false;
     }
 
+    if (this.medicamentoHorarioFrecuenciaRequerido) {
+      this.erroresMedicamento.horarioFrecuencia =
+        'Indicá cada cuántas horas o un horario fijo.';
+      esValido = false;
+    }
+
+    if (this.medicamentoFrecuenciaInvalida) {
+      this.erroresMedicamento.horarioFrecuencia =
+        'La frecuencia debe ser mayor a 0.';
+      esValido = false;
+    }
+
+    if (!esValido) {
+      this.marcarCamposMedicamentoTocados();
+    }
+
     return esValido;
   }
 
   async guardarMedicamento() {
+    if (this.guardandoMedicamento) {
+      return;
+    }
+
     if (!this.bebe) {
       return;
     }
@@ -369,42 +504,48 @@ private activityFamiliaService = inject(ActivityFamiliaService);
       return;
     }
 
-    const nombre = this.medicamentoForm.nombre.trim();
-    const medicamentosActuales = [...(this.bebe.medicamentos || [])];
+    this.guardandoMedicamento = true;
 
-    const medicamentoGuardar: MedicamentoBebe = {
-      ...this.medicamentoForm,
-      nombre,
-      dosisGotas: Number(this.medicamentoForm.dosisGotas),
-      frecuenciaHoras:
-        this.medicamentoForm.frecuenciaHoras !== undefined &&
-        this.medicamentoForm.frecuenciaHoras !== null &&
-        String(this.medicamentoForm.frecuenciaHoras).trim() !== ''
-          ? Number(this.medicamentoForm.frecuenciaHoras)
-          : undefined,
-      horario: this.medicamentoForm.horario || '',
-      observaciones: this.medicamentoForm.observaciones?.trim() || '',
-      activo: !!this.medicamentoForm.activo
-    };
+    try {
+      const nombre = this.medicamentoForm.nombre.trim();
+      const medicamentosActuales = [...(this.bebe.medicamentos || [])];
 
-    if (this.indiceMedicamentoEditando !== null) {
-      medicamentosActuales[this.indiceMedicamentoEditando] = medicamentoGuardar;
-    } else {
-      medicamentosActuales.push(medicamentoGuardar);
+      const medicamentoGuardar: MedicamentoBebe = {
+        ...this.medicamentoForm,
+        nombre,
+        dosisGotas: Number(this.medicamentoForm.dosisGotas),
+        frecuenciaHoras:
+          this.medicamentoForm.frecuenciaHoras !== undefined &&
+          this.medicamentoForm.frecuenciaHoras !== null &&
+          String(this.medicamentoForm.frecuenciaHoras).trim() !== ''
+            ? Number(this.medicamentoForm.frecuenciaHoras)
+            : undefined,
+        horario: this.medicamentoForm.horario || '',
+        observaciones: this.medicamentoForm.observaciones?.trim() || '',
+        activo: !!this.medicamentoForm.activo
+      };
+
+      if (this.indiceMedicamentoEditando !== null) {
+        medicamentosActuales[this.indiceMedicamentoEditando] = medicamentoGuardar;
+      } else {
+        medicamentosActuales.push(medicamentoGuardar);
+      }
+
+      await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
+        medicamentos: medicamentosActuales
+      });
+
+      this.bebe = {
+        ...this.bebe,
+        medicamentos: medicamentosActuales
+      };
+
+      await this.programarNotificacionesMedicamentos();
+
+      this.cerrarModalMedicamento();
+    } finally {
+      this.guardandoMedicamento = false;
     }
-
-    await this.bebeFamiliaService.actualizarBebe(this.bebe.id, {
-      medicamentos: medicamentosActuales
-    });
-
-    this.bebe = {
-      ...this.bebe,
-      medicamentos: medicamentosActuales
-    };
-
-    await this.programarNotificacionesMedicamentos();
-
-    this.cerrarModalMedicamento();
   }
 
   async eliminarMedicamento(index: number) {

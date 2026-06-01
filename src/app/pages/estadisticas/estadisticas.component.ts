@@ -131,9 +131,12 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   resumenDiario = {
     lecheHoy: { actual: 0, objetivo: 24 },
+    tiempoMedioEntreTomasMinutos: null as number | null,
     panalesHoy: 0,
+    tiempoMedioEntrePanalesMinutos: null as number | null,
     medicamentosHoy: 0,
     suenoHoy: 0,
+    tiempoMedioEntreSuenosMinutos: null as number | null,
     comidasHoy: 0
   };
 
@@ -225,6 +228,29 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     const mins = minutos % 60;
 
     return `${horas}h ${mins}m`;
+  }
+
+  formatearIntervalo(minutos: number | null): string {
+    if (minutos === null || minutos <= 0) {
+      return '--';
+    }
+
+    const horas = Math.floor(minutos / 60);
+    const mins = minutos % 60;
+
+    if (horas <= 0) {
+      return `${mins}m`;
+    }
+
+    if (mins <= 0) {
+      return `${horas}h`;
+    }
+
+    return `${horas}h ${mins}m`;
+  }
+
+  formatearPromedioEntre(minutos: number | null): string {
+    return minutos === null ? 'sin promedio' : `cada ${this.formatearIntervalo(minutos)}`;
   }
 
   private renderizarGraficasActivas() {
@@ -530,25 +556,57 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     const hoy = new Date();
     const actividadesHoy = this.activities.filter(activity => this.esMismoDia(activity.time, hoy));
 
-    this.resumenDiario.lecheHoy.actual = actividadesHoy
-      .filter((activity): activity is TomaLecheFamiliaActivity => activity.type === 'toma-leche')
-      .reduce((sum, activity) => sum + Number(activity.cantidadOnzas || 0), 0);
+    const tomasHoy = actividadesHoy
+      .filter((activity): activity is TomaLecheFamiliaActivity => activity.type === 'toma-leche');
 
-    this.resumenDiario.panalesHoy = actividadesHoy.filter(
-      activity => activity.type === 'cambio-panal'
-    ).length;
+    this.resumenDiario.lecheHoy.actual = tomasHoy
+      .reduce((sum, activity) => sum + Number(activity.cantidadOnzas || 0), 0);
+    this.resumenDiario.tiempoMedioEntreTomasMinutos =
+      this.obtenerTiempoMedioEntreActividades(tomasHoy);
+
+    const panalesHoy = actividadesHoy
+      .filter((activity): activity is CambioPanalFamiliaActivity => activity.type === 'cambio-panal');
+
+    this.resumenDiario.panalesHoy = panalesHoy.length;
+    this.resumenDiario.tiempoMedioEntrePanalesMinutos =
+      this.obtenerTiempoMedioEntreActividades(panalesHoy);
 
     this.resumenDiario.medicamentosHoy = actividadesHoy.filter(
       activity => activity.type === 'medicamento'
     ).length;
 
-    this.resumenDiario.suenoHoy = actividadesHoy
-      .filter((activity): activity is SuenoFamiliaActivity => activity.type === 'sueno')
+    const suenosHoy = actividadesHoy
+      .filter((activity): activity is SuenoFamiliaActivity => activity.type === 'sueno');
+
+    this.resumenDiario.suenoHoy = suenosHoy
       .reduce((sum, activity) => sum + Number(activity.duracionMinutos || 0), 0);
+    this.resumenDiario.tiempoMedioEntreSuenosMinutos =
+      this.obtenerTiempoMedioEntreActividades(suenosHoy);
 
     this.resumenDiario.comidasHoy = actividadesHoy.filter(
       activity => activity.type === 'comida'
     ).length;
+  }
+
+  private obtenerTiempoMedioEntreActividades(actividades: ActivityFamilia[]): number | null {
+    const tiempos = actividades
+      .map(activity => this.parseFecha(activity.time).getTime())
+      .filter(tiempo => !Number.isNaN(tiempo))
+      .sort((a, b) => a - b);
+
+    if (tiempos.length < 2) {
+      return null;
+    }
+
+    const diferencias = tiempos
+      .slice(1)
+      .map((tiempo, index) => tiempo - tiempos[index]);
+
+    const promedioMs =
+      diferencias.reduce((total, diferencia) => total + diferencia, 0) /
+      diferencias.length;
+
+    return Math.round(promedioMs / 60000);
   }
 
   private prepararGraficas() {
@@ -617,10 +675,10 @@ export class EstadisticasComponent implements OnInit, AfterViewInit, OnDestroy {
     finDiaCalendario.setDate(finDiaCalendario.getDate() + 1);
 
     const inicioPeriodoDia = new Date(inicioDiaCalendario);
-    inicioPeriodoDia.setHours(8, 0, 0, 0);
+    inicioPeriodoDia.setHours(7, 0, 0, 0);
 
     const finPeriodoDia = new Date(inicioDiaCalendario);
-    finPeriodoDia.setHours(22, 0, 0, 0);
+    finPeriodoDia.setHours(19, 0, 0, 0);
 
     let minutosDia = 0;
     let minutosTotales = 0;

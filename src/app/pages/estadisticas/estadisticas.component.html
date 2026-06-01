@@ -47,7 +47,7 @@
               </div>
               <div class="stat-info">
                 <span class="stat-value">{{ resumenDiario.lecheHoy.actual }} oz</span>
-                <span class="stat-label">de {{ resumenDiario.lecheHoy.objetivo }} oz</span>
+                <span class="stat-label">de {{ resumenDiario.lecheHoy.objetivo }} oz · {{ formatearPromedioEntre(resumenDiario.tiempoMedioEntreTomasMinutos) }}</span>
               </div>
             </div>
 
@@ -57,7 +57,7 @@
               </div>
               <div class="stat-info">
                 <span class="stat-value">{{ resumenDiario.panalesHoy }}</span>
-                <span class="stat-label">pañales</span>
+                <span class="stat-label">pañales · {{ formatearPromedioEntre(resumenDiario.tiempoMedioEntrePanalesMinutos) }}</span>
               </div>
             </div>
 
@@ -77,7 +77,7 @@
               </div>
               <div class="stat-info">
                 <span class="stat-value">{{ formatearSueno(resumenDiario.suenoHoy) }}</span>
-                <span class="stat-label">de sueño</span>
+                <span class="stat-label">de sueño · {{ formatearPromedioEntre(resumenDiario.tiempoMedioEntreSuenosMinutos) }}</span>
               </div>
             </div>
 
