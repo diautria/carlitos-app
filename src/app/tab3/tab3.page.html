@@ -1,5 +1,4 @@
 ﻿<ion-content class="ion-padding">
-<ng-container *ngIf="!cargando; else loadingState">
 <div class="ajustes-card">
     <div class="ajustes-header">
       <div class="ajustes-icon">
@@ -7,17 +6,17 @@
       </div>
 
       <div>
-        <h2>Ajustes</h2>
+        <h2>Configuración</h2>
 
         <p *ngIf="esAdminFamilia && nombreBebeActivo">
-          Ajustes para {{ nombreBebeActivo }}
+          Configuración para {{ nombreBebeActivo }}
         </p>
 
         <p *ngIf="esAdminFamilia && !nombreBebeActivo">
           Seleccioná un bebé en el inicio para configurar sus datos.
         </p>
 
-        <p *ngIf="!esAdminFamilia">
+        <p *ngIf="!cargandoPermisos && !esAdminFamilia">
           Personalizá cómo querés ver la app.
         </p>
       </div>
@@ -51,7 +50,14 @@
       </ion-segment>
     </section>
 
-    <ng-container *ngIf="esAdminFamilia">
+    <div
+      class="loading-state loading-state-inline"
+      *ngIf="cargandoPermisos || cargandoConfiguracion">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando configuración...</p>
+    </div>
+
+    <ng-container *ngIf="!cargandoPermisos && !cargandoConfiguracion && esAdminFamilia">
     <div class="ajustes-fields" *ngIf="bebeActivoId">
       <div class="ajuste-field">
         <ion-item lines="none">
@@ -140,12 +146,4 @@
     </ion-text>
     </ng-container>
   </div>
-</ng-container>
-
-<ng-template #loadingState>
-  <div class="loading-state">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Cargando configuración...</p>
-  </div>
-</ng-template>
 </ion-content>

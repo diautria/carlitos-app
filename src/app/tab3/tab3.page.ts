@@ -63,10 +63,12 @@ export class Tab3Page implements OnInit {
 
   mensajeGuardado = '';
   mensajeError = '';
-  cargando = false;
+  cargandoPermisos = true;
+  cargandoConfiguracion = false;
   guardando = false;
   esAdminFamilia = false;
   temaSeleccionado: ThemePreference = 'system';
+  private cargaPermisosYConfiguracionEnCurso = false;
 
   constructor(private router: Router) {
     addIcons({
@@ -78,7 +80,6 @@ export class Tab3Page implements OnInit {
 
   async ngOnInit() {
     this.temaSeleccionado = await this.themeService.init();
-    await this.cargarPermisosYConfiguracion();
   }
 
   async ionViewWillEnter() {
@@ -100,11 +101,20 @@ export class Tab3Page implements OnInit {
   }
 
   private async cargarPermisosYConfiguracion() {
+    if (this.cargaPermisosYConfiguracionEnCurso) {
+      return;
+    }
+
+    this.cargaPermisosYConfiguracionEnCurso = true;
+    this.cargandoPermisos = true;
+
     try {
       this.esAdminFamilia = await this.familiaMiembrosService.esUsuarioAdmin();
     } catch (error) {
       console.error('Error cargando permisos de ajustes', error);
       this.esAdminFamilia = false;
+    } finally {
+      this.cargandoPermisos = false;
     }
 
     if (!this.esAdminFamilia) {
@@ -112,15 +122,20 @@ export class Tab3Page implements OnInit {
       this.nombreBebeActivo = '';
       this.mensajeError = '';
       this.mensajeGuardado = '';
-      this.cargando = false;
+      this.cargandoConfiguracion = false;
+      this.cargaPermisosYConfiguracionEnCurso = false;
       return;
     }
 
-    await this.cargarConfiguracion();
+    try {
+      await this.cargarConfiguracion();
+    } finally {
+      this.cargaPermisosYConfiguracionEnCurso = false;
+    }
   }
 
   async cargarConfiguracion() {
-    this.cargando = true;
+    this.cargandoConfiguracion = true;
     this.mensajeError = '';
     this.mensajeGuardado = '';
 
@@ -145,7 +160,7 @@ export class Tab3Page implements OnInit {
       this.mensajeError =
         error?.message || 'No se pudo cargar la configuración.';
     } finally {
-      this.cargando = false;
+      this.cargandoConfiguracion = false;
     }
   }
 
