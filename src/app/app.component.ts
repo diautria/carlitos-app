@@ -22,6 +22,7 @@ import { addOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { ActividadEventosService } from './services/actividad-eventos.service';
 import { ThemeService } from './services/theme.service';
+import { NotificacionFamiliaService } from './services/notificacion-familia.service';
 
 @Component({
   selector: 'app-root',
@@ -51,6 +52,7 @@ export class AppComponent implements OnDestroy {
   private modalController = inject(ModalController);
   private actividadEventosService = inject(ActividadEventosService);
   private themeService = inject(ThemeService);
+  private notificacionFamiliaService = inject(NotificacionFamiliaService);
   private usuarioSubscription?: Subscription;
   private routerSubscription?: Subscription;
   private hayUsuario = false;
@@ -67,6 +69,7 @@ export class AppComponent implements OnDestroy {
   ngOnDestroy() {
     this.usuarioSubscription?.unsubscribe();
     this.routerSubscription?.unsubscribe();
+    this.notificacionFamiliaService.detenerEscuchaNotificaciones();
   }
 
   private initializeApp() {
@@ -91,6 +94,13 @@ export class AppComponent implements OnDestroy {
     this.usuarioSubscription = this.authService.usuario$.subscribe(usuario => {
       this.hayUsuario = !!usuario;
       this.actualizarVisibilidadHeader();
+      
+      // Iniciar/detener escucha de notificaciones según si hay usuario
+      if (usuario) {
+        void this.notificacionFamiliaService.iniciarEscuchaNotificaciones();
+      } else {
+        this.notificacionFamiliaService.detenerEscuchaNotificaciones();
+      }
     });
   }
 
