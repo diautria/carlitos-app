@@ -1,8 +1,6 @@
 ﻿<ion-content>
 <ng-container *ngIf="!loading; else loadingState">
-    <div
-      *ngIf="activities.length > 0 || hayFiltrosActivos()"
-      class="activity-actions-row">
+    <div class="activity-actions-row">
       <ion-button
         expand="block"
         class="filters-action-button"
@@ -37,39 +35,40 @@
       </ion-button>
     </div>
 
-    <ng-container *ngIf="activities.length > 0 || hayFiltrosActivos(); else emptyState">
-      <div class="estadisticas-button-container">
-        <div class="estadisticas-access-card">
-          <div class="estadisticas-access-info">
-            <div class="estadisticas-access-icon">
-              <ion-icon name="stats-chart-outline"></ion-icon>
-            </div>
-
-            <div>
-              <strong>Estadísticas</strong>
-              <span>Resumen de 30 días y gráficas detalladas</span>
-            </div>
+    <div class="estadisticas-button-container">
+      <div class="estadisticas-access-card">
+        <div class="estadisticas-access-info">
+          <div class="estadisticas-access-icon">
+            <ion-icon name="stats-chart-outline"></ion-icon>
           </div>
 
-          <div class="estadisticas-access-actions">
-            <ion-button
-              size="small"
-              fill="outline"
-              color="primary"
-              (click)="abrirModalEstadisticas()">
-              30 días
-            </ion-button>
-
-            <ion-button
-              size="small"
-              color="primary"
-              [routerLink]="['/estadisticas']">
-              <ion-icon name="bar-chart-outline" slot="start"></ion-icon>
-              Gráficas
-            </ion-button>
+          <div>
+            <strong>Estadísticas</strong>
+            <span>Resumen de 30 días y gráficas detalladas</span>
           </div>
         </div>
+
+        <div class="estadisticas-access-actions">
+          <ion-button
+            size="small"
+            fill="outline"
+            color="primary"
+            (click)="abrirModalEstadisticas()">
+            30 días
+          </ion-button>
+
+          <ion-button
+            size="small"
+            color="primary"
+            [routerLink]="['/estadisticas']">
+            <ion-icon name="bar-chart-outline" slot="start"></ion-icon>
+            Gráficas
+          </ion-button>
+        </div>
       </div>
+    </div>
+
+    <ng-container *ngIf="activities.length > 0 || hayFiltrosActivos(); else emptyState">
 
       <ion-segment
         class="activity-type-segment"
