@@ -253,9 +253,17 @@ async actualizarBebe(
 
   const storageRef = ref(this.storage, ruta);
 
-  await uploadBytes(storageRef, file);
+  try {
+    await uploadBytes(storageRef, file);
 
-  return await getDownloadURL(storageRef);
+    return await getDownloadURL(storageRef);
+  } catch (error: any) {
+    const codigo = error?.code ? ` (${error.code})` : '';
+
+    throw new Error(
+      `No se pudo subir la foto del bebé${codigo}. Revisá la configuración CORS y permisos de Firebase Storage.`
+    );
+  }
 }
 
 async crearBebeConFoto(

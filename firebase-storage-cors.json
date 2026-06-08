@@ -1,0 +1,19 @@
+[
+  {
+    "origin": [
+      "http://localhost:8100",
+      "http://localhost:4200",
+      "capacitor://localhost",
+      "ionic://localhost",
+      "https://carlitos-c1c1f.web.app",
+      "https://carlitos-c1c1f.firebaseapp.com"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "responseHeader": [
+      "Authorization",
+      "Content-Type",
+      "x-goog-resumable"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]
